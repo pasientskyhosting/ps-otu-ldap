@@ -53,7 +53,7 @@ func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if validErrs := u.validateCreateUser(); len(validErrs) > 0 {
 
-		err := map[string]interface{}{"ValidationError": validErrs}
+		err := map[string]interface{}{"validation_error": validErrs}
 
 		render.Status(r, 400)
 		render.JSON(w, r, err)

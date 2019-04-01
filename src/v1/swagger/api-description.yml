@@ -54,7 +54,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Auth'
+                $ref: '#/components/schemas/Verify'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
           
@@ -70,14 +70,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthNew'
+              $ref: '#/components/schemas/Authorize'
       responses:
         '200':
           description: Successful result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Auth'
+                $ref: '#/components/schemas/Authorize'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
@@ -240,8 +240,7 @@ components:
   responses:
     
     ValidationError:
-      description: Bad request
-      type: object
+      $ref: "#/components/schemas/ValidationError"
     UnauthorizedError:
       description: Access token is missing or invalid
     NotFoundError:
@@ -262,6 +261,15 @@ components:
   schemas:
 
     # -------------------
+    # Error
+    # -------------------
+    ValidationError:
+      type: "object"
+      properties:
+        validation_error:
+          type: "object"
+
+    # -------------------
     # Ping  
     # -------------------
 
@@ -279,14 +287,14 @@ components:
     # Auth  
     # -------------------
 
-    Auth:
+    Verify:
       type: "object"
       properties:
         token:
           type: "string"
           example: "yRQYnWzskCZUxPwaQupWkiUzKELZ49eM7oWxAQK_ZXw"
           
-    AuthNew:
+    Authorize:
       type: "object"
       properties:
         username:

@@ -24,6 +24,16 @@ func main() {
 	dbFile := os.Getenv("DB_FILE")
 	port := os.Getenv("PORT")
 	listen := os.Getenv("LISTEN")
+	atoken := os.Getenv("API_TOKEN")
+	ekey := os.Getenv("ENCRYPTION_KEY")
+
+	if atoken == "" {
+		log.Fatalf("env API_TOKEN not set!")
+	}
+
+	if ekey == "" {
+		log.Fatalf("env ENCRYPTION_KEY not set!")
+	}
 
 	if dbFile == "" {
 		dbFile = "./otu.db"
