@@ -104,7 +104,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/User'
         '400':
-          $ref: '#/components/responses/BadRequestError'
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
@@ -132,7 +132,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         '400':
-          $ref: '#/components/responses/BadRequestError'
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
@@ -166,7 +166,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Group'
         '400':
-          $ref: '#/components/responses/BadRequestError'
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
@@ -190,7 +190,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Group'
         '400':
-          $ref: '#/components/responses/BadRequestError'
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
@@ -223,7 +223,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserEncrypted'
         '400':
-          $ref: '#/components/responses/BadRequestError'
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
@@ -238,9 +238,10 @@ security:
 components:
 
   responses:
-
-    BadRequestError:
+    
+    ValidationError:
       description: Bad request
+      type: object
     UnauthorizedError:
       description: Access token is missing or invalid
     NotFoundError:

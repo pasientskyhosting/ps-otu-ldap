@@ -8,6 +8,7 @@ import (
 	"database/sql"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/render"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -52,4 +53,42 @@ func main() {
 	log.Printf("Started REST API on %s:%s with db %s\n", listen, port, dbFile)
 	log.Fatal(http.ListenAndServe(listen+":"+port, s.Routes()))
 
+}
+
+// Do some auth stuff here
+func checkToken(r *http.Request) bool {
+	return true
+}
+
+// Do some auth stuff here
+func checkAPIKey(r *http.Request) bool {
+	return true
+}
+
+func (s *server) isLDAPAuthorized(h http.HandlerFunc) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if !checkToken(r) {
+			render.Status(r, 401)
+			render.JSON(w, r, nil)
+			return
+		}
+
+		h(w, r)
+	}
+}
+
+func (s *server) isAPIKeyAuthorized(h http.HandlerFunc) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if !checkAPIKey(r) {
+			render.Status(r, 401)
+			render.JSON(w, r, nil)
+			return
+		}
+
+		h(w, r)
+	}
 }
