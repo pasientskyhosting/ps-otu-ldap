@@ -1,0 +1,376 @@
+openapi: "3.0.0"
+
+info:
+  version: 1.0.0
+  title: Patentsky One Time User API
+  description: LDAP generated one time users
+  contact:
+    name: Patientsky Infrastructure Team
+    email: kj@patientsky.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+    
+servers:
+  - url: https://odn1-otu.privatedns.zone/api/v1
+  
+paths:
+
+  # -------------------
+  # Ping
+  # -------------------
+  
+  /ping:
+    get:
+      tags:
+        - Ping
+      summary: Check server is alive
+      description: Check if server is answering
+      operationId: ping
+      responses:
+        '200':
+          description: Successful result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ping'
+
+  # -------------------
+  # Auth
+  # -------------------
+  
+  /auth/verify:
+    get:
+      security:
+        - BearerAuth: []
+      tags:
+        - Auth
+      summary: Verify token
+      description: Verify JWT token is valid
+      operationId: authVerify
+      responses:
+        '200':
+          description: Successful result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auth'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+          
+  /auth/authorize:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate
+      description: Authenticate with LDAP credentials
+      operationId: authAuthenticate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthNew'
+      responses:
+        '200':
+          description: Successful result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auth'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # -------------------
+  # User  
+  # -------------------
+  
+  /users:
+    get:
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      summary: Get all active users
+      description: Get all active users created by self
+      operationId: getUsers
+      responses:
+        '200':
+          description: Successful result
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+          
+    post:
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      summary: "Generate a new one time user"
+      description: "Generate a one time user for the specifiec LDAP group name"
+      operationId: "generateUser"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserNew'
+      responses:
+        '200':
+          description: User response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+          
+  # -------------------
+  # Group
+  # -------------------
+  
+  /groups:
+    
+    post:
+      tags:
+        - Groups
+      security:
+        - BearerAuth: []
+      summary: "Create one time user group"
+      description: "Users in specific LDAP groups can create an one time user group. This group is mapped from glauth "
+      operationId: "createGroup"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+      responses:
+        '200':
+          description: User response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      
+    get:
+      tags:
+        - Groups
+      security:
+        - BearerAuth: []
+      summary: "Get groups for one time user generation"
+      description: "Returns all groups that the specific user has access to. User can create one time users from these groups. These groups are mapped 1:1 with LDAP groups"
+      operationId: "getGroups"
+      responses:
+        '200':
+          description: Successful result
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+          
+  /groups/{group_name}/users:
+    get:
+      tags:
+        - Groups
+      security:
+        - ApiKeyAuth: []
+      summary: "Get all users in group"
+      description: "Get all users in a given LDAP group. This endpoint is called by Sync services and payload is encrypted with an encryptionkey"
+      operationId: "getGroupUsers"
+      parameters:
+        - name: group_name
+          in: path
+          description: LDAP group name
+          required: true
+          x-example: "proxy-sql"
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful result
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserEncrypted'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  
+
+security:
+
+  - ApiKeyAuth: []
+  - BearerAuth: []
+
+components:
+
+  responses:
+
+    BadRequestError:
+      description: Bad request
+    UnauthorizedError:
+      description: Access token is missing or invalid
+    NotFoundError:
+      description: Not found
+
+  securitySchemes:
+  
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+
+  schemas:
+
+    # -------------------
+    # Ping  
+    # -------------------
+
+    Ping:
+      type: "object"
+      properties:
+        version:
+          type: "string"
+          example: "v1.0.1"
+        message:
+          type: "string"
+          example: "pong"
+  
+    # -------------------
+    # Auth  
+    # -------------------
+
+    Auth:
+      type: "object"
+      properties:
+        token:
+          type: "string"
+          example: "yRQYnWzskCZUxPwaQupWkiUzKELZ49eM7oWxAQK_ZXw"
+          
+    AuthNew:
+      type: "object"
+      properties:
+        username:
+          type: "string"
+          example: "kj"
+          description: LDAP username
+        password:
+          description: LDAP password + OTP token
+          type: "string"
+          example: "password+otp"
+          
+    # -------------------
+    # Group
+    # -------------------
+    
+    Group:
+      type: "object"
+      properties:
+        group_name:
+          type: string
+          example: proxy-sql
+        ldap_group_name:
+          type: string
+          example: proxy-sql
+        lease_time:
+          type: integer
+          example: 3600 # 1 hour
+          description: Lease time in seconds
+  
+    # -------------------
+    # User  
+    # -------------------
+  
+    UserNew:
+      type: "object"
+      required:
+        - "group_name"
+      properties:
+        group_name:
+          type: "string"
+          example: "proxy-sql"
+          
+    User:
+      required:
+        - name  
+      properties:
+        username:
+          type: "string"
+          example: "kj-proxy-sql-yx4dajg8vn"
+        password:
+          type: "string"
+          example: "jkybs9p8uukysmfarapf"
+        group_name:
+          type: "string"
+          example: "proxy-sql"
+        expire_time:
+          type: "integer"
+          example: 1554102608
+        create_time:
+          type: "integer"
+          example: 1554100608
+        created_by:
+          type: "string"
+          example: "kj"
+
+    UserEncrypted:
+      required:
+        - name  
+      properties:
+        username:
+          type: "string"
+          example: "kj-proxy-sql-yx4dajg8vn"
+        password:
+          type: "string"
+          example: "encrypted_password"
+          description: "Encrypted password that sync service must decrypt with encryption key"
+        group_name:
+          type: "string"
+          example: "proxy-sql"
+        expire_time:
+          type: "integer"
+          example: 1554102608
+        create_time:
+          type: "integer"
+          example: 1554100608
+        created_by:
+          type: "string"
+          example: "kj"
