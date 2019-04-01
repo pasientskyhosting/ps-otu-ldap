@@ -20,6 +20,8 @@ func (s *server) Routes() *chi.Mux {
 	s.router.Route("/v1", func(r chi.Router) {
 		r.Mount("/api/group", s.GroupRoutes())
 		r.Mount("/api/user", s.UserRoutes())
+		r.Mount("/api/ping", s.PingRoutes())
+		r.Mount("/api/auth", s.AuthRoutes())
 	})
 
 	return s.router
