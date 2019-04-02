@@ -15,7 +15,7 @@ ADD src/ .
 RUN go get -d . 
 
 # Compiule project
-RUN go build -o otu-ldap
+RUN go build -ldflags="-s -w" -o otu-ldap
 
 ###################################################################
 # Final Stage                                                    
