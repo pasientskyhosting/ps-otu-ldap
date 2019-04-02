@@ -9,6 +9,9 @@ volume:
 run:
 	docker run --rm --name=otu-ldap \
 	-e ENCRYPTION_KEY=test \
+	-e LDAP_BIND_DN=$LDAP_BIND_DN \
+	-e LDAP_BIND_PASSWORD=$LDAP_BIND_PASSWORD \
+	-e JWT_SECRET=jwtsupersecret \
 	-e API_TOKEN=hest \
 	-e LISTEN=0.0.0.0 \
 	-v volume-otu-ldap:/data/otu-ldap \

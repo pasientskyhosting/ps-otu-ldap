@@ -28,7 +28,6 @@ var listen = os.Getenv("LISTEN")                       // Listen
 var atoken = os.Getenv("API_TOKEN")                    // API token for sync services
 var ekey = os.Getenv("ENCRYPTION_KEY")                 // Encryption key
 var jwtSecret = os.Getenv("JWT_SECRET")                // JWT signing key
-var bindPass = os.Getenv("BIND_PASS")                  // Bind readonly pass
 var ldapBase = os.Getenv("LDAP_BASE")                  // LDAP Base
 var ldapServer = os.Getenv("LDAP_SERVER")              // LDAP server url
 var ldapBindDN = os.Getenv("LDAP_BIND_DN")             // Bind readonly user
@@ -42,10 +41,6 @@ type server struct {
 }
 
 func init() {
-
-	if bindPass == "" {
-		log.Fatalf("env BIND_PASS not set!")
-	}
 
 	if jwtSecret == "" {
 		log.Fatalf("env JWT_SECRET not set!")
