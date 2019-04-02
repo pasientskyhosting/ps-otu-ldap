@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 )
 
@@ -18,17 +17,6 @@ type User struct {
 	ExpireTime int    `json:"expire_time"`
 	CreateTime int    `json:"create_time"`
 	CreatedBy  string `json:"created_by"`
-}
-
-// UserRoutes def
-func (s *server) UserRoutes() *chi.Mux {
-
-	router := chi.NewRouter()
-
-	router.Post("/", s.isLDAPAuthorized(s.CreateUser))
-	router.Get("/", s.isLDAPAuthorized(s.GetAllUsers))
-
-	return router
 }
 
 func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {

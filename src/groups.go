@@ -10,17 +10,6 @@ import (
 	"github.com/go-chi/render"
 )
 
-func (s *server) GroupRoutes() *chi.Mux {
-
-	router := chi.NewRouter()
-
-	router.Get("/{GroupName}/users", s.isAPIKeyAuthorized(s.GetAllGroupUsers))
-	router.Post("/", s.isLDAPAuthorized(s.CreateGroup))
-	router.Get("/", s.isLDAPAuthorized(s.GetAllGroups))
-
-	return router
-}
-
 // Group desc
 type Group struct {
 	GroupName     string `json:"group_name"`

@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 
-	"github.com/go-chi/chi"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/render"
 )
 
@@ -19,15 +20,6 @@ type Token struct {
 type Auth struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-}
-
-func (s *server) AuthRoutes() *chi.Mux {
-
-	router := chi.NewRouter()
-	router.Get("/verify", s.Verify)
-	router.Post("/authorize", s.Authorize)
-
-	return router
 }
 
 func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {
@@ -56,8 +48,18 @@ func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//
-	render.JSON(w, r, Token{Token: "token123446556"})
+	err = s.lc.LDAPAuthentication(a)
+
+	if err != nil {
+		log.Printf("User %s denied LDAP login: %s \n", a.Username, err)
+		render.Status(r, 401)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": a.Username})
+
+	render.JSON(w, r, Token{Token: tokenString})
 
 }
 

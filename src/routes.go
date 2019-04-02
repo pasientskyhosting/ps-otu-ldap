@@ -1,8 +1,11 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
 )
 
@@ -17,12 +20,59 @@ func (s *server) Routes() *chi.Mux {
 		middleware.Recoverer,       // Recover from panics without crashing server
 	)
 
-	s.router.Route("/v1", func(r chi.Router) {
-		r.Mount("/api/groups", s.GroupRoutes())
-		r.Mount("/api/users", s.UserRoutes())
-		r.Mount("/api/ping", s.PingRoutes())
-		r.Mount("/api/auth", s.AuthRoutes())
+	// JWT routes
+	s.router.Group(func(r chi.Router) {
+
+		// Seek, verify and validate JWT tokens
+		r.Use(jwtauth.Verifier(s.token))
+
+		// Handle valid / invalid tokens.
+		r.Use(jwtauth.Authenticator)
+
+		r.Post("/v1/api/users", s.CreateUser)
+		r.Get("/v1/api/users", s.GetAllUsers)
+		r.Post("/v1/api/groups", s.CreateGroup)
+		r.Get("/v1/api/groups", s.GetAllGroups)
 	})
 
+	// Public routes
+	s.router.Group(func(r chi.Router) {
+		r.Get("/v1/api/auth/verify", s.Verify)
+		r.Post("/v1/api/auth/authorize", s.Authorize)
+		r.Get("/v1/api/ping", s.Ping)
+	})
+
+	// API-KEY routes
+	s.router.Group(func(r chi.Router) {
+		r.Get("/v1/api/groups/{GroupName}/users", s.isAPIKeyAuthorized(s.GetAllGroupUsers))
+	})
+
+	// _, claims, _ := jwtauth.FromContext(r.Context())
+	// log.Printf("GetAllUsers accessed by: %v \n", claims["user_id"])
+
 	return s.router
+}
+
+// Do some auth stuff here
+func checkToken(r *http.Request) bool {
+	return true
+}
+
+// Do some auth stuff here
+func checkAPIKey(r *http.Request) bool {
+	return true
+}
+
+func (s *server) isAPIKeyAuthorized(h http.HandlerFunc) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if !checkAPIKey(r) {
+			render.Status(r, 401)
+			render.JSON(w, r, nil)
+			return
+		}
+
+		h(w, r)
+	}
 }
