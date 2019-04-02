@@ -29,6 +29,7 @@ func (s *server) Routes() *chi.Mux {
 		// Handle valid / invalid tokens.
 		r.Use(jwtauth.Authenticator)
 
+		r.Get("/v1/api/auth/verify", s.Verify)
 		r.Post("/v1/api/users", s.CreateUser)
 		r.Get("/v1/api/users", s.GetAllUsers)
 		r.Post("/v1/api/groups", s.CreateGroup)
@@ -37,7 +38,6 @@ func (s *server) Routes() *chi.Mux {
 
 	// Public routes
 	s.router.Group(func(r chi.Router) {
-		r.Get("/v1/api/auth/verify", s.Verify)
 		r.Post("/v1/api/auth/authorize", s.Authorize)
 		r.Get("/v1/api/ping", s.Ping)
 	})
