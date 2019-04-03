@@ -62,9 +62,6 @@ func TestPing(t *testing.T) {
 
 	a.checkResponseCode(t, http.StatusOK, response.Code)
 
-	// if body := response.Body.String(); body != "[]" {
-	// 	t.Errorf("Expected an empty array. Got %s", body)
-	// }
 }
 
 func (a *apiTest) getToken() string {
@@ -77,15 +74,13 @@ func (a *apiTest) getToken() string {
 
 func TestUsersCreateUser(t *testing.T) {
 
-	a := newAPITest("POST", "/v1/api/users", []byte(`{"group_name":"macandcheese"}`))
+	var u User
 
+	a := newAPITest("POST", "/v1/api/users", []byte(`{"group_name":"macandcheese"}`))
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.getToken()))
 
 	response := a.executeRequest(a.req)
-
 	a.checkResponseCode(t, http.StatusCreated, response.Code)
-
-	var u User
 
 	err := json.Unmarshal([]byte(response.Body.String()), &u)
 
@@ -101,17 +96,27 @@ func TestUsersCreateUser(t *testing.T) {
 
 }
 
-func TestUsersGetAllUsers(t *testing.T) {
+func TestUsersCreateUserShouldFailWhenInvalidBody(t *testing.T) {
 
-	a := newAPITest("GET", "/v1/api/users", nil)
+	a := newAPITest("POST", "/v1/api/users", []byte(`{"failed_body":"macandcheese"}`))
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.getToken()))
 
 	response := a.executeRequest(a.req)
 
-	a.checkResponseCode(t, http.StatusOK, response.Code)
+	a.checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+}
+
+func TestUsersGetAllUsers(t *testing.T) {
 
 	var users []User
+
+	a := newAPITest("GET", "/v1/api/users", nil)
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.getToken()))
+
+	response := a.executeRequest(a.req)
+	a.checkResponseCode(t, http.StatusOK, response.Code)
 
 	err := json.Unmarshal([]byte(response.Body.String()), &users)
 
@@ -124,6 +129,80 @@ func TestUsersGetAllUsers(t *testing.T) {
 	if users[0].Username == "" || users[0].Password == "" || users[0].GroupName == "" {
 		t.Errorf("Error with body: %+v", users)
 	}
+
+}
+
+func TestGroupsGetAllGroups(t *testing.T) {
+
+	a := newAPITest("GET", "/v1/api/groups", nil)
+
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.getToken()))
+
+	response := a.executeRequest(a.req)
+
+	a.checkResponseCode(t, http.StatusOK, response.Code)
+
+	var groups []Group
+
+	err := json.Unmarshal([]byte(response.Body.String()), &groups)
+
+	// handle parse error
+	if err != nil {
+		t.Errorf("Error while parsing body")
+	}
+
+	// Check if error in body
+	if groups[0].GroupName == "" || groups[0].LdapGroupName == "" || groups[0].CreateTime == 0 {
+		t.Errorf("Error with body: %+v", groups)
+	}
+
+}
+
+func TestGroupsCreateGroup(t *testing.T) {
+
+	a := newAPITest("POST", "/v1/api/groups", []byte(`{"group_name": "proxy-sql","ldap_group_name": "proxy-sql","lease_time": 3600}`))
+
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.getToken()))
+
+	response := a.executeRequest(a.req)
+
+	a.checkResponseCode(t, http.StatusCreated, response.Code)
+
+	var g Group
+
+	err := json.Unmarshal([]byte(response.Body.String()), &g)
+
+	// handle parse error
+	if err != nil {
+		t.Errorf("Error while parsing body %s", response.Body.String())
+	}
+
+	// Check if error in body
+	if g.GroupName == "" || g.LdapGroupName == "" {
+		t.Errorf("Error with body: %s", response.Body.String())
+	}
+
+}
+
+func TestAuthVerify(t *testing.T) {
+
+	a := newAPITest("GET", "/v1/api/auth/verify", nil)
+
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.getToken()))
+
+	response := a.executeRequest(a.req)
+
+	a.checkResponseCode(t, http.StatusOK, response.Code)
+
+}
+
+func TestAuthVerifyShouldFailWhenInvalidToken(t *testing.T) {
+
+	a := newAPITest("GET", "/v1/api/auth/verify", nil)
+
+	response := a.executeRequest(a.req)
+
+	a.checkResponseCode(t, http.StatusUnauthorized, response.Code)
 
 }
 

@@ -13,6 +13,9 @@ info:
     
 servers:
   - url: https://odn1-otu.privatedns.zone/api/v1
+  - url: https://cph1-otu.privatedns.zone/api/v1
+  - url: https://osl1-otu.privatedns.zone/api/v1
+  - url: https://sto1-otu.privatedns.zone/api/v1
   
 paths:
 

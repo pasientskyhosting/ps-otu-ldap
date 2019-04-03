@@ -51,6 +51,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	g.CreateTime = 1554102608
 	g.CreatedBy = "kj"
 
+	render.Status(r, 201)
 	render.JSON(w, r, g)
 
 }
