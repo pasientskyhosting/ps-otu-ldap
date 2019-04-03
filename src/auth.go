@@ -6,8 +6,10 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
 )
 
@@ -57,7 +59,7 @@ func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": a.Username})
+	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": a.Username, "exp": jwtauth.ExpireIn(60 * time.Minute)})
 
 	render.JSON(w, r, Token{Token: tokenString})
 

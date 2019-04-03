@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"database/sql"
 
@@ -117,7 +118,7 @@ func main() {
 	}
 
 	// For debugging/example purposes, we generate and print a sample jwt token with claims `user_id:123` here:
-	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": 123})
+	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": 123, "exp": jwtauth.ExpireIn(60 * time.Minute)})
 
 	log.Printf("DEBUG: A sample jwt is %s\n", tokenString)
 
