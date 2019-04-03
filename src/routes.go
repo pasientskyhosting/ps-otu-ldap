@@ -10,7 +10,7 @@ import (
 )
 
 // Routes explained
-func (s *server) Routes() *chi.Mux {
+func (s *server) routes() *chi.Mux {
 
 	s.router.Use(
 		render.SetContentType(render.ContentTypeJSON), // Set content-Type headers as application/json

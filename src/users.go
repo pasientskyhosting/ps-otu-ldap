@@ -54,6 +54,7 @@ func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	u.CreateTime = 1554102608
 	u.CreatedBy = "kj"
 
+	render.Status(r, 201)
 	render.JSON(w, r, u)
 }
 

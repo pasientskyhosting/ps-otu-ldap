@@ -11,7 +11,7 @@ import (
 type ldapConn struct {
 	Base         string
 	Server       string
-	Port         int
+	Port         int64
 	BindDN       string
 	BindPassword string
 }

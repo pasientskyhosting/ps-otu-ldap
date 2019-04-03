@@ -1,17 +1,11 @@
-// lc := ldapConn{
-// 	Base:         "cn=accounts,dc=pasientsky,dc=no",
-// 	Server:       "odn-glauth01.privatedns.zone",
-// 	Port:         636,
-// 	BindDN:       "uid=bind,cn=sysaccounts,cn=accounts,dc=pasientsky,dc=no",
-// 	BindPassword: bindPass,
-// }
-
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"database/sql"
@@ -23,106 +17,146 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var dbFile = os.Getenv("DB_FILE")                      // SQLite DB path
-var port = os.Getenv("PORT")                           // Server listen port
-var listen = os.Getenv("LISTEN")                       // Listen
-var atoken = os.Getenv("API_TOKEN")                    // API token for sync services
-var ekey = os.Getenv("ENCRYPTION_KEY")                 // Encryption key
-var jwtSecret = os.Getenv("JWT_SECRET")                // JWT signing key
-var ldapBase = os.Getenv("LDAP_BASE")                  // LDAP Base
-var ldapServer = os.Getenv("LDAP_SERVER")              // LDAP server url
-var ldapBindDN = os.Getenv("LDAP_BIND_DN")             // Bind readonly user
-var ldapBindPassword = os.Getenv("LDAP_BIND_PASSWORD") // Bind readonly pass
-
 type server struct {
 	db     *sql.DB
 	router *chi.Mux
 	token  *jwtauth.JWTAuth
 	lc     *ldapConn
+	env    *env
 }
 
-func init() {
+type env struct {
+	dbFile           string
+	listen           string
+	atoken           string
+	ekey             string
+	jwtSecret        string
+	ldapBase         string
+	ldapServer       string
+	ldapPort         int64
+	ldapBindDN       string
+	ldapBindPassword string
+}
 
-	if jwtSecret == "" {
-		log.Fatalf("env JWT_SECRET not set!")
+func newServer(e *env) *server {
+
+	// New server
+	s := server{
+		router: chi.NewRouter(),
+		db:     newDb(*e),
+		token:  jwtauth.New("HS256", []byte(e.jwtSecret), nil),
+		lc:     newLdapConn(*e),
+		env:    e,
 	}
 
-	if atoken == "" {
-		log.Fatalf("env API_TOKEN not set!")
+	s.router.Routes() // register handlers
+
+	return &s
+}
+
+func newLdapConn(e env) *ldapConn {
+
+	lc := ldapConn{
+		Base:         e.ldapBase,
+		Server:       e.ldapServer,
+		Port:         e.ldapPort,
+		BindDN:       e.ldapBindDN,
+		BindPassword: e.ldapBindPassword,
 	}
 
-	if ekey == "" {
-		log.Fatalf("env ENCRYPTION_KEY not set!")
+	return &lc
+}
+
+func newEnv(
+	dbFile string,
+	listen string,
+	atoken string,
+	ekey string,
+	jwtSecret string,
+	ldapBase string,
+	ldapServer string,
+	ldapPort string,
+	ldapBindDN string,
+	ldapBindPassword string) *env {
+
+	lport, err := strconv.ParseInt(ldapPort, 10, 64)
+
+	if err != nil {
+		log.Printf("Could not parse env LDAP_PORT %s as integer %q. using default 636 \n", string(ldapPort), err)
+		lport = 636
+	}
+
+	if ldapServer == "" {
+		log.Fatalf("Could not parse env LDAP_SERVER %s", ldapServer)
 	}
 
 	if dbFile == "" {
 		dbFile = "/data/otu-ldap/otu.db"
 	}
 
-	if port == "" {
-		port = "8080"
-	}
-
-	if listen == "" {
-		listen = "localhost"
-	}
-
 	if ldapBase == "" {
 		ldapBase = "cn=accounts,dc=pasientsky,dc=no"
 	}
 
-	if ldapServer == "" {
-		ldapServer = "odn-glauth01.privatedns.zone"
+	e := env{
+		dbFile:           dbFile,
+		listen:           listen,
+		atoken:           atoken,
+		ekey:             ekey,
+		jwtSecret:        jwtSecret,
+		ldapBase:         ldapBase,
+		ldapServer:       ldapServer,
+		ldapPort:         lport,
+		ldapBindDN:       ldapBindDN,
+		ldapBindPassword: ldapBindPassword,
 	}
 
-	if ldapBindDN == "" {
-		log.Fatalf("env LDAP_BIND_DN not set!")
-	}
+	log.Printf("Server started with env: %+v", e)
 
-	if ldapBindPassword == "" {
-		log.Fatalf("env LDAP_BIND_PASSWORD not set!")
-	}
-
-	// Check dbFile exists
-	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
-		log.Fatalf("Could find db: %q", err)
-	}
+	return &e
 
 }
 
-func main() {
+func newDb(e env) *sql.DB {
 
 	// Setup db conn
-	db, err := sql.Open("sqlite3", dbFile)
+	db, err := sql.Open("sqlite3", e.dbFile)
 
 	if err != nil {
 		log.Fatalf("Could not open db: %q", err)
 	}
 
-	lc := ldapConn{
-		Base:         ldapBase,
-		Server:       ldapServer,
-		Port:         636,
-		BindDN:       ldapBindDN,
-		BindPassword: ldapBindPassword,
-	}
-
 	defer db.Close()
 
-	// New server
-	s := server{
-		router: chi.NewRouter(),
-		db:     db,
-		token:  jwtauth.New("HS256", []byte(jwtSecret), nil),
-		lc:     &lc,
-	}
+	return db
+}
 
-	// For debugging/example purposes, we generate and print a sample jwt token with claims `user_id:123` here:
-	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": 123, "exp": jwtauth.ExpireIn(60 * time.Minute)})
+func (s *server) listen() string {
+	return fmt.Sprintf("%s:8080", s.env.listen)
+}
 
-	log.Printf("DEBUG: A sample jwt is %s\n", tokenString)
+func main() {
 
-	log.Printf("Started REST API on %s:%s with db %s\n", listen, port, dbFile)
-	log.Fatal(http.ListenAndServe(listen+":"+port, s.Routes()))
+	s := newServer(
+		newEnv(os.Getenv("DB_FILE"),
+			os.Getenv("LISTEN"),
+			os.Getenv("API_TOKEN"),
+			os.Getenv("ENCRYPTION_KEY"),
+			os.Getenv("JWT_SECRET"),
+			os.Getenv("LDAP_BASE"),
+			os.Getenv("LDAP_SERVER"),
+			os.Getenv("LDAP_PORT"),
+			os.Getenv("LDAP_BIND_DN"),
+			os.Getenv("LDAP_BIND_PASSWORD"),
+		),
+	)
+
+	log.Printf("Started REST API on %s with db %s", s.listen(), s.env.dbFile)
+
+	// Create temp token
+	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": "apiTest", "exp": jwtauth.ExpireIn(30 * time.Minute)})
+
+	log.Printf("Started with temp token: %s", ts)
+	log.Fatal(http.ListenAndServe(s.listen(), s.routes()))
 
 }

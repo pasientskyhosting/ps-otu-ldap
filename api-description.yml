@@ -125,7 +125,7 @@ paths:
             schema:
               $ref: '#/components/schemas/UserNew'
       responses:
-        '200':
+        '201':
           description: User response
           content:
             application/json:

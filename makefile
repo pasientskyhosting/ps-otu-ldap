@@ -1,7 +1,7 @@
 all: stop volume build run
 
 stop: 
-	docker stop otu-ldap
+	-docker stop otu-ldap
 
 volume:
 	docker volume create volume-otu-ldap
@@ -9,8 +9,9 @@ volume:
 run:
 	docker run --rm --name=otu-ldap \
 	-e ENCRYPTION_KEY=test \
-	-e LDAP_BIND_DN=$LDAP_BIND_DN \
-	-e LDAP_BIND_PASSWORD=$LDAP_BIND_PASSWORD \
+	-e LDAP_BIND_DN="uid=bind,cn=sysaccounts,cn=accounts,dc=pasientsky,dc=no" \
+	-e LDAP_BIND_PASSWORD=bindpassword \
+	-e LDAP_SERVER=odn-glauth01.privatedns.zone \
 	-e JWT_SECRET=jwtsupersecret \
 	-e API_TOKEN=hest \
 	-e LISTEN=0.0.0.0 \
