@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/cipher"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
+	"golang.org/x/crypto/blowfish"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -28,7 +30,7 @@ type server struct {
 type env struct {
 	dbFile           string
 	listen           string
-	atoken           string
+	apiKey           string
 	ekey             string
 	jwtSecret        string
 	ldapBase         string
@@ -70,7 +72,7 @@ func newLdapConn(e env) *ldapConn {
 func newEnv(
 	dbFile string,
 	listen string,
-	atoken string,
+	apiKey string,
 	ekey string,
 	jwtSecret string,
 	ldapBase string,
@@ -101,7 +103,7 @@ func newEnv(
 	e := env{
 		dbFile:           dbFile,
 		listen:           listen,
-		atoken:           atoken,
+		apiKey:           apiKey,
 		ekey:             ekey,
 		jwtSecret:        jwtSecret,
 		ldapBase:         ldapBase,
@@ -135,12 +137,20 @@ func (s *server) listen() string {
 	return fmt.Sprintf("%s:8080", s.env.listen)
 }
 
+func (s *server) getToken(expire time.Duration, username string) string {
+
+	// Create temp token for api test
+	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": username, "exp": jwtauth.ExpireIn(time.Minute * expire)})
+
+	return ts
+}
+
 func main() {
 
 	s := newServer(
 		newEnv(os.Getenv("DB_FILE"),
 			os.Getenv("LISTEN"),
-			os.Getenv("API_TOKEN"),
+			os.Getenv("API_KEY"),
 			os.Getenv("ENCRYPTION_KEY"),
 			os.Getenv("JWT_SECRET"),
 			os.Getenv("LDAP_BASE"),
@@ -159,4 +169,44 @@ func main() {
 	log.Printf("Started with temp token: %s", ts)
 	log.Fatal(http.ListenAndServe(s.listen(), s.routes()))
 
+}
+
+// checksizeAndPad checks the size of the plaintext and pads it if necessary.
+// Blowfish is a block cipher, thus the plaintext needs to be padded to
+// a multiple of the algorithms blocksize (8 bytes).
+// return the multiple-of-blowfish.BlockSize-sized plaintext
+func checksizeAndPad(plaintext []byte) []byte {
+
+	modulus := len(plaintext) % blowfish.BlockSize
+
+	if modulus != 0 {
+		padlen := blowfish.BlockSize - modulus
+
+		// add required padding
+		for i := 0; i < padlen; i++ {
+			plaintext = append(plaintext, 0)
+		}
+	}
+
+	return plaintext
+}
+
+func encrypt(plaintext []byte, key []byte) ([]byte, error) {
+
+	var iv = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+
+	plaintext = checksizeAndPad(plaintext)
+
+	ecipher, err := blowfish.NewCipher(key)
+
+	if err != nil {
+		panic(err)
+	}
+
+	ciphertext := make([]byte, blowfish.BlockSize+len(plaintext))
+
+	ecbc := cipher.NewCBCEncrypter(ecipher, iv)
+	ecbc.CryptBlocks(ciphertext[blowfish.BlockSize:], plaintext)
+
+	return ciphertext, nil
 }

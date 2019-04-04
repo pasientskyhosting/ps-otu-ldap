@@ -58,9 +58,9 @@ func (lc *ldapConn) LDAPAuthentication(a Auth) error {
 
 	if err := l.Bind(sr.Entries[0].DN, password); err != nil {
 		return errors.New("Failed to auth: " + username)
-	} else {
-		fmt.Printf("Authenticated successfuly as %s!\n", username)
-		return nil
 	}
+
+	fmt.Printf("Authenticated successfuly as %s!\n", username)
+	return nil
 
 }

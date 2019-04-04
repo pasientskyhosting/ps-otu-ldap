@@ -3,7 +3,7 @@ all: linux64 darwin64
 run:
 	export JWT_SECRET=secretfarfar; \
 	export ENCRYPTION_KEY=test; \
-	export API_TOKEN=hest; \
+	export API_KEY=hest; \
 	export DB_FILE=/Users/kj/Projects/github/pasientskyhosting/ps-otu-ldap/db/otu.db; \
 	go run main.go auth.go groups.go ping.go routes.go users.go ldap.go
 

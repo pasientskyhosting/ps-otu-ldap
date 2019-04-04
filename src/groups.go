@@ -120,6 +120,7 @@ func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
+
 func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
 	groups := []Group{

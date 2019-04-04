@@ -59,15 +59,20 @@ func checkToken(r *http.Request) bool {
 }
 
 // Do some auth stuff here
-func checkAPIKey(r *http.Request) bool {
-	return true
+func checkAPIKey(r *http.Request, s *server) bool {
+
+	if s.env.apiKey == r.Header.Get("X-API-KEY") {
+		return true
+	}
+
+	return false
 }
 
 func (s *server) isAPIKeyAuthorized(h http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		if !checkAPIKey(r) {
+		if !checkAPIKey(r, s) {
 			render.Status(r, 401)
 			render.JSON(w, r, nil)
 			return
