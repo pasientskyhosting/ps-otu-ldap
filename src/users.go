@@ -16,7 +16,7 @@ type User struct {
 	GroupName  string `json:"group_name"`
 	ExpireTime int    `json:"expire_time"`
 	CreateTime int    `json:"create_time"`
-	CreatedBy  string `json:"created_by"`
+	CreateBy   string `json:"create_by"`
 }
 
 func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +52,7 @@ func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	u.Password = "36746475jhr6hk5"
 	u.ExpireTime = 1554102608
 	u.CreateTime = 1554102608
-	u.CreatedBy = "kj"
+	u.CreateBy = "kj"
 
 	render.Status(r, 201)
 	render.JSON(w, r, u)
@@ -82,7 +82,7 @@ func (s *server) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 			Username:   "kj-proxy-sql-fjhfrghrghghr47545",
 			Password:   "encrypted_pass1",
 			GroupName:  "proxy-sql",
-			CreatedBy:  "kj",
+			CreateBy:   "kj",
 			ExpireTime: 1554102608,
 			CreateTime: 1554102608,
 		},
@@ -90,7 +90,7 @@ func (s *server) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 			Username:   "kj-rabbitmq-uhefygryg45456",
 			Password:   "encrypted_pass2",
 			GroupName:  "rabbitmq",
-			CreatedBy:  "kj",
+			CreateBy:   "kj",
 			ExpireTime: 1554102608,
 			CreateTime: 1554102608,
 		},
@@ -98,7 +98,7 @@ func (s *server) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 			Username:   "kj-nginx-12344556",
 			Password:   "encrypted_pass3",
 			GroupName:  "nginx",
-			CreatedBy:  "kj",
+			CreateBy:   "kj",
 			ExpireTime: 1554102608,
 			CreateTime: 1554102608,
 		},

@@ -2,7 +2,7 @@ openapi: "3.0.0"
 
 info:
   version: 1.0.0
-  title: Patentsky One Time User API
+  title: PatientSky One Time User API
   description: API to generate temporary one time users from LDAP backend
   contact:
     name: Patientsky Infrastructure Team
@@ -109,9 +109,7 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
+          $ref: '#/components/responses/UnauthorizedError'        
           
     post:
       tags:
@@ -134,17 +132,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
           
   # -------------------
   # Group
   # -------------------
   
+  /groups/{group_name}:
+  
+    delete:
+      tags:
+        - Groups
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: group_name
+          in: path
+          description: Group name
+          required: true
+          x-example: "proxy-sql"
+          schema:
+            type: string
+      responses:
+        '204':
+          description: OK No Content
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        
   /groups:
     
     post:
@@ -160,7 +177,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Group'
+              $ref: '#/components/schemas/GroupNew'
       responses:
         '200':
           description: User response
@@ -172,8 +189,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
       
     get:
       tags:
@@ -195,9 +212,7 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
+          $ref: '#/components/responses/UnauthorizedError'        
           
   /groups/{group_name}/users:
     get:
@@ -228,9 +243,7 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
+          $ref: '#/components/responses/UnauthorizedErrorAPIKey'        
   
 
 security:
@@ -242,10 +255,14 @@ components:
 
   responses:
     
+    ForbiddenError:
+      $ref: "#/components/schemas/ForbiddenError"
     ValidationError:
       $ref: "#/components/schemas/ValidationError"
     UnauthorizedError:
       description: Access token is missing or invalid
+    UnauthorizedErrorAPIKey:
+      description: API key s missing or invalid
     NotFoundError:
       description: Not found
 
@@ -266,7 +283,16 @@ components:
     # -------------------
     # Error
     # -------------------
+    
+    ForbiddenError:
+      description: Not allowed access to this resource
+      type: "object"
+      properties:
+        forbidden_error:
+          type: "object"
+            
     ValidationError:
+      description: Bad request
       type: "object"
       properties:
         validation_error:
@@ -324,7 +350,27 @@ components:
           example: proxy-sql
         lease_time:
           type: integer
-          example: 3600 # 1 hour
+          example: 3600 # 1 hour 
+          description: Lease time in seconds
+        create_time:
+          type: integer
+          example: 1554102608          
+        create_by:
+          type: string
+          example: kj
+          
+    GroupNew:
+      type: "object"
+      properties:
+        group_name:
+          type: string
+          example: proxy-sql
+        ldap_group_name:
+          type: string
+          example: proxy-sql
+        lease_time:
+          type: integer
+          example: 3600 # 1 hour 
           description: Lease time in seconds
   
     # -------------------
@@ -359,7 +405,7 @@ components:
         create_time:
           type: "integer"
           example: 1554100608
-        created_by:
+        create_by:
           type: "string"
           example: "kj"
 
@@ -383,6 +429,6 @@ components:
         create_time:
           type: "integer"
           example: 1554100608
-        created_by:
+        create_by:
           type: "string"
           example: "kj"

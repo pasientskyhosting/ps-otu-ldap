@@ -31,6 +31,25 @@ func TestGroupsGetAllGroups(t *testing.T) {
 
 }
 
+func TestGroupsDeleteGroup(t *testing.T) {
+
+	a := newAPITest("DELETE", "/v1/api/groups/rabbitmq", nil)
+
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
+	response := executeRequest(a.server, a.req)
+	checkResponseCode(t, http.StatusNoContent, response.Code)
+
+}
+
+func TestGroupsDeleteGroupWhenUnAuthorized(t *testing.T) {
+
+	a := newAPITest("DELETE", "/v1/api/groups/rabbitmq", nil)
+
+	response := executeRequest(a.server, a.req)
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+
+}
+
 func TestGroupsGetAllGroupsShouldFailWhenUnAuthorized(t *testing.T) {
 
 	a := newAPITest("GET", "/v1/api/groups", nil)

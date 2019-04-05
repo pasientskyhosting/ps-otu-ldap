@@ -16,7 +16,7 @@ type Group struct {
 	LdapGroupName string `json:"ldap_group_name"`
 	LeaseTime     int    `json:"lease_time"`
 	CreateTime    int    `json:"create_time"`
-	CreatedBy     string `json:"created_by"`
+	CreateBy      string `json:"create_by"`
 }
 
 func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +49,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	g.CreateTime = 1554102608
-	g.CreatedBy = "kj"
+	g.CreateBy = "kj"
 
 	render.Status(r, 201)
 	render.JSON(w, r, g)
@@ -102,7 +102,7 @@ func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 			Username:   "kj-" + g + "-fjhfrghrghghr47545",
 			Password:   "encrypted_pass1",
 			GroupName:  g,
-			CreatedBy:  "kj",
+			CreateBy:   "kj",
 			ExpireTime: 1554102608,
 			CreateTime: 1554102608,
 		},
@@ -110,7 +110,7 @@ func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 			Username:   "ak-" + g + "-fjhfrghrghghr47545",
 			Password:   "encrypted_pass1",
 			GroupName:  g,
-			CreatedBy:  "ak",
+			CreateBy:   "ak",
 			ExpireTime: 1554102608,
 			CreateTime: 1554102608,
 		},
@@ -128,19 +128,29 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 			GroupName:     "rabbitmq",
 			LdapGroupName: "rabbitmq",
 			LeaseTime:     3600,
-			CreatedBy:     "kj",
+			CreateBy:      "kj",
 			CreateTime:    1554102608,
 		},
 		{
 			GroupName:     "proxy-sql",
 			LdapGroupName: "proxy-sql",
 			LeaseTime:     86400,
-			CreatedBy:     "kj",
+			CreateBy:      "kj",
 			CreateTime:    1554102608,
 		},
 	}
 
 	render.JSON(w, r, groups)
+	return
+
+}
+
+func (s *server) DeleteGroup(w http.ResponseWriter, r *http.Request) {
+
+	// g := chi.URLParam(r, "GroupName")
+
+	render.Status(r, 204)
+	render.JSON(w, r, nil)
 	return
 
 }

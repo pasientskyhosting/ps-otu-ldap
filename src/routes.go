@@ -2,6 +2,9 @@ package main
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -33,6 +36,7 @@ func (s *server) routes() *chi.Mux {
 		r.Post("/v1/api/users", s.CreateUser)
 		r.Get("/v1/api/users", s.GetAllUsers)
 		r.Post("/v1/api/groups", s.CreateGroup)
+		r.Delete("/v1/api/groups/{GroupName}", s.DeleteGroup)
 		r.Get("/v1/api/groups", s.GetAllGroups)
 	})
 
@@ -47,10 +51,34 @@ func (s *server) routes() *chi.Mux {
 		r.Get("/v1/api/groups/{GroupName}/users", s.isAPIKeyAuthorized(s.GetAllGroupUsers))
 	})
 
-	// _, claims, _ := jwtauth.FromContext(r.Context())
-	// log.Printf("GetAllUsers accessed by: %v \n", claims["user_id"])
+	workDir, _ := os.Getwd()
+	filesDir := filepath.Join(workDir, "html")
+
+	FileServer(s.router, "/", http.Dir(filesDir))
 
 	return s.router
+}
+
+// FileServer conveniently sets up a http.FileServer handler to serve
+// static files from a http.FileSystem.
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit URL parameters.")
+	}
+
+	fs := http.StripPrefix(path, http.FileServer(root))
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fs.ServeHTTP(w, r)
+	}))
+
 }
 
 // Do some auth stuff here

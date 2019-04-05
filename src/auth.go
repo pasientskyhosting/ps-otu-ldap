@@ -50,7 +50,7 @@ func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.lc.LDAPAuthentication(a)
+	lu, err := s.lc.LDAPAuthentication(a)
 
 	if err != nil {
 		log.Printf("User %s denied LDAP login: %s \n", a.Username, err)
@@ -59,7 +59,7 @@ func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": a.Username, "exp": jwtauth.ExpireIn(60 * time.Minute)})
+	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": lu.username, "exp": jwtauth.ExpireIn(60 * time.Minute), "is_admin": lu.admin, "display_name": lu.displayName})
 
 	render.JSON(w, r, Token{Token: tokenString})
 

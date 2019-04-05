@@ -1,0 +1,32 @@
+{
+  "name": "ps-otu-ldap-fe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "build": "BABEL_ENV=production webpack --config webpack_production.config.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-typescript": "^7.3.3",
+    "@types/react": "^16.8.12",
+    "babel-loader": "^8.0.5",
+    "express": "^4.16.4",
+    "react-hot-loader": "^4.8.2",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-middleware": "^3.6.2",
+    "webpack-hot-middleware": "^2.24.3"
+  },
+  "dependencies": {
+    "bl-react": "git+https://github.com/ryskov/bl-react.git",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6"
+  }
+}
