@@ -25,6 +25,7 @@
     "webpack-hot-middleware": "^2.24.3"
   },
   "dependencies": {
+    "@blueprintjs/core": "^3.15.0",
     "bl-react": "git+https://github.com/ryskov/bl-react.git",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"

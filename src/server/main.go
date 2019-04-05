@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/cipher"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,7 +13,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
-	"golang.org/x/crypto/blowfish"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -169,44 +167,4 @@ func main() {
 	log.Printf("Started with temp token: %s", ts)
 	log.Fatal(http.ListenAndServe(s.listen(), s.routes()))
 
-}
-
-// checksizeAndPad checks the size of the plaintext and pads it if necessary.
-// Blowfish is a block cipher, thus the plaintext needs to be padded to
-// a multiple of the algorithms blocksize (8 bytes).
-// return the multiple-of-blowfish.BlockSize-sized plaintext
-func checksizeAndPad(plaintext []byte) []byte {
-
-	modulus := len(plaintext) % blowfish.BlockSize
-
-	if modulus != 0 {
-		padlen := blowfish.BlockSize - modulus
-
-		// add required padding
-		for i := 0; i < padlen; i++ {
-			plaintext = append(plaintext, 0)
-		}
-	}
-
-	return plaintext
-}
-
-func encrypt(plaintext []byte, key []byte) ([]byte, error) {
-
-	var iv = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
-
-	plaintext = checksizeAndPad(plaintext)
-
-	ecipher, err := blowfish.NewCipher(key)
-
-	if err != nil {
-		panic(err)
-	}
-
-	ciphertext := make([]byte, blowfish.BlockSize+len(plaintext))
-
-	ecbc := cipher.NewCBCEncrypter(ecipher, iv)
-	ecbc.CryptBlocks(ciphertext[blowfish.BlockSize:], plaintext)
-
-	return ciphertext, nil
 }

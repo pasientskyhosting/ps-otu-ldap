@@ -9,7 +9,7 @@ RUN apk update \
 
 WORKDIR /app
 
-ADD gui/ .
+ADD src/gui/ .
 
 RUN npm install && \
     npm run build
@@ -26,7 +26,7 @@ RUN apk update \
 
 WORKDIR /go/src/github.com/pasientskyhosting/ps-otu-ldap
 
-ADD src/ .
+ADD src/server/ .
 
 # Get dependencies
 RUN go get -d . 

@@ -116,7 +116,12 @@ func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	render.JSON(w, r, users)
+	u, _ := json.Marshal(users)
+
+	test := encrypt(u, "testing123")
+
+	render.PlainText(w, r, string(test))
+	//render.JSON(w, r, users)
 	return
 
 }

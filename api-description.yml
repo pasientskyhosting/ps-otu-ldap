@@ -235,11 +235,10 @@ paths:
         '200':
           description: Successful result
           content:
-            application/json:
+            text/plain:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserEncrypted'
+                $ref: '#/components/responses/EncryptedUsers'
+                  
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -255,6 +254,8 @@ components:
 
   responses:
     
+    EncryptedUsers:
+      description: Encrypted users
     ForbiddenError:
       $ref: "#/components/schemas/ForbiddenError"
     ValidationError:
