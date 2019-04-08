@@ -118,10 +118,9 @@ func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 
 	u, _ := json.Marshal(users)
 
-	test := encrypt(u, "testing123")
+	encryptedPayload := encrypt(u, s.env.ekey)
 
-	render.PlainText(w, r, string(test))
-	//render.JSON(w, r, users)
+	render.PlainText(w, r, string(encryptedPayload))
 	return
 
 }

@@ -8,4 +8,4 @@ if (module.hot) {
     module.hot.accept();
  }
 
-ReactDOM.render(<App message="yes this is jeppe"/>,document.getElementById("root"))
+ReactDOM.render(<App />,document.getElementById("root"))

@@ -5,7 +5,7 @@ run:
 	export ENCRYPTION_KEY=test; \
 	export API_KEY=hest; \
 	export DB_FILE=/Users/kj/Projects/github/pasientskyhosting/ps-otu-ldap/db/otu.db; \
-	go run main.go auth.go groups.go ping.go routes.go users.go ldap.go crypt.go
+	go run src/main.go src/auth.go src/groups.go src/ping.go src/routes.go src/users.go src/ldap.go src/crypt.go
 
 prep:
 	mkdir -p bin

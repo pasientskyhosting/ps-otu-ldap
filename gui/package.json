@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^3.15.0",
-    "bl-react": "git+https://github.com/ryskov/bl-react.git",
+    "prettier": "^1.16.4",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
   }

@@ -2,10 +2,11 @@ let path = require('path');
 let webpack = require('webpack');
 
 module.exports = {
-    mode: 'production',
+    mode: 'development',
     entry: { 
-        app: [            
-            './index.tsx'
+        app: [
+            'webpack-hot-middleware/client',
+            './src/index.tsx'
         ] 
     },
     output: {
@@ -23,11 +24,6 @@ module.exports = {
         extensions: ['.js', '.jsx', '.ts', '.tsx']
     },
     plugins: [
-        new webpack.optimize.OccurrenceOrderPlugin(), 
-        new webpack.DefinePlugin({
-            'process.env': {
-                NODE_ENV: JSON.stringify('production')
-            }
-        })
+        new webpack.HotModuleReplacementPlugin()
     ]
 }
