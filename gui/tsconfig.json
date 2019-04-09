@@ -2,11 +2,15 @@
     "compilerOptions": {
         "module": "commonjs",
         "jsx": "react",
+        "lib": [
+            "es2015", "dom"
+        ],
         "preserveConstEnums": true,
         "allowSyntheticDefaultImports": true,
         "moduleResolution": "node",
         "noEmit": true,
         "pretty": true,
+        "target": "es2015"
     },
     "include": [
         "./**/*.ts",

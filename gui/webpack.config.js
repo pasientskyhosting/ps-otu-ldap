@@ -18,6 +18,10 @@ module.exports = {
         rules: [{
             test: /\.(js|ts|tsx)$/,            
             loaders: ['babel-loader']
+        },
+        {
+            test: /\.less$/,
+            loaders: ['style-loader', 'css-loader', 'less-loader']
         }]
     },
     resolve: {
