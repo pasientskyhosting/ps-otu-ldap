@@ -10,7 +10,8 @@
         "moduleResolution": "node",
         "noEmit": true,
         "pretty": true,
-        "target": "es2015"
+        "target": "es2015",
+        "strict": true
     },
     "include": [
         "./**/*.ts",

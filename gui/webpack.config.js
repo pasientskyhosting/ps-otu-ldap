@@ -22,7 +22,12 @@ module.exports = {
         {
             test: /\.less$/,
             loaders: ['style-loader', 'css-loader', 'less-loader']
-        }]
+        },
+        {
+            test: /\.svg$/,
+            loader: 'svg-inline-loader'
+        }
+        ]
     },
     resolve: {
         extensions: ['.js', '.jsx', '.ts', '.tsx']

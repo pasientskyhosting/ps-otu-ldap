@@ -86,8 +86,8 @@ func (g *Group) validateCreateGroup() url.Values {
 	}
 
 	// check the title field is between 3 to 120 chars
-	if g.LeaseTime < 3600 || g.LeaseTime > 84600 {
-		errs.Add("lease_time", "The lease_time field must be between 1h (3600) and 1y (86400)")
+	if g.LeaseTime < 60 || g.LeaseTime > 20160 {
+		errs.Add("lease_time", "The lease_time field must be between 1h (60) and 1y (20160)")
 	}
 
 	return errs
@@ -131,13 +131,41 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 		{
 			GroupName:     "rabbitmq",
 			LdapGroupName: "rabbitmq",
-			LeaseTime:     3600,
+			LeaseTime:     720,
 			CreateBy:      "kj",
 			CreateTime:    1554102608,
 		},
 		{
 			GroupName:     "proxy-sql",
 			LdapGroupName: "proxy-sql",
+			LeaseTime:     720,
+			CreateBy:      "kj",
+			CreateTime:    1554102608,
+		},
+		{
+			GroupName:     "vpn",
+			LdapGroupName: "vpn",
+			LeaseTime:     720,
+			CreateBy:      "kj",
+			CreateTime:    1554102608,
+		},
+		{
+			GroupName:     "voip",
+			LdapGroupName: "voip",
+			LeaseTime:     720,
+			CreateBy:      "jrl",
+			CreateTime:    1554102608,
+		},
+		{
+			GroupName:     "kubernetes",
+			LdapGroupName: "kubernetes",
+			LeaseTime:     9000,
+			CreateBy:      "ak",
+			CreateTime:    1554102608,
+		},
+		{
+			GroupName:     "superheroes",
+			LdapGroupName: "superheroes",
 			LeaseTime:     86400,
 			CreateBy:      "kj",
 			CreateTime:    1554102608,

@@ -8,14 +8,5 @@ if (module.hot) {
     module.hot.accept();
  }
 
-const token = localStorage.getItem('jwt.token')
 
-let isVerified = false
-
-if ( !token  ) {
-    isVerified = false
-} else {
-    isVerified = true
-}
-
-ReactDOM.render(<App isAuthenticated={isVerified} />,document.getElementById("root"))
+ReactDOM.render(<App />,document.getElementById("root"))

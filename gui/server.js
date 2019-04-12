@@ -1,3 +1,4 @@
+const proxy = require('express-http-proxy');
 const express = require("express")
 
 let app = express()
@@ -18,6 +19,8 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 app.use('/', express.static('public'));
+
+app.use('/', proxy('localhost:8081'));
 
 app.listen(8080, () => {
     console.log("listening on port 8080")

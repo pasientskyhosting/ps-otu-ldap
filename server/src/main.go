@@ -132,7 +132,7 @@ func newDb(e env) *sql.DB {
 }
 
 func (s *server) listen() string {
-	return fmt.Sprintf("%s:8080", s.env.listen)
+	return fmt.Sprintf("%s:8081", s.env.listen)
 }
 
 func (s *server) getToken(expire time.Duration, username string) string {
