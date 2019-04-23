@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
@@ -20,6 +22,14 @@ type Group struct {
 }
 
 func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
+
+	var userID, err = s.getUserID(r)
+
+	if err != nil {
+		render.Status(r, 401)
+		render.JSON(w, r, nil)
+		return
+	}
 
 	var g Group
 
@@ -48,8 +58,8 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	g.CreateTime = 1554102608
-	g.CreateBy = "kj"
+	g.CreateTime = int(time.Now().Unix())
+	g.CreateBy = userID
 
 	render.Status(r, 201)
 	render.JSON(w, r, g)
@@ -127,49 +137,56 @@ func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
-	groups := []Group{
-		{
-			GroupName:     "rabbitmq",
-			LdapGroupName: "rabbitmq",
-			LeaseTime:     720,
-			CreateBy:      "kj",
-			CreateTime:    1554102608,
-		},
-		{
-			GroupName:     "proxy-sql",
-			LdapGroupName: "proxy-sql",
-			LeaseTime:     720,
-			CreateBy:      "kj",
-			CreateTime:    1554102608,
-		},
-		{
-			GroupName:     "vpn",
-			LdapGroupName: "vpn",
-			LeaseTime:     720,
-			CreateBy:      "kj",
-			CreateTime:    1554102608,
-		},
-		{
-			GroupName:     "voip",
-			LdapGroupName: "voip",
-			LeaseTime:     720,
-			CreateBy:      "jrl",
-			CreateTime:    1554102608,
-		},
-		{
-			GroupName:     "kubernetes",
-			LdapGroupName: "kubernetes",
-			LeaseTime:     9000,
-			CreateBy:      "ak",
-			CreateTime:    1554102608,
-		},
-		{
-			GroupName:     "superheroes",
-			LdapGroupName: "superheroes",
-			LeaseTime:     86400,
-			CreateBy:      "kj",
-			CreateTime:    1554102608,
-		},
+	var groups []Group
+
+	rows, err := s.db.Query("SELECT group_name, ldap_group_name, lease_time, create_time, create_by FROM groups WHERE deleted=0")
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: connecting to DB: %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var groupName string
+		var ldapGroupName string
+		var LeaseTime int
+		var createTime int
+		var createBy string
+
+		err = rows.Scan(&groupName, &ldapGroupName, &LeaseTime, &createTime, &createBy)
+
+		if err != nil {
+			// handle this error better than this
+			log.Printf("ERROR: looping through DB rows: %+v", err)
+			render.Status(r, 500)
+			render.JSON(w, r, nil)
+			return
+		}
+
+		groups = append(groups, Group{
+			GroupName:     groupName,
+			LdapGroupName: ldapGroupName,
+			LeaseTime:     LeaseTime,
+			CreateTime:    createTime,
+			CreateBy:      createBy,
+		})
+	}
+
+	// get any error encountered during iteration
+	err = rows.Err()
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: handling DB rows: %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
 	}
 
 	render.JSON(w, r, groups)

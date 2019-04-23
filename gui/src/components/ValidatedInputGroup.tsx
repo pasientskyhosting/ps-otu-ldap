@@ -1,5 +1,5 @@
 import React from 'react';
-import { IInputGroupProps, InputGroup, Tooltip, Intent, Position} from '@blueprintjs/core';
+import { IInputGroupProps, InputGroup, Tooltip, Intent, Position, Label } from '@blueprintjs/core';
 
 interface IProps extends IInputGroupProps {
     validate: (currentValue: string) => boolean
@@ -48,9 +48,9 @@ export default class ValidatedInputGroup extends React.Component<IProps, IState>
         delete props.errorMessage
         delete props.validate
 
-        return (
+        return (                
             <InputGroup intent={(this.props.validate(this.state.currentValue) ? "none" : Intent.DANGER )} value={this.state.currentValue} {...props}
-            />
+            />            
         )
     }
 

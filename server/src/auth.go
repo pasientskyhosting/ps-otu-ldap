@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -22,6 +24,32 @@ type Token struct {
 type Auth struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+func (s *server) getToken(expire time.Duration, username string) string {
+
+	// Create temp token for api test
+	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": username, "exp": jwtauth.ExpireIn(time.Minute * expire)})
+
+	return ts
+}
+
+func (s *server) getUserID(r *http.Request) (string, error) {
+
+	var tokenString = strings.Split(r.Header.Get("Authorization"), " ")
+
+	claims := jwt.MapClaims{}
+
+	_, err := jwt.ParseWithClaims(tokenString[1], claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(s.env.jwtSecret), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s", claims["user_id"]), nil
+
 }
 
 func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -27,7 +26,6 @@ type server struct {
 
 type env struct {
 	dbFile           string
-	listen           string
 	apiKey           string
 	ekey             string
 	jwtSecret        string
@@ -68,8 +66,8 @@ func newLdapConn(e env) *ldapConn {
 }
 
 func newEnv(
+
 	dbFile string,
-	listen string,
 	apiKey string,
 	ekey string,
 	jwtSecret string,
@@ -90,6 +88,14 @@ func newEnv(
 		log.Fatalf("Could not parse env LDAP_SERVER %s", ldapServer)
 	}
 
+	if ldapBindDN == "" {
+		log.Fatalf("Could not parse env LDAP_BIND_DN %s", ldapBindDN)
+	}
+
+	if ldapBindPassword == "" {
+		log.Fatalf("Could not parse env LDAP_BIND_PASSWORD %s", ldapBindPassword)
+	}
+
 	if dbFile == "" {
 		dbFile = "/data/otu-ldap/otu.db"
 	}
@@ -100,7 +106,6 @@ func newEnv(
 
 	e := env{
 		dbFile:           dbFile,
-		listen:           listen,
 		apiKey:           apiKey,
 		ekey:             ekey,
 		jwtSecret:        jwtSecret,
@@ -126,28 +131,15 @@ func newDb(e env) *sql.DB {
 		log.Fatalf("Could not open db: %q", err)
 	}
 
-	defer db.Close()
+	log.Printf("Connected to DB at %s", e.dbFile)
 
 	return db
-}
-
-func (s *server) listen() string {
-	return fmt.Sprintf("%s:8081", s.env.listen)
-}
-
-func (s *server) getToken(expire time.Duration, username string) string {
-
-	// Create temp token for api test
-	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": username, "exp": jwtauth.ExpireIn(time.Minute * expire)})
-
-	return ts
 }
 
 func main() {
 
 	s := newServer(
 		newEnv(os.Getenv("DB_FILE"),
-			os.Getenv("LISTEN"),
 			os.Getenv("API_KEY"),
 			os.Getenv("ENCRYPTION_KEY"),
 			os.Getenv("JWT_SECRET"),
@@ -159,12 +151,12 @@ func main() {
 		),
 	)
 
-	log.Printf("Started REST API on %s with db %s", s.listen(), s.env.dbFile)
+	log.Printf("Started REST API on localhost:8080 with db %s", s.env.dbFile)
 
 	// Create temp token
 	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": "apiTest", "exp": jwtauth.ExpireIn(30 * time.Minute)})
 
 	log.Printf("Started with temp token: %s", ts)
-	log.Fatal(http.ListenAndServe(s.listen(), s.routes()))
+	log.Fatal(http.ListenAndServe("localhost:8080", s.routes()))
 
 }
