@@ -1,7 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,8 +20,18 @@ type Group struct {
 	GroupName     string `json:"group_name"`
 	LdapGroupName string `json:"ldap_group_name"`
 	LeaseTime     int    `json:"lease_time"`
-	CreateTime    int    `json:"create_time"`
+	CreateTime    int64  `json:"create_time"`
 	CreateBy      string `json:"create_by"`
+}
+
+// GroupDB desc
+type GroupDB struct {
+	id            int64
+	GroupName     string
+	LdapGroupName string
+	LeaseTime     int
+	CreateTime    int64
+	CreateBy      string
 }
 
 func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
@@ -58,8 +71,29 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	g.CreateTime = int(time.Now().Unix())
+	g.CreateTime = time.Now().Unix()
 	g.CreateBy = userID
+
+	// insert
+	insert, err := s.db.Prepare("INSERT INTO groups (group_name, ldap_group_name, lease_time, deleted, create_by, create_time) values(?,?,?,?,?,?)")
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: preparing insert statement %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	_, err = insert.Exec(g.GroupName, g.LdapGroupName, g.LeaseTime, "0", g.CreateBy, g.CreateTime)
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: Inserting into DB  %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
 
 	render.Status(r, 201)
 	render.JSON(w, r, g)
@@ -135,6 +169,37 @@ func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// GetGroup - returns group from db
+func (s *server) GetGroup(groupName string) (GroupDB, error) {
+
+	sqlStatement := `SELECT id, ldap_group_name, lease_time, create_time, create_by FROM groups WHERE deleted=0 AND group_name=$1;`
+	row := s.db.QueryRow(sqlStatement, groupName)
+
+	var id int64
+	var ldapGroupName string
+	var LeaseTime int
+	var createTime int64
+	var createBy string
+
+	switch err := row.Scan(&id, &ldapGroupName, &LeaseTime, &createTime, &createBy); err {
+	case sql.ErrNoRows:
+		fmt.Println("No rows were returned!")
+	case nil:
+		return GroupDB{
+			id:            id,
+			GroupName:     groupName,
+			LdapGroupName: ldapGroupName,
+			LeaseTime:     LeaseTime,
+			CreateTime:    createTime,
+			CreateBy:      createBy,
+		}, nil
+	}
+
+	fmt.Printf("%+v", row)
+
+	return GroupDB{}, errors.New("No group was found")
+}
+
 func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
 	var groups []Group
@@ -149,14 +214,12 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer rows.Close()
-
 	for rows.Next() {
 
 		var groupName string
 		var ldapGroupName string
 		var LeaseTime int
-		var createTime int
+		var createTime int64
 		var createBy string
 
 		err = rows.Scan(&groupName, &ldapGroupName, &LeaseTime, &createTime, &createBy)

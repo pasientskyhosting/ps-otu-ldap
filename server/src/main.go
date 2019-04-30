@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"database/sql"
@@ -26,12 +26,13 @@ type server struct {
 
 type env struct {
 	dbFile           string
+	listen           string
 	apiKey           string
 	ekey             string
 	jwtSecret        string
 	ldapBase         string
 	ldapServer       string
-	ldapPort         int64
+	ldapPort         string
 	ldapBindDN       string
 	ldapBindPassword string
 }
@@ -68,6 +69,7 @@ func newLdapConn(e env) *ldapConn {
 func newEnv(
 
 	dbFile string,
+	listen string,
 	apiKey string,
 	ekey string,
 	jwtSecret string,
@@ -77,11 +79,12 @@ func newEnv(
 	ldapBindDN string,
 	ldapBindPassword string) *env {
 
-	lport, err := strconv.ParseInt(ldapPort, 10, 64)
+	if ldapPort == "" {
+		ldapPort = "636"
+	}
 
-	if err != nil {
-		log.Printf("Could not parse env LDAP_PORT %s as integer %q. using default 636 \n", string(ldapPort), err)
-		lport = 636
+	if listen == "" {
+		listen = "8081"
 	}
 
 	if ldapServer == "" {
@@ -106,12 +109,13 @@ func newEnv(
 
 	e := env{
 		dbFile:           dbFile,
+		listen:           listen,
 		apiKey:           apiKey,
 		ekey:             ekey,
 		jwtSecret:        jwtSecret,
 		ldapBase:         ldapBase,
 		ldapServer:       ldapServer,
-		ldapPort:         lport,
+		ldapPort:         ldapPort,
 		ldapBindDN:       ldapBindDN,
 		ldapBindPassword: ldapBindPassword,
 	}
@@ -140,6 +144,7 @@ func main() {
 
 	s := newServer(
 		newEnv(os.Getenv("DB_FILE"),
+			os.Getenv("LISTEN"),
 			os.Getenv("API_KEY"),
 			os.Getenv("ENCRYPTION_KEY"),
 			os.Getenv("JWT_SECRET"),
@@ -151,12 +156,15 @@ func main() {
 		),
 	)
 
-	log.Printf("Started REST API on localhost:8080 with db %s", s.env.dbFile)
+	log.Printf("Started REST API on localhost:%s with db %s", s.env.listen, s.env.dbFile)
 
 	// Create temp token
 	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": "apiTest", "exp": jwtauth.ExpireIn(30 * time.Minute)})
 
+	// Start rand seed
+	rand.Seed(time.Now().UnixNano())
+
 	log.Printf("Started with temp token: %s", ts)
-	log.Fatal(http.ListenAndServe("localhost:8080", s.routes()))
+	log.Fatal(http.ListenAndServe("localhost:"+s.env.listen, s.routes()))
 
 }

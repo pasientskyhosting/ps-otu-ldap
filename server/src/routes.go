@@ -33,9 +33,9 @@ func (s *server) routes() *chi.Mux {
 		r.Use(jwtauth.Authenticator)
 
 		r.Get("/v1/api/auth/verify", s.Verify)
-		r.Post("/v1/api/users", s.CreateUser)
 		r.Get("/v1/api/users", s.GetAllUsers)
 		r.Post("/v1/api/groups", s.CreateGroup)
+		r.Post("/v1/api/groups/{GroupName}/users", s.CreateUser)
 		r.Delete("/v1/api/groups/{GroupName}", s.DeleteGroup)
 		r.Get("/v1/api/groups", s.GetAllGroups)
 	})

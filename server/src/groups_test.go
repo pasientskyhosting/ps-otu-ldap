@@ -102,19 +102,7 @@ func TestGroupsGetAllGroupUsers(t *testing.T) {
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
-	var users []User
-
-	err := json.Unmarshal([]byte(response.Body.String()), &users)
-
-	// handle parse error
-	if err != nil {
-		t.Errorf("Error while parsing body %s", response.Body.String())
-	}
-
-	// Check if error in body
-	if users[0].Username == "" || users[0].Password == "" {
-		t.Errorf("Error with body: %s", response.Body.String())
-	}
+	// Body is encrypted so this has to be read
 
 }
 

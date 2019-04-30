@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"gopkg.in/ldap.v2"
 )
@@ -11,7 +12,7 @@ import (
 type ldapConn struct {
 	Base         string
 	Server       string
-	Port         int64
+	Port         string
 	BindDN       string
 	BindPassword string
 }
@@ -31,7 +32,13 @@ func (lc *ldapConn) LDAPAuthentication(a Auth) (ldapUser, error) {
 
 	password := a.Password
 
-	l, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", lc.Server, lc.Port), &tls.Config{InsecureSkipVerify: true})
+	port, err := strconv.Atoi(lc.Port)
+
+	if err != nil {
+		return ldapUser{}, errors.New("Error reading ldap port")
+	}
+
+	l, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", lc.Server, port), &tls.Config{InsecureSkipVerify: true})
 
 	if err != nil {
 		return ldapUser{}, err

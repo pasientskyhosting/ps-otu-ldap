@@ -64,11 +64,11 @@ export default class GroupSearch extends React.Component<IProps, IState> {
 
         var seconds = sec
 
-        var days = Math.floor(seconds / (3600*24))        
-        seconds  -= days*3600*24
+        var days = Math.floor(seconds / (60*24))        
+        seconds  -= days*60*24
 
-        var hrs   = Math.floor(seconds / 3600)
-        seconds  -= hrs*3600        
+        var hrs   = Math.floor(seconds / 60)
+        seconds  -= hrs*60        
         
         if (days === 0) {
             return hrs+" hour(s)"

@@ -1,11 +1,14 @@
 package main
 
 import (
-	"encoding/json"
-	"io/ioutil"
+	"errors"
+	"fmt"
+	"log"
+	"math/rand"
 	"net/http"
-	"net/url"
+	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 )
 
@@ -14,65 +17,133 @@ type User struct {
 	Username   string `json:"username"`
 	Password   string `json:"password"`
 	GroupName  string `json:"group_name"`
-	ExpireTime int    `json:"expire_time"`
-	CreateTime int    `json:"create_time"`
+	ExpireTime int64  `json:"expire_time"`
+	CreateTime int64  `json:"create_time"`
 	CreateBy   string `json:"create_by"`
+}
+
+// UserDB def
+type UserDB struct {
+	Username   string
+	Password   string
+	GroupID    int64
+	ExpireTime int64
+	CreateTime int64
+	CreateBy   string
+}
+
+// PrepareNewUser - returns new User
+func (s *server) PrepareNewUser(userID string, groupName string) (UserDB, error) {
+
+	// Check group exists
+	GroupDB, err := s.GetGroup(groupName)
+	userDB := UserDB{}
+
+	if err != nil {
+		return userDB, fmt.Errorf("Group %s not found: %s", groupName, err)
+	}
+
+	userDB.Username = fmt.Sprintf("%s-%s-%s", userID, GroupDB.GroupName, randSeq(8))
+	userDB.Password = fmt.Sprintf(randSeq(12))
+	userDB.ExpireTime = time.Now().Unix() + int64(GroupDB.LeaseTime)
+	userDB.GroupID = GroupDB.id
+
+	return userDB, nil
+}
+
+// ForceExpireUsersInGroup - Expire current users in group
+func (s *server) ForceExpireUsersInGroup(groupID int64, createBy string) error {
+
+	update, err := s.db.Prepare("UPDATE users SET expire_time = 1 WHERE group_id=$1 AND create_by=$2;")
+
+	if err != nil {
+		return errors.New("Could not prepare statement")
+	}
+
+	_, err = update.Exec(groupID, createBy)
+
+	if err != nil {
+		return errors.New("Could not update db")
+	}
+
+	return nil
+}
+
+var letters = []rune("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randSeq(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }
 
 func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 
+	// Get session user
+	var CreateBy, err = s.getUserID(r)
+
+	if err != nil {
+		render.Status(r, 401)
+		render.JSON(w, r, nil)
+		return
+	}
+
 	var u User
 
-	b, err := ioutil.ReadAll(r.Body)
+	// Get URL group name
+	u.GroupName = chi.URLParam(r, "GroupName")
+
+	UserDB, err := s.PrepareNewUser(CreateBy, u.GroupName)
 
 	if err != nil {
-		render.Status(r, 400)
+		log.Printf("User error: %+v", err)
+		render.Status(r, 404)
 		render.JSON(w, r, nil)
 		return
 	}
 
-	err = json.Unmarshal(b, &u)
+	// before insert then expire current users in this group
+	err = s.ForceExpireUsersInGroup(UserDB.GroupID, CreateBy)
 
 	if err != nil {
-		render.Status(r, 400)
+
+		log.Printf("ERROR: Cannot delete current users")
+		render.Status(r, 500)
+		render.JSON(w, r, u)
+	}
+
+	// insert
+	insert, err := s.db.Prepare("INSERT INTO users (username, password, group_id, expire_time, create_time, create_by) values(?,?,?,?,?,?)")
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: preparing insert statement %+v", err)
+		render.Status(r, 500)
 		render.JSON(w, r, nil)
 		return
 	}
 
-	if validErrs := u.validateCreateUser(); len(validErrs) > 0 {
+	u.Username = UserDB.Username
+	u.Password = UserDB.Password
+	u.ExpireTime = time.Now().Unix()
+	u.CreateTime = time.Now().Unix()
+	u.CreateBy = CreateBy
 
-		err := map[string]interface{}{"validation_error": validErrs}
+	_, err = insert.Exec(u.Username, u.Password, UserDB.GroupID, u.ExpireTime, u.CreateTime, u.CreateBy)
 
-		render.Status(r, 400)
-		render.JSON(w, r, err)
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: Inserting into DB  %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
 		return
 	}
-
-	u.Username = "kj-" + u.GroupName
-	u.Password = "36746475jhr6hk5"
-	u.ExpireTime = 1554102608
-	u.CreateTime = 1554102608
-	u.CreateBy = "kj"
 
 	render.Status(r, 201)
 	render.JSON(w, r, u)
-}
 
-func (u *User) validateCreateUser() url.Values {
-
-	errs := url.Values{}
-
-	// check if the title empty
-	if u.GroupName == "" {
-		errs.Add("group_name", "The group_name field is required!")
-	}
-
-	// check the title field is between 3 to 120 chars
-	if len(u.GroupName) < 2 || len(u.GroupName) > 120 {
-		errs.Add("group_name", "The group_name field must be between 2-120 chars!")
-	}
-
-	return errs
 }
 
 func (s *server) GetAllUsers(w http.ResponseWriter, r *http.Request) {

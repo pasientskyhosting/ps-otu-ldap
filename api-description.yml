@@ -109,58 +109,12 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'        
-          
-    post:
-      tags:
-        - Users
-      security:
-        - BearerAuth: []
-      summary: "Generate a new one time user"
-      description: "Generate a one time user for the specifiec LDAP group name"
-      operationId: "generateUser"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserNew'
-      responses:
-        '201':
-          description: User response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/UnauthorizedError'          
+    
           
   # -------------------
   # Group
   # -------------------
-  
-  /groups/{group_name}:
-  
-    delete:
-      tags:
-        - Groups
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: group_name
-          in: path
-          description: Group name
-          required: true
-          x-example: "proxy-sql"
-          schema:
-            type: string
-      responses:
-        '204':
-          description: OK No Content
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
         
   /groups:
     
@@ -214,7 +168,60 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'        
           
+  /groups/{group_name}:
+  
+    delete:
+      tags:
+        - Groups
+      security:
+        - BearerAuth: []
+      summary: "Delete group"
+      description: "Deletes group and invalidates all users"
+      operationId: "deleteGroup"
+      parameters:
+        - name: group_name
+          in: path
+          description: LDAP group name
+          required: true
+          x-example: "proxy-sql"
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
   /groups/{group_name}/users:
+  
+    post:
+      tags:
+        - Groups
+      security:
+        - BearerAuth: []
+      summary: "Generate a new one time user"
+      description: "Generate a one time user for the specifiec LDAP group name"
+      operationId: "generateUser"
+      parameters:
+        - name: group_name
+          in: path
+          description: LDAP group name
+          required: true
+          x-example: "proxy-sql"
+          schema:
+            type: string
+      responses:
+        '201':
+          description: User response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+          
     get:
       tags:
         - Groups
@@ -377,16 +384,7 @@ components:
     # -------------------
     # User  
     # -------------------
-  
-    UserNew:
-      type: "object"
-      required:
-        - "group_name"
-      properties:
-        group_name:
-          type: "string"
-          example: "proxy-sql"
-          
+
     User:
       required:
         - name  
