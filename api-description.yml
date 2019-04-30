@@ -94,8 +94,8 @@ paths:
         - Users
       security:
         - BearerAuth: []
-      summary: Get all active users
-      description: Get all active users created by self
+      summary: Get active users
+      description: Get active users created by self
       operationId: getUsers
       responses:
         '200':
