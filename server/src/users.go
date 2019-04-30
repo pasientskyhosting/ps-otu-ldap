@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -43,8 +44,16 @@ func (s *server) PrepareNewUser(userID string, groupName string) (UserDB, error)
 		return userDB, fmt.Errorf("Group %s not found: %s", groupName, err)
 	}
 
+	cipherKey := []byte(s.env.ekey)
+	password := fmt.Sprintf(randSeq(12))
+	encryptedPassword, err := encryptHash(cipherKey, password)
+
+	if err != nil {
+		return userDB, fmt.Errorf("Error while encryptHash password: %s", err)
+	}
+
 	userDB.Username = fmt.Sprintf("%s-%s-%s", userID, GroupDB.GroupName, randSeq(8))
-	userDB.Password = fmt.Sprintf(randSeq(12))
+	userDB.Password = encryptedPassword
 	userDB.ExpireTime = time.Now().Unix() + int64(GroupDB.LeaseTime)
 	userDB.GroupID = GroupDB.id
 
@@ -148,64 +157,65 @@ func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
-	users := []User{
-		{
-			Username:   "kj-proxy-sql-fjhfrghrghghr47545",
-			Password:   "encrypted_pass1",
-			GroupName:  "proxy-sql",
-			CreateBy:   "kj",
-			ExpireTime: 1554102608,
-			CreateTime: 1554102608,
-		},
-		{
-			Username:   "kj-rabbitmq-uhefygryg45456",
-			Password:   "encrypted_pass2",
-			GroupName:  "rabbitmq",
-			CreateBy:   "kj",
-			ExpireTime: 1554102608,
-			CreateTime: 1554102608,
-		},
-		{
-			Username:   "kj-nginx-12344556",
-			Password:   "encrypted_pass3",
-			GroupName:  "nginx",
-			CreateBy:   "kj",
-			ExpireTime: 1554102608,
-			CreateTime: 1554102608,
-		},
+	var users []User
+
+	// get ssession user
+	var userID, err = s.getUserID(r)
+
+	rows, err := s.db.Query("SELECT users.username, users.password, groups.group_name, users.expire_time, users.create_time, users.create_by FROM users LEFT JOIN GROUPS ON users.group_id = groups.id WHERE groups.deleted=0 and users.create_by=$1 AND users.expire_time > $2;", userID, time.Now().Unix())
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: connecting to DB: %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
 	}
 
-	render.JSON(w, r, users)
+	for rows.Next() {
+
+		var username string
+		var password string
+		var groupName string
+		var expireTime int64
+		var createTime int64
+		var createBy string
+
+		err = rows.Scan(&username, &password, &groupName, &expireTime, &createTime, &createBy)
+
+		if err != nil {
+			// handle this error better than this
+			log.Printf("ERROR: looping through DB rows: %+v", err)
+			render.Status(r, 500)
+			render.JSON(w, r, nil)
+			return
+		}
+
+		users = append(users, User{
+			Username:   username,
+			Password:   password,
+			GroupName:  groupName,
+			ExpireTime: expireTime,
+			CreateTime: createTime,
+			CreateBy:   createBy,
+		})
+	}
+
+	// get any error encountered during iteration
+	err = rows.Err()
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: handling DB rows: %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	u, _ := json.Marshal(users)
+
+	encryptedPayload := encrypt(u, s.env.ekey)
+
+	render.PlainText(w, r, string(encryptedPayload))
+	return
 }
-
-// GetUser def
-// func (s *server) GetUser(w http.ResponseWriter, r *http.Request) {
-
-// 	var username string
-// 	var password string
-// 	var groupID int
-// 	var groupName string
-
-// 	username = chi.URLParam(r, "Username")
-
-// 	sqlStatement := "SELECT username, password, group_id, group_name FROM users LEFT JOIN groups ON users.group_id = groups.id WHERE username=$1;"
-
-// 	row := s.db.QueryRow(sqlStatement, username)
-
-// 	switch err := row.Scan(&username, &password, &groupID, &groupName); err {
-
-// 	case sql.ErrNoRows:
-// 		log.Printf("No rows were returned for username %v!", username)
-// 		render.Status(r, 404)
-// 		render.JSON(w, r, nil)
-// 		break
-// 	default:
-// 		render.JSON(w, r, User{
-// 			Username:  username,
-// 			Password:  password,
-// 			GroupID:   groupID,
-// 			GroupName: groupName,
-// 		})
-// 		break
-// 	}
-// }
