@@ -84,7 +84,7 @@ func newEnv(
 	}
 
 	if listen == "" {
-		listen = "8081"
+		listen = "0.0.0.0:8081"
 	}
 
 	if ldapServer == "" {
@@ -156,7 +156,7 @@ func main() {
 		),
 	)
 
-	log.Printf("Started REST API on localhost:%s with db %s", s.env.listen, s.env.dbFile)
+	log.Printf("Started REST API on %s with db %s", s.env.listen, s.env.dbFile)
 
 	// Create temp token
 	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": "apiTest", "exp": jwtauth.ExpireIn(30 * time.Minute)})
@@ -165,6 +165,6 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	log.Printf("Started with temp token: %s", ts)
-	log.Fatal(http.ListenAndServe("localhost:"+s.env.listen, s.routes()))
+	log.Fatal(http.ListenAndServe(s.env.listen, s.routes()))
 
 }

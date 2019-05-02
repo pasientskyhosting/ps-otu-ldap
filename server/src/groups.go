@@ -36,7 +36,7 @@ type GroupDB struct {
 
 func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
-	var userID, err = s.getUserID(r)
+	var createBy, err = s.getUserID(r)
 
 	if err != nil {
 		render.Status(r, 401)
@@ -72,7 +72,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	g.CreateTime = time.Now().Unix()
-	g.CreateBy = userID
+	g.CreateBy = createBy
 
 	// insert
 	insert, err := s.db.Prepare("INSERT INTO groups (group_name, ldap_group_name, lease_time, deleted, create_by, create_time) values(?,?,?,?,?,?)")
@@ -139,32 +139,75 @@ func (g *Group) validateCreateGroup() url.Values {
 
 func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 
-	g := chi.URLParam(r, "GroupName")
+	var users = []User{}
+	g, err := s.GetGroup(chi.URLParam(r, "GroupName"))
 
-	users := []User{
-		{
-			Username:   "kj-" + g + "-fjhfrghrghghr47545",
-			Password:   "encrypted_pass1",
-			GroupName:  g,
-			CreateBy:   "kj",
-			ExpireTime: 1554102608,
-			CreateTime: 1554102608,
-		},
-		{
-			Username:   "ak-" + g + "-fjhfrghrghghr47545",
-			Password:   "encrypted_pass1",
-			GroupName:  g,
-			CreateBy:   "ak",
-			ExpireTime: 1554102608,
-			CreateTime: 1554102608,
-		},
+	if err != nil {
+		render.Status(r, 404)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	// Get all users in a specific group
+	log.Printf("Get users for group=%d, and expire_time > %d", g.id, time.Now().Unix())
+	rows, err := s.db.Query("SELECT users.username, users.password, groups.group_name, users.expire_time, users.create_time, users.create_by FROM users LEFT JOIN GROUPS ON users.group_id = groups.id WHERE groups.deleted=0 AND groups.id=$1 AND users.expire_time > $2;", g.id, time.Now().Unix())
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: connecting to DB: %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	for rows.Next() {
+
+		var username string
+		var password string
+		var groupName string
+		var expireTime int64
+		var createTime int64
+		var createBy string
+
+		err = rows.Scan(&username, &password, &groupName, &expireTime, &createTime, &createBy)
+
+		if err != nil {
+			// handle this error better than this
+			log.Printf("ERROR: looping through DB rows: %+v", err)
+			render.Status(r, 500)
+			render.JSON(w, r, nil)
+			return
+		}
+
+		users = append(users, User{
+			Username:   username,
+			Password:   password,
+			GroupName:  groupName,
+			ExpireTime: expireTime,
+			CreateTime: createTime,
+			CreateBy:   createBy,
+		})
+	}
+
+	// get any error encountered during iteration
+	err = rows.Err()
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: handling DB rows: %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
 	}
 
 	u, _ := json.Marshal(users)
 
-	encryptedPayload := encrypt(u, s.env.ekey)
+	log.Printf("users: %+v, key %s", users, s.env.ekey)
 
-	render.PlainText(w, r, string(encryptedPayload))
+	cipherKey := []byte(s.env.ekey)
+	encryptedPayload, err := encryptHash(cipherKey, string(u))
+
+	render.PlainText(w, r, encryptedPayload)
 	return
 
 }
@@ -259,7 +302,44 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 
-	// g := chi.URLParam(r, "GroupName")
+	var createBy, err = s.getUserID(r)
+
+	g, err := s.GetGroup(chi.URLParam(r, "GroupName"))
+
+	if err != nil {
+		render.Status(r, 404)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	// expire all users
+	err = s.ExpireUsersInGroup(g.id, createBy)
+
+	if err != nil {
+		log.Printf("Error: %s", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	// set group to deleted
+	update, err := s.db.Prepare("UPDATE groups SET deleted=1 WHERE id=$1;")
+
+	if err != nil {
+		log.Printf("Error: Could not prepare statement %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	_, err = update.Exec(g.id)
+
+	if err != nil {
+		log.Printf("Could not update db")
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
 
 	render.Status(r, 204)
 	render.JSON(w, r, nil)

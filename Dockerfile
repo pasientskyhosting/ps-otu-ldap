@@ -2,6 +2,7 @@
 # Node Builder Stage                                                    
 ###################################################################
 FROM node:10-alpine as node_builder
+ENV BABEL_ENV production
 
 RUN apk update \
     && apk add git openssh \
@@ -9,11 +10,10 @@ RUN apk update \
 
 WORKDIR /app
 
-ADD src/gui/ .
+ADD gui/ .
 
 RUN npm install && \
     npm run build
-
 
 ###################################################################
 # GO Builder Stage                                                    
@@ -26,7 +26,7 @@ RUN apk update \
 
 WORKDIR /go/src/github.com/pasientskyhosting/ps-otu-ldap
 
-ADD src/server/ .
+ADD server/src .
 
 # Get dependencies
 RUN go get -d . 
@@ -47,10 +47,10 @@ COPY --from=go_builder /go/src/github.com/pasientskyhosting/ps-otu-ldap/otu-ldap
 
 COPY --from=node_builder /app/public/ ./html 
 
-ADD db/ /data/otu-ldap/
+ADD db/otu.db /data/otu-ldap/otu.db
 
-# Document that the service uses port 8080
-EXPOSE 8080
+# Document that the service uses port 8081
+EXPOSE 8081
 
 VOLUME ["/data/otu-ldap/"]
 

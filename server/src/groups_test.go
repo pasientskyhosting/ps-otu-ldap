@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"testing"
 )
@@ -10,6 +11,7 @@ import (
 func TestGroupsGetAllGroups(t *testing.T) {
 
 	a := newAPITest("GET", "/v1/api/groups", nil)
+	defer a.tearDown()
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
 	response := executeRequest(a.server, a.req)
@@ -33,7 +35,8 @@ func TestGroupsGetAllGroups(t *testing.T) {
 
 func TestGroupsDeleteGroup(t *testing.T) {
 
-	a := newAPITest("DELETE", "/v1/api/groups/rabbitmq", nil)
+	a := newAPITest("DELETE", "/v1/api/groups/apitemptest", nil)
+	defer a.tearDown()
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
 	response := executeRequest(a.server, a.req)
@@ -43,7 +46,8 @@ func TestGroupsDeleteGroup(t *testing.T) {
 
 func TestGroupsDeleteGroupWhenUnAuthorized(t *testing.T) {
 
-	a := newAPITest("DELETE", "/v1/api/groups/rabbitmq", nil)
+	a := newAPITest("DELETE", "/v1/api/groups/apitemptest", nil)
+	defer a.tearDown()
 
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
@@ -53,6 +57,7 @@ func TestGroupsDeleteGroupWhenUnAuthorized(t *testing.T) {
 func TestGroupsGetAllGroupsShouldFailWhenUnAuthorized(t *testing.T) {
 
 	a := newAPITest("GET", "/v1/api/groups", nil)
+	defer a.tearDown()
 
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
@@ -62,6 +67,7 @@ func TestGroupsGetAllGroupsShouldFailWhenUnAuthorized(t *testing.T) {
 func TestGroupsCreateGroup(t *testing.T) {
 
 	a := newAPITest("POST", "/v1/api/groups", []byte(`{"group_name": "proxy-sql","ldap_group_name": "proxy-sql","lease_time": 3600}`))
+	defer a.tearDown()
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
 
@@ -87,6 +93,7 @@ func TestGroupsCreateGroup(t *testing.T) {
 func TestGroupsCreateGroupShouldFailWhenUnAuthorized(t *testing.T) {
 
 	a := newAPITest("POST", "/v1/api/groups", []byte(`{"group_name": "proxy-sql","ldap_group_name": "proxy-sql","lease_time": 3600}`))
+	defer a.tearDown()
 
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
@@ -95,7 +102,8 @@ func TestGroupsCreateGroupShouldFailWhenUnAuthorized(t *testing.T) {
 
 func TestGroupsGetAllGroupUsers(t *testing.T) {
 
-	a := newAPITest("GET", "/v1/api/groups/rabbitmq/users", nil)
+	a := newAPITest("GET", "/v1/api/groups/apitemptest/users", nil)
+	defer a.tearDown()
 
 	a.req.Header.Set("X-API-KEY", a.server.env.apiKey)
 
@@ -103,12 +111,33 @@ func TestGroupsGetAllGroupUsers(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	// Body is encrypted so this has to be read
+	cipherKey := []byte(a.server.env.ekey)
+	decryptedPayload, err := decryptHash(cipherKey, response.Body.String())
+
+	if err != nil {
+		log.Fatalf("error: %s", err)
+	}
+
+	var users = []User{}
+
+	err = json.Unmarshal([]byte(decryptedPayload), &users)
+
+	// handle parse error
+	if err != nil {
+		t.Errorf("Error while parsing body %s", decryptedPayload)
+	}
+
+	// Check if error in body
+	if users[0].Username == "" || users[0].Password == "" || users[0].GroupName != "apitemptest" {
+		t.Errorf("Error with body: %+v", users)
+	}
 
 }
 
 func TestGroupsGetAllGroupUsersShouldFailWhenUnAuthorized(t *testing.T) {
 
-	a := newAPITest("GET", "/v1/api/groups/rabbitmq/users", nil)
+	a := newAPITest("GET", "/v1/api/groups/voip/users", nil)
+	defer a.tearDown()
 
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)

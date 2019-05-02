@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -34,7 +33,7 @@ type UserDB struct {
 }
 
 // PrepareNewUser - returns new User
-func (s *server) PrepareNewUser(userID string, groupName string) (UserDB, error) {
+func (s *server) PrepareNewUser(createBy string, groupName string) (UserDB, error) {
 
 	// Check group exists
 	GroupDB, err := s.GetGroup(groupName)
@@ -52,16 +51,18 @@ func (s *server) PrepareNewUser(userID string, groupName string) (UserDB, error)
 		return userDB, fmt.Errorf("Error while encryptHash password: %s", err)
 	}
 
-	userDB.Username = fmt.Sprintf("%s-%s-%s", userID, GroupDB.GroupName, randSeq(8))
+	userDB.Username = fmt.Sprintf("%s-%s-%s", createBy, GroupDB.GroupName, randSeq(8))
 	userDB.Password = encryptedPassword
 	userDB.ExpireTime = time.Now().Unix() + int64(GroupDB.LeaseTime)
 	userDB.GroupID = GroupDB.id
+	userDB.CreateTime = time.Now().Unix()
+	userDB.CreateBy = createBy
 
 	return userDB, nil
 }
 
 // ForceExpireUsersInGroup - Expire current users in group
-func (s *server) ForceExpireUsersInGroup(groupID int64, createBy string) error {
+func (s *server) ExpireUsersInGroup(groupID int64, createBy string) error {
 
 	update, err := s.db.Prepare("UPDATE users SET expire_time = 1 WHERE group_id=$1 AND create_by=$2;")
 
@@ -114,7 +115,7 @@ func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// before insert then expire current users in this group
-	err = s.ForceExpireUsersInGroup(UserDB.GroupID, CreateBy)
+	err = s.ExpireUsersInGroup(UserDB.GroupID, CreateBy)
 
 	if err != nil {
 
@@ -136,9 +137,9 @@ func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	u.Username = UserDB.Username
 	u.Password = UserDB.Password
-	u.ExpireTime = time.Now().Unix()
-	u.CreateTime = time.Now().Unix()
-	u.CreateBy = CreateBy
+	u.ExpireTime = UserDB.ExpireTime
+	u.CreateTime = UserDB.CreateTime
+	u.CreateBy = UserDB.CreateBy
 
 	_, err = insert.Exec(u.Username, u.Password, UserDB.GroupID, u.ExpireTime, u.CreateTime, u.CreateBy)
 
@@ -212,10 +213,13 @@ func (s *server) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, _ := json.Marshal(users)
+	// u, _ := json.Marshal(users)
 
-	encryptedPayload := encrypt(u, s.env.ekey)
+	// cipherKey := []byte(s.env.ekey)
+	// encryptedPayload, err := encryptHash(cipherKey, string(u))
 
-	render.PlainText(w, r, string(encryptedPayload))
+	// render.PlainText(w, r, encryptedPayload)
+
+	render.JSON(w, r, users)
 	return
 }

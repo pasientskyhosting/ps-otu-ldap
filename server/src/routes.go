@@ -89,6 +89,10 @@ func checkToken(r *http.Request) bool {
 // Do some auth stuff here
 func checkAPIKey(r *http.Request, s *server) bool {
 
+	if r.Header.Get("X-API-KEY") == "" {
+		return false
+	}
+
 	if s.env.apiKey == r.Header.Get("X-API-KEY") {
 		return true
 	}
