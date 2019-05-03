@@ -92,7 +92,7 @@ func randSeq(n int) string {
 func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Get session user
-	var CreateBy, err = s.getUserID(r)
+	var LDAPUser, err = s.getLDAPUser(r)
 
 	if err != nil {
 		render.Status(r, 401)
@@ -105,7 +105,7 @@ func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	// Get URL group name
 	u.GroupName = chi.URLParam(r, "GroupName")
 
-	UserDB, err := s.PrepareNewUser(CreateBy, u.GroupName)
+	UserDB, err := s.PrepareNewUser(LDAPUser.Username, u.GroupName)
 
 	if err != nil {
 		log.Printf("User error: %+v", err)
@@ -115,7 +115,7 @@ func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// before insert then expire current users in this group
-	err = s.ExpireUsersInGroup(UserDB.GroupID, CreateBy)
+	err = s.ExpireUsersInGroup(UserDB.GroupID, LDAPUser.Username)
 
 	if err != nil {
 
@@ -161,9 +161,9 @@ func (s *server) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	var users []User
 
 	// get ssession user
-	var userID, err = s.getUserID(r)
+	var LDAPUser, err = s.getLDAPUser(r)
 
-	rows, err := s.db.Query("SELECT users.username, users.password, groups.group_name, users.expire_time, users.create_time, users.create_by FROM users LEFT JOIN GROUPS ON users.group_id = groups.id WHERE groups.deleted=0 and users.create_by=$1 AND users.expire_time > $2;", userID, time.Now().Unix())
+	rows, err := s.db.Query("SELECT users.username, users.password, groups.group_name, users.expire_time, users.create_time, users.create_by FROM users LEFT JOIN GROUPS ON users.group_id = groups.id WHERE groups.deleted=0 and users.create_by=$1 AND users.expire_time > $2;", LDAPUser.Username, time.Now().Unix())
 
 	if err != nil {
 		// handle this error better than this
@@ -213,13 +213,7 @@ func (s *server) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// u, _ := json.Marshal(users)
-
-	// cipherKey := []byte(s.env.ekey)
-	// encryptedPayload, err := encryptHash(cipherKey, string(u))
-
-	// render.PlainText(w, r, encryptedPayload)
-
 	render.JSON(w, r, users)
 	return
+
 }

@@ -26,15 +26,15 @@ type Auth struct {
 	Password string `json:"password"`
 }
 
+// Create temp token for e.g api test
 func (s *server) getToken(expire time.Duration, username string) string {
 
-	// Create temp token for api test
-	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": username, "exp": jwtauth.ExpireIn(time.Minute * expire)})
+	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": username, "exp": jwtauth.ExpireIn(time.Minute * expire), "is_admin": true, "display_name": username})
 
 	return ts
 }
 
-func (s *server) getUserID(r *http.Request) (string, error) {
+func (s *server) getLDAPUser(r *http.Request) (LDAPUser, error) {
 
 	var tokenString = strings.Split(r.Header.Get("Authorization"), " ")
 
@@ -45,10 +45,23 @@ func (s *server) getUserID(r *http.Request) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
+		return LDAPUser{}, err
 	}
 
-	return fmt.Sprintf("%s", claims["user_id"]), nil
+	isAdminStr := fmt.Sprintf("%t", claims["is_admin"])
+	var isAdmin bool
+
+	if isAdminStr == "true" {
+		isAdmin = true
+	} else {
+		isAdmin = false
+	}
+
+	return LDAPUser{
+		Username:    fmt.Sprintf("%s", claims["user_id"]),
+		Admin:       isAdmin,
+		DisplayName: fmt.Sprintf("%s", claims["display_name"]),
+	}, nil
 
 }
 
@@ -87,7 +100,7 @@ func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": lu.username, "exp": jwtauth.ExpireIn(60 * time.Minute), "is_admin": lu.admin, "display_name": lu.displayName})
+	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": lu.Username, "exp": jwtauth.ExpireIn(60 * time.Minute), "is_admin": lu.Admin, "display_name": lu.DisplayName})
 
 	render.JSON(w, r, Token{Token: tokenString})
 

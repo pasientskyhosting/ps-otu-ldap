@@ -1,10 +1,8 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -36,9 +34,10 @@ type GroupDB struct {
 
 func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
-	var createBy, err = s.getUserID(r)
+	var LDAPUser, err = s.getLDAPUser(r)
 
-	if err != nil {
+	// Check ldap user
+	if !LDAPUser.Admin || err != nil {
 		render.Status(r, 401)
 		render.JSON(w, r, nil)
 		return
@@ -71,8 +70,17 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if already exists
+	groupAlreadyExists, _ := s.GetGroup(g.GroupName)
+
+	if groupAlreadyExists.GroupName != "" {
+		render.Status(r, 409)
+		render.JSON(w, r, nil)
+		return
+	}
+
 	g.CreateTime = time.Now().Unix()
-	g.CreateBy = createBy
+	g.CreateBy = LDAPUser.Username
 
 	// insert
 	insert, err := s.db.Prepare("INSERT INTO groups (group_name, ldap_group_name, lease_time, deleted, create_by, create_time) values(?,?,?,?,?,?)")
@@ -97,6 +105,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, 201)
 	render.JSON(w, r, g)
+	return
 
 }
 
@@ -225,8 +234,6 @@ func (s *server) GetGroup(groupName string) (GroupDB, error) {
 	var createBy string
 
 	switch err := row.Scan(&id, &ldapGroupName, &LeaseTime, &createTime, &createBy); err {
-	case sql.ErrNoRows:
-		fmt.Println("No rows were returned!")
 	case nil:
 		return GroupDB{
 			id:            id,
@@ -237,8 +244,6 @@ func (s *server) GetGroup(groupName string) (GroupDB, error) {
 			CreateBy:      createBy,
 		}, nil
 	}
-
-	fmt.Printf("%+v", row)
 
 	return GroupDB{}, errors.New("No group was found")
 }
@@ -302,7 +307,14 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 
-	var createBy, err = s.getUserID(r)
+	var LDAPUser, err = s.getLDAPUser(r)
+
+	// Check ldap user
+	if !LDAPUser.Admin || err != nil {
+		render.Status(r, 401)
+		render.JSON(w, r, nil)
+		return
+	}
 
 	g, err := s.GetGroup(chi.URLParam(r, "GroupName"))
 
@@ -313,7 +325,7 @@ func (s *server) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// expire all users
-	err = s.ExpireUsersInGroup(g.id, createBy)
+	err = s.ExpireUsersInGroup(g.id, LDAPUser.Username)
 
 	if err != nil {
 		log.Printf("Error: %s", err)

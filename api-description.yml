@@ -145,6 +145,8 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
       
     get:
       tags:
@@ -269,6 +271,8 @@ components:
       $ref: "#/components/schemas/ValidationError"
     UnauthorizedError:
       description: Access token is missing or invalid
+    ConflictError:
+      description: Item already exists
     UnauthorizedErrorAPIKey:
       description: API key s missing or invalid
     NotFoundError:

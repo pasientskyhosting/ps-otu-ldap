@@ -17,17 +17,18 @@ type ldapConn struct {
 	BindPassword string
 }
 
-type ldapUser struct {
-	username    string
-	displayName string
-	admin       bool
+// LDAPUser def
+type LDAPUser struct {
+	Username    string
+	DisplayName string
+	Admin       bool
 }
 
-func (lc *ldapConn) LDAPAuthentication(a Auth) (ldapUser, error) {
+func (lc *ldapConn) LDAPAuthentication(a Auth) (LDAPUser, error) {
 
-	u := ldapUser{
-		username: a.Username,
-		admin:    false,
+	u := LDAPUser{
+		Username: a.Username,
+		Admin:    false,
 	}
 
 	password := a.Password
@@ -35,13 +36,13 @@ func (lc *ldapConn) LDAPAuthentication(a Auth) (ldapUser, error) {
 	port, err := strconv.Atoi(lc.Port)
 
 	if err != nil {
-		return ldapUser{}, errors.New("Error reading ldap port")
+		return LDAPUser{}, errors.New("Error reading ldap port")
 	}
 
 	l, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", lc.Server, port), &tls.Config{InsecureSkipVerify: true})
 
 	if err != nil {
-		return ldapUser{}, err
+		return LDAPUser{}, err
 	}
 
 	defer l.Close()
@@ -50,14 +51,14 @@ func (lc *ldapConn) LDAPAuthentication(a Auth) (ldapUser, error) {
 	err = l.Bind(lc.BindDN, lc.BindPassword)
 
 	if err != nil {
-		return ldapUser{}, err
+		return LDAPUser{}, err
 	}
 
 	// Search for the given username
 	searchRequest := ldap.NewSearchRequest(
 		lc.Base,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(uid=%s)(objectClass=posixaccount))", u.username),
+		fmt.Sprintf("(&(uid=%s)(objectClass=posixaccount))", u.Username),
 		[]string{"dn", "memberOf", "displayName"},
 		nil,
 	)
@@ -65,33 +66,43 @@ func (lc *ldapConn) LDAPAuthentication(a Auth) (ldapUser, error) {
 	sr, err := l.Search(searchRequest)
 
 	if err != nil {
-		return ldapUser{}, err
+		return LDAPUser{}, err
 	}
 
 	if len(sr.Entries) != 1 {
-		return ldapUser{}, errors.New("User does not exist or too many entries returned")
+		return LDAPUser{}, errors.New("User does not exist or too many entries returned")
 	}
+
+	accessAllowed := false
 
 	for _, v := range sr.Entries[0].Attributes {
 		switch v.Name {
 		case "memberOf":
 			for _, v := range v.Values {
 				if v == "cn=admins,cn=groups,cn=accounts,dc=pasientsky,dc=no" || v == "cn=otu-superheroes,cn=groups,cn=accounts,dc=pasientsky,dc=no" {
-					u.admin = true
+					u.Admin = true
+					accessAllowed = true
+				}
+				if v == "cn=otu,cn=groups,cn=accounts,dc=pasientsky,dc=no" {
+					accessAllowed = true
 				}
 			}
 			break
 		case "displayName":
-			u.displayName = v.Values[0]
+			u.DisplayName = v.Values[0]
 			break
 		}
 	}
 
 	if err := l.Bind(sr.Entries[0].DN, password); err != nil {
-		return ldapUser{}, errors.New("Failed to auth: " + u.username)
+		return LDAPUser{}, errors.New("Failed to auth: " + u.Username)
 	}
 
-	fmt.Printf("Authenticated successfuly as %s!\n", u.username)
+	if !accessAllowed {
+		return LDAPUser{}, errors.New("Not allowed OTU: " + u.Username)
+	}
+
+	fmt.Printf("Authenticated successfuly as %s!\n", u.Username)
 
 	return u, nil
 
