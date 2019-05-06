@@ -1,30 +1,32 @@
 import React, { ReactEventHandler } from 'react';
 import { Button, Card, Elevation, FormGroup, InputGroup, Intent, Spinner, Callout } from "@blueprintjs/core";
+import APIService from '../services/APIService';
 
 interface IProps {
-  onSubmit: (username: string, password: string) => Promise<void>,
-  errorMessage?: string
+  onLoginHandler: ( success: boolean, status_code: number ) => void
 }
 
 interface IState {
   username: string,
   password: string,
   connecting: boolean  
+  errorMessage?: string
 }
 
 type Nullable<T> = T | null
 
 export default class LoginForm extends React.Component<IProps, IState> {
     
-    private usernameInputRef: Nullable<HTMLInputElement>
-    private passwordInputRef: Nullable<HTMLInputElement>
+    private usernameInputRef: Nullable<HTMLInputElement>    
+    private passwordInputRef: Nullable<HTMLInputElement>  
 
     constructor (props: IProps) {      
       
       super(props)
 
-      this.usernameInputRef = null
-      this.passwordInputRef = null
+      this.usernameInputRef = null      
+      this.passwordInputRef = null      
+
 
       this.state = {
         username: "",
@@ -32,28 +34,28 @@ export default class LoginForm extends React.Component<IProps, IState> {
         connecting: false
       }
     }
+    
 
-    private async onSubmit() {
+    private async onSubmit(username: string, password: string) {
 
       this.setState({
         connecting: true
-      })      
+      })
 
-      await this.props.onSubmit(this.state.username, this.state.password)
+      await APIService.login(username, password)
+        
+      this.setState({
+        connecting: false
+      })          
 
-      setTimeout(() => {
-        console.log("timeout")
-
+      if(!APIService.success) {
         this.setState({
-          connecting: false
-        }, () => {
-          if (this.props.errorMessage) {
-            if(this.state.username) this.passwordInputRef && this.passwordInputRef.focus()
-            else this.usernameInputRef && this.usernameInputRef.focus()
-          } 
+          errorMessage: "Wrong username or password"
         })
-
-      }, 1500);
+      }
+      
+      // call login handler
+      this.props.onLoginHandler(APIService.success, APIService.status)      
 
     }
 
@@ -65,7 +67,7 @@ export default class LoginForm extends React.Component<IProps, IState> {
 
       return (
         <div id="login-form-content">
-        {this.props.errorMessage ? <Callout title="Unauthorized" className="login-error-message" intent={Intent.DANGER} >{this.props.errorMessage}</Callout> : null }     
+        {this.state.errorMessage ? <Callout title="Unauthorized" className="login-error-message" intent={Intent.DANGER} >{this.state.errorMessage}</Callout> : null }     
           <FormGroup       
                                                                                  
           >
@@ -77,7 +79,7 @@ export default class LoginForm extends React.Component<IProps, IState> {
             large={true}            
             leftIcon="person"              
             onKeyDown={(e) => {                
-              if(e.keyCode == 13) this.onSubmit()
+              if(e.keyCode == 13) this.onSubmit(this.state.username, this.state.password)
             }}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             this.setState({
@@ -89,14 +91,13 @@ export default class LoginForm extends React.Component<IProps, IState> {
           <FormGroup
           >
           <InputGroup                      
-            placeholder="Enter your password..."
-            inputRef={(input) => this.passwordInputRef = input}
+            placeholder="Enter your password..."            
             type="password"                
             value={this.state.password}
             large={true}                
             leftIcon="lock"
             onKeyDown={(e: React.KeyboardEvent) => {                
-              if(e.keyCode == 13) this.onSubmit()
+              if(e.keyCode == 13) this.onSubmit(this.state.username, this.state.password)
             }}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             this.setState({
@@ -109,7 +110,7 @@ export default class LoginForm extends React.Component<IProps, IState> {
             style={{ width: "100%", marginTop: "20px" }}              
             large={true}
             intent={Intent.PRIMARY}
-            onClick={() => this.onSubmit()}
+            onClick={() => this.onSubmit(this.state.username, this.state.password)}
           >Login</Button>                           
         </div>
         

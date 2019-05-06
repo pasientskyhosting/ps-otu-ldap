@@ -72,7 +72,7 @@ func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
-		render.Status(r, 400)
+		render.Status(r, 401)
 		render.JSON(w, r, nil)
 		return
 	}
@@ -80,13 +80,13 @@ func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(b, &a)
 
 	if err != nil {
-		render.Status(r, 400)
+		render.Status(r, 401)
 		render.JSON(w, r, nil)
 		return
 	}
 
 	if validErrs := a.validate(); len(validErrs) > 0 {
-		render.Status(r, 400)
+		render.Status(r, 401)
 		render.JSON(w, r, nil)
 		return
 	}

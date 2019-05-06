@@ -8,7 +8,8 @@ import (
 
 func TestAuthVerify(t *testing.T) {
 
-	a := newAPITest("GET", "/v1/api/auth/verify", nil)
+	a := newAPITest(t, "GET", "/v1/api/auth/verify", nil)
+	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
 
@@ -20,7 +21,8 @@ func TestAuthVerify(t *testing.T) {
 
 func TestAuthVerifyShouldFailWhenInvalidToken(t *testing.T) {
 
-	a := newAPITest("GET", "/v1/api/auth/verify", nil)
+	a := newAPITest(t, "GET", "/v1/api/auth/verify", nil)
+	defer a.tearDown(t)
 
 	response := executeRequest(a.server, a.req)
 

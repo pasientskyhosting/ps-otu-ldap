@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -61,7 +62,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if validErrs := g.validateCreateGroup(); len(validErrs) > 0 {
+	if validErrs := g.validateCreateGroup(s); len(validErrs) > 0 {
 
 		err := map[string]interface{}{"validation_error": validErrs}
 
@@ -81,6 +82,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	g.CreateTime = time.Now().Unix()
 	g.CreateBy = LDAPUser.Username
+	g.LdapGroupName = g.GroupName
 
 	// insert
 	insert, err := s.db.Prepare("INSERT INTO groups (group_name, ldap_group_name, lease_time, deleted, create_by, create_time) values(?,?,?,?,?,?)")
@@ -93,7 +95,8 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = insert.Exec(g.GroupName, g.LdapGroupName, g.LeaseTime, "0", g.CreateBy, g.CreateTime)
+	// Use group name as LDAP group name
+	_, err = insert.Exec(g.GroupName, g.GroupName, g.LeaseTime, "0", g.CreateBy, g.CreateTime)
 
 	if err != nil {
 		// handle this error better than this
@@ -109,7 +112,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (g *Group) validateCreateGroup() url.Values {
+func (g *Group) validateCreateGroup(s *server) url.Values {
 
 	errs := url.Values{}
 
@@ -118,19 +121,19 @@ func (g *Group) validateCreateGroup() url.Values {
 		errs.Add("group_name", "The group_name field is required!")
 	}
 
-	// check the title field is between 3 to 120 chars
 	if len(g.GroupName) < 2 || len(g.GroupName) > 120 {
 		errs.Add("group_name", "The group_name field must be between 2-120 chars!")
-	}
+	} else {
 
-	// check if the title empty
-	if g.LdapGroupName == "" {
-		errs.Add("ldap_group_name", "The ldap_group_name field is required!")
-	}
+		// Chech matching LDAP group exits
+		exists, err := s.lc.checkLDAPGroupExists(g.GroupName)
 
-	// check the title field is between 3 to 120 chars
-	if len(g.LdapGroupName) < 2 || len(g.LdapGroupName) > 120 {
-		errs.Add("ldap_group_name", "The ldap_group_name field must be between 2-120 chars!")
+		if err != nil {
+			errs.Add("group_name", fmt.Sprintf("Error with LDAP backend: %s", err))
+		} else if !exists {
+			errs.Add("group_name", "LDAP group does not exist with this name")
+		}
+
 	}
 
 	// check if the title empty

@@ -1,50 +1,67 @@
 import React from 'react';
 import { InputGroup, HTMLTable, Icon, Card, Elevation } from "@blueprintjs/core";
+import UserOptions from './UserOptions'
+import GroupOptions from './GroupOptions'
+import APIService, { IGroup, IUser } from '../services/APIService';
 
-export interface IGroup {
-    group_name: string
-    ldap_group_name: string
-    lease_time: number
-    create_time: number
-    create_by: string
+interface IProps {  
+  onGroupsFetchHandler: (success: boolean, status_code: number) => void,  
 }
 
-export interface IUser {
-    username: string
-    password: string
-    group_name: string
-    expire_time: number
-    create_time: number
-    create_by: string
-}
-
-interface IProps {
-  groups: IGroup[]
-  users: IUser[]
-}
-
-interface IState {
-    filteredGroups: IGroup[]
+interface IState {    
+    groups: IGroup[]
+    users: IUser[],
+    connecting: boolean,
+    errorMessage?: string
 }
 
 export default class GroupSearch extends React.Component<IProps, IState> {
            
+    constructor(props: IProps) {
 
-    constructor (props: IProps) {      
-      
-      super(props)
+        super(props)
 
-      this.state = {
-          filteredGroups: props.groups          
-      }
-    
+        this.state = {
+            groups: [],
+            users: [],
+            connecting: false
+        }
     }
 
-    private getFilteredList() {
-        
-        return this.props.groups.filter((group) => {
-            return group.group_name.includes("")
+    componentWillMount() {
+        this.loadGroupData()
+    }
+
+    public fetch() {
+        this.loadGroupData()
+    }
+
+    private async loadGroupData() {
+
+        this.setState({
+            connecting: true
         })
+
+        const groups = await APIService.getAllGroups()
+        
+        this.setState({
+            connecting: false
+        })          
+
+        if(!APIService.success) {
+            this.setState({
+                errorMessage: "Error while fetching groups"
+            })
+        } else {    
+            this.setState({
+                groups
+            })
+        }
+        
+        // call login handler
+        this.props.onGroupsFetchHandler(APIService.success, APIService.status)      
+
+        
     }
     
     private renderSearch () {
@@ -78,21 +95,27 @@ export default class GroupSearch extends React.Component<IProps, IState> {
 
     }
 
+    private onGroupDeleteHandler(success: boolean, status_code: number) {
+        
+        this.fetch()
+
+    }
+
 
     private renderGroupTable () {
 
-        return (                
+        return (                    
             <HTMLTable            
             bordered={true}
             striped={true}
             interactive={true}
             >
                 <thead>
-                    <tr><td>Group name</td><td>LDAP group</td><td>Lease time</td><td>User</td></tr>
+                    <tr><td>Group name</td><td>Lease time</td><td>User Options</td><td>Group Options</td></tr>
                 </thead>
                 <tbody>                
-                {this.props.groups.map((group: IGroup) => {
-                    return <tr key={group.group_name}><td>{group.group_name}</td><td>{group.ldap_group_name}</td><td>{this.formatSeconds(group.lease_time)}</td><td>test</td></tr>
+                {this.state.groups.map((group: IGroup) => {
+                    return <tr key={group.group_name}><td>{group.group_name}</td><td>{this.formatSeconds(group.lease_time)}</td><td>{<UserOptions />}</td><td>{<GroupOptions onGroupDeleteHandler={(success: boolean, status_code: number) => this.onGroupDeleteHandler(success, status_code) } groupName={group.group_name} />}</td></tr>
                 })}
                 </tbody>
             </HTMLTable>
@@ -103,11 +126,10 @@ export default class GroupSearch extends React.Component<IProps, IState> {
 
         return (       
             <div className="groups-search card">
+            
             <Card interactive={true} elevation={Elevation.FOUR}>
                 <div className="groups-search-content">
-                    <div className="groups-search-bar search">
-                        {this.renderSearch()}
-                    </div>     
+                    <h2>LDAP Groups</h2>
                     <div className="groups-search-table">
                         {this.renderGroupTable()}                    
                     </div>     

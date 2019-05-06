@@ -5,18 +5,16 @@ import "./styles/app.less"
 import React from 'react';
 import LoginForm from './components/LoginForm'
 import Header from './components/Header'
-import GroupSearch, { IGroup, IUser } from './components/GroupSearch'
 import GroupCreate from './components/GroupCreate'
 import { IProps } from "@blueprintjs/core";
+import GroupSearch from "./components/GroupSearch";
 
 interface IState {
     loginFailed: boolean
     isVerified: boolean
     tokenPayload?: ITokenPayload
     token?: string
-    errorMesssage?: string
-    groups: IGroup[]
-    users: IUser[]
+    errorMesssage?: string    
 }
 
 interface ITokenPayload {
@@ -28,49 +26,27 @@ interface ITokenPayload {
 
 class App extends React.Component<{}, IState>{    
         
+    private groupSearchRef: GroupSearch | null
+
     constructor (props: IProps) {      
 
         super(props)
         
+        this.groupSearchRef = null
+
         this.state = {
             loginFailed: false,
-            isVerified: false,
-            groups: [],
-            users: []
+            isVerified: false            
         }
 
     } 
-    
-    private async loadGroupData() {
-        
-        let response = await fetch('/v1/api/groups', {
-            method: 'get',                       
-            headers: { "Authorization": `Bearer ${this.state.token}`  }             
-        })
-
-        this.setState({
-            groups: await response.json()
-        })
-    }
-
-    private async loadUserData() {
-        
-        let response = await fetch('/v1/api/users', {
-            method: 'get',                       
-            headers: { "Authorization": `Bearer ${this.state.token}`  }             
-        })
-
-        this.setState({
-            users: await response.json()
-        })
-    }
 
     public componentWillMount() {
         
         let isVerified = false
         let tokenPayload = undefined
 
-        const token = localStorage.getItem('jwt.token')
+        const token = localStorage.getItem('jwt.token')        
 
         if(!token) {
             isVerified = false
@@ -83,130 +59,69 @@ class App extends React.Component<{}, IState>{
             isVerified,
             tokenPayload: tokenPayload || undefined,
             token: token || undefined            
-        }, () => {
-            if (token) {
-                this.loadGroupData()
-                this.loadUserData()
-            }
         })
         
     }
 
     private renderHeader() {
+
         return (            
             <Header displayName={ this.state.tokenPayload ? this.state.tokenPayload.display_name : "" } />            
         )
     }
 
-    private async onLogin(username: string, password: string) {
+    private onGroupCreateHandler(success: boolean, status_code: number) {
 
-        try {
-
-            let response = await fetch('/v1/api/auth/authorize', {
-                method: 'post',                        
-                body: JSON.stringify({  
-                    username, password
-                })
-            })
-
-            if (response.status !== 200) {
-                this.setState({                                
-                    loginFailed: true,
-                    errorMesssage: "Wrong username or password"
-                })
-
-            } else {
-
-                let responseParsed = await response.json()
-                localStorage.setItem('jwt.token', responseParsed.token)
-                                   
-                let tokenPayload = JSON.parse(atob(responseParsed.token.split(".")[1]))                            
-
-                this.setState({
-                    isVerified: true,
-                    errorMesssage: "",
-                    tokenPayload,
-                    token: responseParsed.token                   
-                }, () => {
-                    this.loadGroupData()
-                })
-            }                        
-
-        } catch (error)
-        {
-            this.setState({                                
-                loginFailed: true,
-                errorMesssage: "Wrong username or password"
-            })
-            console.log(error)
-        }
-
+        this.onFinishedHandler(success, status_code)
+        
+        if(success && this.groupSearchRef) this.groupSearchRef.fetch()
+        
     }
 
-    private async onGroupCreate(group_name: string, lease_time: number) {
+    private onFinishedHandler(success: boolean, status_code: number) {
+        
+        console.log("onFinishedHandler success: " + success)
+        console.log("onFinishedHandler status_code: " + status_code)
 
-        try {
-                      
-            let ldap_group_name = group_name
+        if (success) {                    
 
-            let response = await fetch('/v1/api/groups', {
-                method: 'post',    
-                headers: { "Authorization": `Bearer ${this.state.token}`  },                   
-                body: JSON.stringify({  
-                    ldap_group_name, group_name, lease_time
-                })
-            })
+            this.setState({
+                isVerified: true,
+                loginFailed: false
+            })            
 
-            if (response.status !== 201) {
+        } else {           
+            
+            let isVerified = false
+            let loginFailed = false
 
-                switch(response.status) {
-                    case 401:
-                        this.setState({                                
-                            isVerified: false,
-                            loginFailed: false,                                                
-                        })
-                    case 400:
-                        this.setState({                                
-                            errorMesssage: "Bad request error",                            
-                        })
-                    break
-                }                
+            if(status_code != 401 ) {
+                isVerified = true,           
+                loginFailed = true
+            }
 
-            } else {                                    
-                
-                this.setState({
-                    isVerified: true,
-                    errorMesssage: "",
-                }, () => {
-                    this.loadGroupData()
-                })
-            }                        
+            this.setState({
+                isVerified, loginFailed
+            })            
 
-        } catch (error)
-        {
-            this.setState({                                
-                loginFailed: true,
-                errorMesssage: "Wrong username or password"
-            })
-            console.log(error)
         }
-
-    }
+        
+    }  
 
     private renderSearchGroup() {
         return (
-            <GroupSearch groups={this.state.groups} users={this.state.users} />
+            <GroupSearch ref={(ref) => this.groupSearchRef = ref} onGroupsFetchHandler={ (success: boolean, status_code: number) => this.onFinishedHandler(success, status_code) } />
         )
     }
 
     private renderCreateGroup() {
         return (
-            <GroupCreate errorMessage={this.state.errorMesssage} onSubmit={(group_name, lease_time) => this.onGroupCreate(group_name, lease_time)} />
+            <GroupCreate onGroupCreateHandler={(success: boolean, status_code: number) => this.onGroupCreateHandler(success, status_code) } />
         )
     }
 
     private renderContent() {
-        
+                
         if ( this.state.isVerified == true ) {
 
             if (this.state.tokenPayload && this.state.tokenPayload.is_admin === true ) {    
@@ -224,7 +139,7 @@ class App extends React.Component<{}, IState>{
             
         } else {
             return (                
-                <LoginForm errorMessage={this.state.errorMesssage} onSubmit={(username, password) => this.onLogin(username, password)} />                
+                <LoginForm onLoginHandler={(success: boolean, status_code: number) => this.onFinishedHandler(success, status_code) } />
             )
         }
     }    

@@ -24,6 +24,51 @@ type LDAPUser struct {
 	Admin       bool
 }
 
+func (lc *ldapConn) checkLDAPGroupExists(groupName string) (bool, error) {
+
+	port, err := strconv.Atoi(lc.Port)
+
+	if err != nil {
+		return false, errors.New("Error reading ldap port")
+	}
+
+	l, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%d", lc.Server, port), &tls.Config{InsecureSkipVerify: true})
+
+	if err != nil {
+		return false, err
+	}
+
+	defer l.Close()
+
+	// First bind with a read only user
+	err = l.Bind(lc.BindDN, lc.BindPassword)
+
+	if err != nil {
+		return false, err
+	}
+
+	// Search for the given groupName
+	searchRequest := ldap.NewSearchRequest(
+		lc.Base,
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
+		fmt.Sprintf("(&(uid=%s)(objectClass=posixGroup))", groupName), // The filter to apply
+		[]string{"dn", "cn"}, // A list attributes to retrieve
+		nil,
+	)
+
+	sr, err := l.Search(searchRequest)
+
+	if err != nil {
+		return false, err
+	}
+
+	if len(sr.Entries) != 1 {
+		return false, errors.New("Group does not exist or too many entries returned")
+	}
+
+	return true, nil
+}
+
 func (lc *ldapConn) LDAPAuthentication(a Auth) (LDAPUser, error) {
 
 	u := LDAPUser{

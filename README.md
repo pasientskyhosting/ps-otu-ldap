@@ -7,8 +7,16 @@ Patientsky One Time User is a small application that runs a Golang API backend a
 
 ### Step 1 - Setup env
 
+AES only supports key sizes of 16, 24 or 32 bytes. The env `ENCRYPTION_KEY` must enfore these limitations.
+
 ```
-export ENCRYPTION_KEY=thisisaverysecureencryptionkeyfordatabasepasswords
+// The key argument should be the AES key,
+// either 16, 24, or 32 bytes to select
+// AES-128, AES-192, or AES-256.
+```
+
+```
+export ENCRYPTION_KEY=thisaverysecureencryption32bytes
 export LDAP_BIND_DN=uid=bind,cn=sysaccounts,cn=accounts,dc=pasientsky,dc=no
 export LDAP_SERVER=fqdn.ldapserver.com
 export LDAP_BIND_PASSWORD=thisistheldapbinduserpassword

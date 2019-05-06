@@ -12,8 +12,8 @@ func TestUsersCreateUser(t *testing.T) {
 	var u User
 
 	// create user
-	a := newAPITest("POST", "/v1/api/groups/apitemptest/users", nil)
-	defer a.tearDown()
+	a := newAPITest(t, "POST", "/v1/api/groups/apitemptest/users", nil)
+	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
 
@@ -36,8 +36,8 @@ func TestUsersCreateUser(t *testing.T) {
 
 func TestUsersCreateUserShouldFailWhenUnAuthorized(t *testing.T) {
 
-	a := newAPITest("POST", "/v1/api/groups/voip/users", nil)
-	defer a.tearDown()
+	a := newAPITest(t, "POST", "/v1/api/groups/voip/users", nil)
+	defer a.tearDown(t)
 
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
@@ -49,8 +49,8 @@ func TestUsersGetAllUsers(t *testing.T) {
 	var users []User
 
 	// Get user
-	a := newAPITest("GET", "/v1/api/users", nil)
-	defer a.tearDown()
+	a := newAPITest(t, "GET", "/v1/api/users", nil)
+	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
 
@@ -73,8 +73,8 @@ func TestUsersGetAllUsers(t *testing.T) {
 
 func TestUsersGetAllUsersShouldFailWhenUnAuthorized(t *testing.T) {
 
-	a := newAPITest("GET", "/v1/api/users", nil)
-	defer a.tearDown()
+	a := newAPITest(t, "GET", "/v1/api/users", nil)
+	defer a.tearDown(t)
 
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)

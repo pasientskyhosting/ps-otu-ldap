@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -15,7 +16,7 @@ type apiTest struct {
 	req      *http.Request
 	server   *server
 	token    string
-	tearDown func()
+	tearDown func(t *testing.T)
 }
 
 func (s *server) deleteTestData() {
@@ -84,21 +85,24 @@ func (s *server) insertTestData() {
 
 }
 
-func (s *server) setupTest() func() {
+func (s *server) setupTest(t *testing.T) func(t *testing.T) {
 
-	log.Printf("Setup test")
+	v := reflect.ValueOf(t)
+	name := v.FieldByName("name")
+
+	log.Printf("Setup test %s", name)
 	s.insertTestData()
 
-	return func() {
+	return func(t *testing.T) {
 
-		log.Printf("Teardown test")
+		log.Printf("Teardown test %s", name)
 		s.deleteTestData()
 
 	}
 
 }
 
-func newAPITest(method string, url string, body []byte) *apiTest {
+func newAPITest(t *testing.T, method string, url string, body []byte) *apiTest {
 
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 
@@ -120,7 +124,7 @@ func newAPITest(method string, url string, body []byte) *apiTest {
 		),
 	)
 
-	tearDown := s.setupTest()
+	tearDown := s.setupTest(t)
 
 	a := apiTest{
 		req:      req,
