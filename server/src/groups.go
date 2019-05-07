@@ -217,9 +217,9 @@ func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 	log.Printf("users: %+v, key %s", users, s.env.ekey)
 
 	cipherKey := []byte(s.env.ekey)
-	encryptedPayload, err := encryptHash(cipherKey, string(u))
+	ciphertext, err := encryptHash(cipherKey, string(u))
 
-	render.PlainText(w, r, encryptedPayload)
+	render.PlainText(w, r, string(ciphertext))
 	return
 
 }

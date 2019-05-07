@@ -1,13 +1,13 @@
-import { Button, ButtonGroup, IconName, Popover, Position, Intent, Classes } from "@blueprintjs/core";
+import { Button, ButtonGroup, IconName, Popover, Position, Intent, Classes, Toaster } from "@blueprintjs/core";
 import * as React from "react";
 import APIService from '../services/APIService'
 
 interface IProps {
     onGroupDeleteHandler: (success: boolean, status_code: number) => void,        
-    groupName: string
+    group_name: string
 }
 
-export default class GroupOptions extends React.PureComponent<IProps, IState> {
+export default class GroupOptions extends React.PureComponent<IProps> {
     
     public render() {        
         return (
@@ -33,6 +33,7 @@ export default class GroupOptions extends React.PureComponent<IProps, IState> {
                     icon={iconName} 
                     text={text}
                     intent={intent}
+                    large={false}
                  />
                  {this.getContents(content)}
             </Popover>
@@ -63,8 +64,8 @@ export default class GroupOptions extends React.PureComponent<IProps, IState> {
                     <Button 
                         intent={Intent.DANGER} 
                         className={Classes.POPOVER_DISMISS}
-                        name={this.props.groupName}
-                        onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => this.deleteGroup(e.currentTarget.name) } 
+                        name={this.props.group_name}
+                        onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => this.deleteGroup(e.currentTarget.name) }                        
                     >
                         Delete
                     </Button>

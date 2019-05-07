@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Navbar, Alignment } from "@blueprintjs/core";
+import { Button, Navbar, Alignment, Intent } from "@blueprintjs/core";
+import { AppToaster } from '../services/Toaster';
 
 interface IProps {
   displayName: string
@@ -17,10 +18,21 @@ const Header: React.FunctionComponent<IProps> = ({ displayName }) => {
                 {displayName ? 
                 <>
                 <Button className="bp3-minimal" icon="person" text={displayName} />
-                <Button className="bp3-minimal" icon="cog" text="" />                
+                {/* <Button className="bp3-minimal" icon="cog" text="" />                 */}
                 <Button className="bp3-minimal" icon="log-out" text="" onClick={ () => {
                   localStorage.removeItem('jwt.token')
-                  location.href = "/"
+                  AppToaster.show(
+                    {
+                        intent: Intent.WARNING, 
+                        message: "Goodbye old friend!",
+                        icon: "hand" 
+                    }
+                  )
+
+                  setTimeout(() => {
+                    location.href = "/"
+                  }, 2000)
+                  
                 }} /></> : null }
               
             </Navbar.Group>

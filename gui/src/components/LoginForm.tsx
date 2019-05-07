@@ -25,8 +25,7 @@ export default class LoginForm extends React.Component<IProps, IState> {
       super(props)
 
       this.usernameInputRef = null      
-      this.passwordInputRef = null      
-
+      this.passwordInputRef = null
 
       this.state = {
         username: "",
@@ -51,9 +50,13 @@ export default class LoginForm extends React.Component<IProps, IState> {
       if(!APIService.success) {
         this.setState({
           errorMessage: "Wrong username or password"
+        }, () => {
+          console.log(this.state.username)
+          if(this.state.username) this.passwordInputRef && this.passwordInputRef.focus()
+          else this.usernameInputRef && this.usernameInputRef.focus()
         })
       }
-      
+
       // call login handler
       this.props.onLoginHandler(APIService.success, APIService.status)      
 
@@ -92,7 +95,8 @@ export default class LoginForm extends React.Component<IProps, IState> {
           >
           <InputGroup                      
             placeholder="Enter your password..."            
-            type="password"                
+            type="password"
+            inputRef={(input) => this.passwordInputRef = input}                
             value={this.state.password}
             large={true}                
             leftIcon="lock"

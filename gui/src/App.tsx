@@ -6,15 +6,16 @@ import React from 'react';
 import LoginForm from './components/LoginForm'
 import Header from './components/Header'
 import GroupCreate from './components/GroupCreate'
-import { IProps } from "@blueprintjs/core";
-import GroupSearch from "./components/GroupSearch";
+import { IProps, Intent } from "@blueprintjs/core";
+import GroupList from "./components/GroupList";
+import { AppToaster } from "./services/Toaster";
 
 interface IState {
     loginFailed: boolean
     isVerified: boolean
     tokenPayload?: ITokenPayload
     token?: string
-    errorMesssage?: string    
+    errorMesssage?: string
 }
 
 interface ITokenPayload {
@@ -26,41 +27,53 @@ interface ITokenPayload {
 
 class App extends React.Component<{}, IState>{    
         
-    private groupSearchRef: GroupSearch | null
+    private groupListRef: GroupList | null
 
     constructor (props: IProps) {      
 
         super(props)
         
-        this.groupSearchRef = null
+        this.groupListRef = null
 
         this.state = {
             loginFailed: false,
-            isVerified: false            
+            isVerified: false,       
         }
 
     } 
 
     public componentWillMount() {
         
+        this.updateAuth()
+        
+    }
+
+    private updateAuth() {
+
+        let tokenPayload = this.getTokenPayload()
         let isVerified = false
-        let tokenPayload = undefined
+        let loginFailed = false
 
-        const token = localStorage.getItem('jwt.token')        
-
-        if(!token) {
-            isVerified = false
-        } else {            
-            tokenPayload = JSON.parse(atob(token.split(".")[1]))            
+        if (tokenPayload) {
             isVerified = true
         }
 
         this.setState({
-            isVerified,
-            tokenPayload: tokenPayload || undefined,
-            token: token || undefined            
+            tokenPayload, isVerified, loginFailed
         })
-        
+    }
+
+    private getTokenPayload(): ITokenPayload | undefined {
+
+        let tokenPayload = undefined
+
+        const token = localStorage.getItem('jwt.token')    
+
+        if(token) {            
+            tokenPayload = JSON.parse(atob(token.split(".")[1]))   
+        }
+
+        return tokenPayload
     }
 
     private renderHeader() {
@@ -72,45 +85,53 @@ class App extends React.Component<{}, IState>{
 
     private onGroupCreateHandler(success: boolean, status_code: number) {
 
+        if (success) {
+
+            AppToaster.show(
+                {
+                    intent: Intent.SUCCESS, 
+                    message: "Group created successfully." 
+                }
+            )
+
+        }
+
         this.onFinishedHandler(success, status_code)
         
-        if(success && this.groupSearchRef) this.groupSearchRef.fetch()
+        if(success && this.groupListRef) {
+            this.groupListRef.fetch() 
+        }
         
     }
 
     private onFinishedHandler(success: boolean, status_code: number) {
-        
-        console.log("onFinishedHandler success: " + success)
-        console.log("onFinishedHandler status_code: " + status_code)
 
-        if (success) {                    
+        let isVerified = false
+        let loginFailed = false
 
-            this.setState({
-                isVerified: true,
-                loginFailed: false
-            })            
-
-        } else {           
-            
-            let isVerified = false
-            let loginFailed = false
-
-            if(status_code != 401 ) {
-                isVerified = true,           
-                loginFailed = true
-            }
-
-            this.setState({
-                isVerified, loginFailed
-            })            
-
+        if (status_code != 401) {
+            isVerified = true
+            loginFailed = false
+        } else {
+            isVerified = false
+            loginFailed = false
         }
+
+        this.updateAuth()
+
+        this.setState({
+            isVerified, loginFailed
+        })
         
     }  
 
     private renderSearchGroup() {
         return (
-            <GroupSearch ref={(ref) => this.groupSearchRef = ref} onGroupsFetchHandler={ (success: boolean, status_code: number) => this.onFinishedHandler(success, status_code) } />
+            <GroupList 
+                is_admin={this.state.tokenPayload ? this.state.tokenPayload.is_admin : false } 
+                ref={(ref) => this.groupListRef = ref} 
+                onGroupsFetchHandler={ (success: boolean, status_code: number) => this.onFinishedHandler(success, status_code) }
+            />
         )
     }
 

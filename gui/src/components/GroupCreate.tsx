@@ -42,6 +42,10 @@ export default class GroupCreate extends React.Component<IProps, IState> {
             this.setState({
                 errorMessage: "Error while creating group"
             })
+        } else {
+            this.setState({
+                errorMessage: ""
+            })
         }
           
         // call login handler
@@ -66,14 +70,14 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                     <ValidatedInputGroup                                                                                                          
                         placeholder="Insert group name here..."  
                         validate={(currentValue: string) => {
-                            if(currentValue.length == 0 || (currentValue.length > 3 && currentValue.match(/^[_\-0-9a-z]+$/g)) ) {
+                            if(currentValue.length == 0 || (currentValue.length > 2 && currentValue.match(/^[_\-0-9a-z]+$/g)) ) {
                                 return true
                             } else {
                                 return false
                             }                       
                         }}
                         errorMessage={(currentValue: string) =>{
-                            return "Length must be greater then 3, and be URL friendly"
+                            return "Length must be greater than 2, and be URL friendly"
                         }}
                         large={false}                        
                         onKeyDown={(e: React.KeyboardEvent) => {                

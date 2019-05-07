@@ -51,9 +51,12 @@ func (s *server) PrepareNewUser(createBy string, groupName string) (UserDB, erro
 		return userDB, fmt.Errorf("Error while encryptHash password: %s", err)
 	}
 
+	// DEBUG
+	// log.Printf("Pepare user, password: %s", password)
+
 	userDB.Username = fmt.Sprintf("%s-%s-%s", createBy, GroupDB.GroupName, randSeq(8))
 	userDB.Password = encryptedPassword
-	userDB.ExpireTime = time.Now().Unix() + int64(GroupDB.LeaseTime)
+	userDB.ExpireTime = time.Now().Unix() + int64(GroupDB.LeaseTime*60) // lease time x minutes
 	userDB.GroupID = GroupDB.id
 	userDB.CreateTime = time.Now().Unix()
 	userDB.CreateBy = createBy
@@ -135,6 +138,16 @@ func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	decryptedPassword, _ := decryptHash([]byte(s.env.ekey), UserDB.Password)
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: DecryptedPassword %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
 	u.Username = UserDB.Username
 	u.Password = UserDB.Password
 	u.ExpireTime = UserDB.ExpireTime
@@ -150,6 +163,9 @@ func (s *server) CreateUser(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, nil)
 		return
 	}
+
+	// Send decrypted pass
+	u.Password = decryptedPassword
 
 	render.Status(r, 201)
 	render.JSON(w, r, u)
@@ -192,9 +208,20 @@ func (s *server) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// TODO delete logging
+		cipherKey := []byte(s.env.ekey)
+		decryptedPassword, _ := decryptHash(cipherKey, password)
+
+		if err != nil {
+			log.Printf("ERROR: Decryption %+v", err)
+			render.Status(r, 500)
+			render.JSON(w, r, nil)
+			return
+		}
+
 		users = append(users, User{
 			Username:   username,
-			Password:   password,
+			Password:   decryptedPassword,
 			GroupName:  groupName,
 			ExpireTime: expireTime,
 			CreateTime: createTime,

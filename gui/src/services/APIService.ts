@@ -56,10 +56,16 @@ class APIService {
             default:
                 this.success = true
         }
-
-        if(response.body) {            
-            return await response.json()
-        } else {
+        
+        if(response.body) {  
+            
+            try {
+                return await response.json()
+            } catch (error) {
+                return null
+            }    
+            
+        } else {            
             return null
         }              
 
@@ -96,7 +102,7 @@ class APIService {
 
         try {
 
-            let response = await fetch('/v1/api/groups', {
+            let response = await fetch(this.baseUrl + '/v1/api/groups', {
                     method: 'post',    
                     headers: { "Authorization": `Bearer ${this.token}`  },                   
                     body: JSON.stringify({  
@@ -128,13 +134,56 @@ class APIService {
 
         } catch (error) {
 
+            console.log(error)
+            this.success = false
+            this.status = 0         
+        } 
+
+        return []
+
+    }  
+    
+    public async getAllActiveUsers(): Promise<IUser[]> {
+
+        try {
+
+            let response = await fetch(this.baseUrl + '/v1/api/users', {
+                method: 'get',                       
+                headers: { "Authorization": `Bearer ${this.token}`  }             
+            })
+        
+            return (await this.parseResponse<IUser[]>(response)) || []
+
+        } catch (error) {
+
             this.success = false
             this.status = 0            
         } 
 
         return []
 
-    }    
+    }
+    
+    public async createUser(group_name: string): Promise<IUser | null> {
+
+        try {
+
+            let response = await fetch(this.baseUrl + '/v1/api/groups/' + group_name + '/users', {
+                    method: 'post',    
+                    headers: { "Authorization": `Bearer ${this.token}`  }                    
+            })
+
+            return await (this.parseResponse<IUser>(response)) || null
+
+        } catch (error) {
+
+            this.success = false
+            this.status = 0            
+        }        
+
+        return null
+
+    }
 
     public async deleteGroup(group_name: string) {
         
@@ -150,7 +199,7 @@ class APIService {
         } catch (error) {
 
             this.success = false
-            this.status = 0            
+            this.status = 0
         }
 
     }
