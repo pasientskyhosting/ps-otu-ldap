@@ -191,9 +191,19 @@ func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		decryptedPassword, _ := decryptHash([]byte(s.env.ekey), password)
+
+		if err != nil {
+			// handle this error better than this
+			log.Printf("ERROR: decryption failed: %+v", err)
+			render.Status(r, 500)
+			render.JSON(w, r, nil)
+			return
+		}
+
 		users = append(users, User{
 			Username:   username,
-			Password:   password,
+			Password:   decryptedPassword,
 			GroupName:  groupName,
 			ExpireTime: expireTime,
 			CreateTime: createTime,
