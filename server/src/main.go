@@ -88,15 +88,15 @@ func newEnv(
 	}
 
 	if ldapServer == "" {
-		log.Fatalf("Could not parse env LDAP_SERVER %s", ldapServer)
+		log.Fatalf("Could not parse env API_LDAP_SERVER %s", ldapServer)
 	}
 
 	if ldapBindDN == "" {
-		log.Fatalf("Could not parse env LDAP_BIND_DN %s", ldapBindDN)
+		log.Fatalf("Could not parse env API_LDAP_BIND_DN %s", ldapBindDN)
 	}
 
 	if ldapBindPassword == "" {
-		log.Fatalf("Could not parse env LDAP_BIND_PASSWORD %s", ldapBindPassword)
+		log.Fatalf("Could not parse env API_LDAP_BIND_PASSWORD %s", ldapBindPassword)
 	}
 
 	if dbFile == "" {
@@ -143,16 +143,16 @@ func newDb(e env) *sql.DB {
 func main() {
 
 	s := newServer(
-		newEnv(os.Getenv("DB_FILE"),
-			os.Getenv("LISTEN"),
+		newEnv(os.Getenv("API_DB_FILE"),
+			os.Getenv("API_LISTEN"),
 			os.Getenv("API_KEY"),
-			os.Getenv("ENCRYPTION_KEY"),
-			os.Getenv("JWT_SECRET"),
-			os.Getenv("LDAP_BASE"),
-			os.Getenv("LDAP_SERVER"),
-			os.Getenv("LDAP_PORT"),
-			os.Getenv("LDAP_BIND_DN"),
-			os.Getenv("LDAP_BIND_PASSWORD"),
+			os.Getenv("API_ENCRYPTION_KEY"),
+			os.Getenv("API_JWT_SECRET"),
+			os.Getenv("API_LDAP_BASE"),
+			os.Getenv("API_LDAP_SERVER"),
+			os.Getenv("API_LDAP_PORT"),
+			os.Getenv("API_LDAP_BIND_DN"),
+			os.Getenv("API_LDAP_BIND_PASSWORD"),
 		),
 	)
 

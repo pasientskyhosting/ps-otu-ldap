@@ -49,9 +49,6 @@ COPY --from=node_builder /app/public/ ./html
 
 ADD db/otu.db /data/otu-ldap/otu.db
 
-# Document that the service uses port 8081
-EXPOSE 8081
-
 VOLUME ["/data/otu-ldap/"]
 
 # Run the userServer command by default when the container starts.

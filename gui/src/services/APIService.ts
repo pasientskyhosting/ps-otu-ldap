@@ -25,9 +25,9 @@ class APIService {
     public success: boolean  
     public status: number    
 
-    constructor(baseUrl: string) {
+    constructor(baseUrl?: string) {
 
-        this.baseUrl = baseUrl        
+        this.baseUrl = baseUrl || ""        
         this.success = false        
         this.status = 0
         
@@ -206,4 +206,4 @@ class APIService {
 
 }
 
-export default new APIService('http://localhost:8080');
+export default new APIService();

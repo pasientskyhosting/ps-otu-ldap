@@ -1,21 +1,21 @@
 all: linux64 darwin64
 
 run:
-	export JWT_SECRET=secretfarfar; \
-	export ENCRYPTION_KEY=thisisverysecurepassword; \
+	export API_JWT_SECRET=secretfarfar; \
+	export API_ENCRYPTION_KEY=thisisverysecurepassword; \
 	export API_KEY=hest; \
-	export DB_FILE=/Users/kj/Projects/github/pasientskyhosting/ps-otu-ldap/db/otu.db; \
+	export API_DB_FILE=/Users/kj/Projects/github/pasientskyhosting/ps-otu-ldap/db/otu.db; \
 	go run src/main.go src/auth.go src/groups.go src/ping.go src/routes.go src/users.go src/ldap.go src/crypt.go
 
 test:
-	export ENCRYPTION_KEY=$(ENCRYPTION_KEY); \
-	export DB_FILE=/Users/kj/Projects/github/pasientskyhosting/ps-otu-ldap/db/otu.db; \
-	export LDAP_BIND_DN=$(LDAP_BIND_DN); \
-	export LDAP_SERVER=$(LDAP_SERVER); \
-	export LDAP_BIND_PASSWORD=$(LDAP_BIND_PASSWORD); \
-	export JWT_SECRET=$(JWT_SECRET); \
+	export API_ENCRYPTION_KEY=$(API_ENCRYPTION_KEY); \
+	export API_DB_FILE=/Users/kj/Projects/github/pasientskyhosting/ps-otu-ldap/db/otu.db; \
+	export API_LDAP_BIND_DN=$(API_LDAP_BIND_DN); \
+	export API_LDAP_SERVER=$(API_LDAP_SERVER); \
+	export API_LDAP_BIND_PASSWORD=$(API_LDAP_BIND_PASSWORD); \
+	export API_JWT_SECRET=$(API_JWT_SECRET); \
 	export API_KEY=$(API_KEY); \
-	export LISTEN=0.0.0.0:8081; \
+	export API_LISTEN=0.0.0.0:8081; \
 	cd src/ && go test;
 
 prep:

@@ -7,7 +7,7 @@ Patientsky One Time User is a small application that runs a Golang API backend a
 
 ### Step 1 - Setup env
 
-AES only supports key sizes of 16, 24 or 32 bytes. The env `ENCRYPTION_KEY` must enfore these limitations.
+AES only supports key sizes of 16, 24 or 32 bytes. The env `API_ENCRYPTION_KEY` must enfore these limitations.
 
 ```
 // The key argument should be the AES key,
@@ -16,15 +16,15 @@ AES only supports key sizes of 16, 24 or 32 bytes. The env `ENCRYPTION_KEY` must
 ```
 
 ```
-export ENCRYPTION_KEY=thisaverysecureencryption32bytes
-export LDAP_BIND_DN=uid=bind,cn=sysaccounts,cn=accounts,dc=pasientsky,dc=no
-export LDAP_SERVER=fqdn.ldapserver.com
-export LDAP_BIND_PASSWORD=thisistheldapbinduserpassword
-export JWT_SECRET=jwtsecretforusertokens
+export API_ENCRYPTION_KEY=thisaverysecureencryption32bytes
+export API_LDAP_BIND_DN=uid=bind,cn=sysaccounts,cn=accounts,dc=pasientsky,dc=no
+export API_LDAP_SERVER=fqdn.ldapserver.com
+export API_LDAP_BIND_PASSWORD=thisistheldapbinduserpassword
+export API_JWT_SECRET=jwtsecretforusertokens
 export API_KEY=apikeyforothersystemstouse
 ```
 
-This will use the database located in this repo at `db/otu.db` change it with the env `DB_FILE`
+This will use the database located in this repo at `db/otu.db` change it with the env `API_DB_FILE`
 
 ### Step 2 - Build docker image and run
 
