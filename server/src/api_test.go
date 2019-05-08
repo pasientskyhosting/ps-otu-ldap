@@ -87,7 +87,7 @@ func (s *server) insertTestData() {
 
 func (s *server) setupTest(t *testing.T) func(t *testing.T) {
 
-	v := reflect.ValueOf(t)
+	v := reflect.ValueOf(*t)
 	name := v.FieldByName("name")
 
 	log.Printf("Setup test %s", name)

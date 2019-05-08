@@ -1,4 +1,4 @@
-all: stop build run
+all: stop test build run
 
 stop: 
 	-docker stop otu-ldap

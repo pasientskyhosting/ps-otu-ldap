@@ -15,7 +15,7 @@ type Ping struct {
 func (s *server) Ping(w http.ResponseWriter, r *http.Request) {
 
 	ping := Ping{
-		Version: "v0.0.1",
+		Version: "v1.0.0",
 		Message: "pong",
 	}
 
