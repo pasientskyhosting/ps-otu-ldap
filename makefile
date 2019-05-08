@@ -3,6 +3,9 @@ all: stop test build run
 stop: 
 	-docker stop otu-ldap
 
+push: build
+	docker push pasientskyhosting/ps-otu-ldap:latest
+
 run:
 	docker run --rm --name=otu-ldap \
 	-e API_ENCRYPTION_KEY=$(API_ENCRYPTION_KEY) \
@@ -12,8 +15,8 @@ run:
 	-e API_LDAP_BIND_PASSWORD=$(API_LDAP_BIND_PASSWORD) \
 	-e API_JWT_SECRET=$(API_JWT_SECRET) \
 	-e API_KEY=$(API_KEY) \
-	-e API_LISTEN=0.0.0.0:8081 \
-	-v `pwd`/db:/data/otu-ldap \
+	-e API_LISTEN=0.0.0.0:8081 \	
+	-v data-otu-ldap:/data/otu-ldap/ \
 	-p 8081:8081 \
 	pasientskyhosting/ps-otu-ldap:latest
 

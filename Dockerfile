@@ -47,7 +47,7 @@ COPY --from=go_builder /go/src/github.com/pasientskyhosting/ps-otu-ldap/otu-ldap
 
 COPY --from=node_builder /app/public/ ./html 
 
-ADD db/otu.db /data/otu-ldap/otu.db
+ADD db/ /data/otu-ldap/
 
 VOLUME ["/data/otu-ldap/"]
 
