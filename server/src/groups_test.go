@@ -10,7 +10,7 @@ import (
 
 func TestGroupsGetAllGroups(t *testing.T) {
 
-	a := newAPITest(t, "GET", "/v1/api/groups", nil)
+	a := newAPITest(t, "GET", "/api/v1/groups", nil)
 	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
@@ -35,7 +35,7 @@ func TestGroupsGetAllGroups(t *testing.T) {
 
 func TestGroupsDeleteGroup(t *testing.T) {
 
-	a := newAPITest(t, "DELETE", "/v1/api/groups/apitemptest", nil)
+	a := newAPITest(t, "DELETE", "/api/v1/groups/apitemptest", nil)
 	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
@@ -46,7 +46,7 @@ func TestGroupsDeleteGroup(t *testing.T) {
 
 func TestGroupsDeleteGroupWhenUnAuthorized(t *testing.T) {
 
-	a := newAPITest(t, "DELETE", "/v1/api/groups/apitemptest", nil)
+	a := newAPITest(t, "DELETE", "/api/v1/groups/apitemptest", nil)
 	defer a.tearDown(t)
 
 	response := executeRequest(a.server, a.req)
@@ -56,7 +56,7 @@ func TestGroupsDeleteGroupWhenUnAuthorized(t *testing.T) {
 
 func TestGroupsGetAllGroupsShouldFailWhenUnAuthorized(t *testing.T) {
 
-	a := newAPITest(t, "GET", "/v1/api/groups", nil)
+	a := newAPITest(t, "GET", "/api/v1/groups", nil)
 	defer a.tearDown(t)
 
 	response := executeRequest(a.server, a.req)
@@ -66,7 +66,7 @@ func TestGroupsGetAllGroupsShouldFailWhenUnAuthorized(t *testing.T) {
 
 func TestGroupsCreateGroup(t *testing.T) {
 
-	a := newAPITest(t, "POST", "/v1/api/groups", []byte(`{"group_name": "voip-superheroes","lease_time": 3600}`))
+	a := newAPITest(t, "POST", "/api/v1/groups", []byte(`{"group_name": "voip-superheroes","lease_time": 3600}`))
 	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
@@ -92,7 +92,7 @@ func TestGroupsCreateGroup(t *testing.T) {
 
 func TestGroupsCreateGroupShouldFailWhenUnAuthorized(t *testing.T) {
 
-	a := newAPITest(t, "POST", "/v1/api/groups", []byte(`{"group_name": "proxy-sql","ldap_group_name": "proxy-sql","lease_time": 3600}`))
+	a := newAPITest(t, "POST", "/api/v1/groups", []byte(`{"group_name": "proxy-sql","ldap_group_name": "proxy-sql","lease_time": 3600}`))
 	defer a.tearDown(t)
 
 	response := executeRequest(a.server, a.req)
@@ -102,7 +102,7 @@ func TestGroupsCreateGroupShouldFailWhenUnAuthorized(t *testing.T) {
 
 func TestGroupsGetAllGroupUsers(t *testing.T) {
 
-	a := newAPITest(t, "GET", "/v1/api/groups/apitemptest/users", nil)
+	a := newAPITest(t, "GET", "/api/v1/groups/apitemptest/users", nil)
 	defer a.tearDown(t)
 
 	a.req.Header.Set("X-API-KEY", a.server.env.apiKey)
@@ -136,7 +136,7 @@ func TestGroupsGetAllGroupUsers(t *testing.T) {
 
 func TestGroupsGetAllGroupUsersShouldFailWhenUnAuthorized(t *testing.T) {
 
-	a := newAPITest(t, "GET", "/v1/api/groups/voip/users", nil)
+	a := newAPITest(t, "GET", "/api/v1/groups/voip/users", nil)
 	defer a.tearDown(t)
 
 	response := executeRequest(a.server, a.req)

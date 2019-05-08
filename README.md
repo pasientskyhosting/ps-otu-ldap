@@ -46,10 +46,10 @@ A new temp token will be created each time the server starts for debugging purpo
 Goto `http://localhost:8081/` and login with your LDAP credentials.
 
 The Golang API will be served by default at:
-`http://localhost:8051/v1/api/`
+`http://localhost:8051/api/v1/`
 
 Check connectivity to API by running:
-`curl -X GET http://localhost:8081/v1/api/ping`
+`curl -X GET http://localhost:8081/api/v1/ping`
 
 ## HTTPS
 We suggest to use a HTTP proxy such as `Traefik` for HTTPS requests infront of the application. 

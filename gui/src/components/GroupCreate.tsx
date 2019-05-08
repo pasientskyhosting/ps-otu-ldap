@@ -138,7 +138,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
 
 //     try {
         
-//         let response = await fetch('/v1/api/groups', {
+//         let response = await fetch('/api/v1/groups', {
 //             method: 'post',    
 //             headers: { "Authorization": `Bearer ${this.state.token}`  },                   
 //             body: JSON.stringify({  

@@ -12,10 +12,10 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
     
 servers:
-  - url: https://odn1-otu.privatedns.zone/api/v1
-  - url: https://cph1-otu.privatedns.zone/api/v1
-  - url: https://osl1-otu.privatedns.zone/api/v1
-  - url: https://sto1-otu.privatedns.zone/api/v1
+  - url: https://odn1-inf-otu.privatedns.zone/api/v1
+  - url: https://osl1-inf-otu.privatedns.zone/api/v1
+  - url: https://cph1-inf-otu.privatedns.zone/api/v1
+  - url: https://sto1-inf-otu.privatedns.zone/api/v1
   
 paths:
 

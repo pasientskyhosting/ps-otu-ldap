@@ -24,7 +24,7 @@ const Header: React.FunctionComponent<IProps> = ({ displayName }) => {
                   text="Docs"
                   onClick={ () => {                                        
                     window.open(
-                      'https://github.com/pasientskyhosting/ps-otu-ldap/',
+                      '/docs/',
                       '_blank'
                     );
                   }}

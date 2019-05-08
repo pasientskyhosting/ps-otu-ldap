@@ -10,7 +10,7 @@ func TestPing(t *testing.T) {
 
 	var ping Ping
 
-	a := newAPITest(t, "GET", "/v1/api/ping", nil)
+	a := newAPITest(t, "GET", "/api/v1/ping", nil)
 	defer a.tearDown(t)
 
 	response := executeRequest(a.server, a.req)

@@ -79,7 +79,7 @@ class APIService {
 
         try {
 
-            let response = await fetch(this.baseUrl + '/v1/api/auth/authorize', {
+            let response = await fetch(this.baseUrl + '/auth/authorize', {
                 method: 'post',                        
                 body: JSON.stringify({  
                     username, password
@@ -106,7 +106,7 @@ class APIService {
 
         try {
 
-            let response = await fetch(this.baseUrl + '/v1/api/groups', {
+            let response = await fetch(this.baseUrl + '/groups', {
                     method: 'post',    
                     headers: { "Authorization": `Bearer ${this.token}`  },                   
                     body: JSON.stringify({  
@@ -129,7 +129,7 @@ class APIService {
 
         try {
 
-            let response = await fetch(this.baseUrl + '/v1/api/groups', {
+            let response = await fetch(this.baseUrl + '/groups', {
                 method: 'get',                       
                 headers: { "Authorization": `Bearer ${this.token}`  }             
             })
@@ -151,7 +151,7 @@ class APIService {
 
         try {
 
-            let response = await fetch(this.baseUrl + '/v1/api/users', {
+            let response = await fetch(this.baseUrl + '/users', {
                 method: 'get',                       
                 headers: { "Authorization": `Bearer ${this.token}`  }             
             })
@@ -172,7 +172,7 @@ class APIService {
 
         try {
 
-            let response = await fetch(this.baseUrl + '/v1/api/groups/' + group_name + '/users', {
+            let response = await fetch(this.baseUrl + '/groups/' + group_name + '/users', {
                     method: 'post',    
                     headers: { "Authorization": `Bearer ${this.token}`  }                    
             })
@@ -193,7 +193,7 @@ class APIService {
         
         try {
 
-            let response = await fetch(this.baseUrl + '/v1/api/groups/' + group_name, {
+            let response = await fetch(this.baseUrl + '/groups/' + group_name, {
                 method: 'delete',    
                 headers: { "Authorization": `Bearer ${this.token}`  }
             })
@@ -210,4 +210,4 @@ class APIService {
 
 }
 
-export default new APIService();
+export default new APIService('/api/v1');

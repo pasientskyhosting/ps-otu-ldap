@@ -32,23 +32,23 @@ func (s *server) routes() *chi.Mux {
 		// Handle valid / invalid tokens.
 		r.Use(jwtauth.Authenticator)
 
-		r.Get("/v1/api/auth/verify", s.Verify)
-		r.Get("/v1/api/users", s.GetAllUsers)
-		r.Post("/v1/api/groups", s.CreateGroup)
-		r.Post("/v1/api/groups/{GroupName}/users", s.CreateUser)
-		r.Delete("/v1/api/groups/{GroupName}", s.DeleteGroup)
-		r.Get("/v1/api/groups", s.GetAllGroups)
+		r.Get("/api/v1/auth/verify", s.Verify)
+		r.Get("/api/v1/users", s.GetAllUsers)
+		r.Post("/api/v1/groups", s.CreateGroup)
+		r.Post("/api/v1/groups/{GroupName}/users", s.CreateUser)
+		r.Delete("/api/v1/groups/{GroupName}", s.DeleteGroup)
+		r.Get("/api/v1/groups", s.GetAllGroups)
 	})
 
 	// Public routes
 	s.router.Group(func(r chi.Router) {
-		r.Post("/v1/api/auth/authorize", s.Authorize)
-		r.Get("/v1/api/ping", s.Ping)
+		r.Post("/api/v1/auth/authorize", s.Authorize)
+		r.Get("/api/v1/ping", s.Ping)
 	})
 
 	// API-KEY routes
 	s.router.Group(func(r chi.Router) {
-		r.Get("/v1/api/groups/{GroupName}/users", s.isAPIKeyAuthorized(s.GetAllGroupUsers))
+		r.Get("/api/v1/groups/{GroupName}/users", s.isAPIKeyAuthorized(s.GetAllGroupUsers))
 	})
 
 	workDir, _ := os.Getwd()

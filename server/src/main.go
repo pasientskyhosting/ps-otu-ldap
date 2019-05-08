@@ -166,7 +166,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	log.Printf("Started with temp token: %s", ts)
-	log.Printf("Check API status by visiting: http://localhost:%s/v1/api/ping", strings.Split(s.env.listen, ":")[1])
+	log.Printf("Check API status by visiting: http://localhost:%s/api/v1/ping", strings.Split(s.env.listen, ":")[1])
 	log.Fatal(http.ListenAndServe(s.env.listen, s.routes()))
 
 }
