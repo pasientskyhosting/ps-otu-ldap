@@ -217,10 +217,8 @@ paths:
           description: User response
           content:
             application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
+              schema:                
+                $ref: '#/components/schemas/User'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
@@ -248,7 +246,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'              
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'            
                   
         '400':
           $ref: '#/components/responses/ValidationError'

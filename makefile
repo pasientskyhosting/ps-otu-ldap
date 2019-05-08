@@ -1,12 +1,13 @@
 all: stop test build run
 
 stop: 
-	-docker stop otu-ldap
+	-docker stop otu-ldap; docker stop swagger-api;
 
 push: build
 	docker push pasientskyhosting/ps-otu-ldap:latest
 
-run:
+run: stop
+	docker run -d --name=swagger-api --rm -p 8082:8080 -e API_URL=https://raw.githubusercontent.com/pasientskyhosting/ps-otu-ldap/master/api-description.yml swaggerapi/swagger-ui; \
 	docker run --rm --name=otu-ldap \
 	-e API_ENCRYPTION_KEY=$(API_ENCRYPTION_KEY) \
 	-e API_DB_FILE=/data/otu-ldap/otu.db \
@@ -15,7 +16,7 @@ run:
 	-e API_LDAP_BIND_PASSWORD=$(API_LDAP_BIND_PASSWORD) \
 	-e API_JWT_SECRET=$(API_JWT_SECRET) \
 	-e API_KEY=$(API_KEY) \
-	-e API_LISTEN=0.0.0.0:8081 \	
+	-e API_LISTEN=0.0.0.0:8081 \
 	-v data-otu-ldap:/data/otu-ldap/ \
 	-p 8081:8081 \
 	pasientskyhosting/ps-otu-ldap:latest
