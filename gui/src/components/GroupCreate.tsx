@@ -39,9 +39,13 @@ export default class GroupCreate extends React.Component<IProps, IState> {
        console.log(group)
     
         if(!APIService.success) {
+
+            console.log(APIService.error)
+
             this.setState({
-                errorMessage: "Error while creating group"
+                errorMessage: JSON.stringify(APIService.error.validation_error.group_name)
             })
+
         } else {
             this.setState({
                 errorMessage: ""

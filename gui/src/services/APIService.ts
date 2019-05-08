@@ -24,12 +24,14 @@ class APIService {
     private token: string
     public success: boolean  
     public status: number    
+    public error: object
 
     constructor(baseUrl?: string) {
 
         this.baseUrl = baseUrl || ""        
         this.success = false        
         this.status = 0
+        this.error = {}
         
         const token = localStorage.getItem('jwt.token')
             
@@ -45,27 +47,29 @@ class APIService {
         switch(response.status) {           
                 
             case 400:                
-                this.success = false                                   
+                this.success = false                         
                 break
             case 401:                               
-                this.success = false                
+                this.success = false
                 break
             case 409:                
-                this.success = false                
+                this.success = false                        
                 break
             default:
                 this.success = true
         }
         
-        if(response.body) {  
+        if(this.success) {  
             
-            try {
+            try {                
                 return await response.json()
-            } catch (error) {
+            } catch (error) { 
+                console.log(error)
                 return null
             }    
             
         } else {            
+            this.error = await response.json()
             return null
         }              
 

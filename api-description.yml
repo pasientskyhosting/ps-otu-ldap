@@ -5,7 +5,7 @@ info:
   title: PatientSky One Time User API
   description: API to generate temporary one time users from LDAP backend
   contact:
-    name: Patientsky Infrastructure Team
+    name: PatientSky Infrastructure Team
     email: kj@patientsky.com
   license:
     name: Apache 2.0
@@ -218,7 +218,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '404':
@@ -230,7 +232,7 @@ paths:
       security:
         - ApiKeyAuth: []
       summary: "Get all users in group"
-      description: "Get all users in a given LDAP group. This endpoint is called by Sync services and payload is encrypted with an encryptionkey"
+      description: "Get all users in a given LDAP group."
       operationId: "getGroupUsers"
       parameters:
         - name: group_name
@@ -244,9 +246,9 @@ paths:
         '200':
           description: Successful result
           content:
-            text/plain:
+            application/json:
               schema:
-                $ref: '#/components/responses/EncryptedUsers'
+                $ref: '#/components/schemas/User'              
                   
         '400':
           $ref: '#/components/responses/ValidationError'
@@ -262,9 +264,7 @@ security:
 components:
 
   responses:
-    
-    EncryptedUsers:
-      description: Encrypted users
+        
     ForbiddenError:
       $ref: "#/components/schemas/ForbiddenError"
     ValidationError:
@@ -399,30 +399,6 @@ components:
         password:
           type: "string"
           example: "jkybs9p8uukysmfarapf"
-        group_name:
-          type: "string"
-          example: "proxy-sql"
-        expire_time:
-          type: "integer"
-          example: 1554102608
-        create_time:
-          type: "integer"
-          example: 1554100608
-        create_by:
-          type: "string"
-          example: "kj"
-
-    UserEncrypted:
-      required:
-        - name  
-      properties:
-        username:
-          type: "string"
-          example: "kj-proxy-sql-yx4dajg8vn"
-        password:
-          type: "string"
-          example: "encrypted_password"
-          description: "Encrypted password that sync service must decrypt with encryption key"
         group_name:
           type: "string"
           example: "proxy-sql"

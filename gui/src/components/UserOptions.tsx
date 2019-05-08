@@ -30,12 +30,13 @@ export default class UserOptions extends React.PureComponent<IProps, IState> {
     }
 
     public render() {       
+        
+        let createButton = (this.state.username) ? 'Renew' : 'Create'
 
         return (
             <ButtonGroup {...this.state} style={{ minWidth: 120 }} fill={false}>
-                {this.renderButton("Create", "document", Intent.NONE, 2, PopoverInteractionKind.CLICK)}
-                { this.state.username && this.renderButton("View", "eye-open", Intent.NONE, 1, PopoverInteractionKind.HOVER)}
-                {/* { this.state.username && this.renderButton("Expire", "time", Intent.NONE, 0, PopoverInteractionKind.CLICK)}       */}
+                { this.renderButton( createButton, "document", Intent.NONE, 2, PopoverInteractionKind.CLICK) }
+                { this.state.username && this.renderButton("View", "eye-open", Intent.NONE, 1, PopoverInteractionKind.HOVER)}                
             </ButtonGroup>
         );
     }
@@ -78,7 +79,7 @@ export default class UserOptions extends React.PureComponent<IProps, IState> {
                 </div>
             </div>,
             <div key="text">
-                <h3>Copy credentials</h3>
+                <h3>Credentials</h3>
                 
                     <code>Username: {this.state.username}</code><br/>
                     <code>Password:&nbsp;{this.state.password}</code>

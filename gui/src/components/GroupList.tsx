@@ -159,7 +159,7 @@ export default class GroupList extends React.Component<IProps, IState> {
                     <tr>
                         <td>Group name</td>
                         <td>Lease time</td>
-                        <td>User Options</td>                        
+                        <td>One Time User</td>                 
                         <td>Group Options</td>
                     </tr>
                 </thead>

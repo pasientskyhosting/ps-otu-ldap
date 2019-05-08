@@ -1,7 +1,7 @@
-# Patientsky One Time User
+# PatientSky One Time User
 
 ## Description
-Patientsky One Time User is a small application that runs a Golang API backend and ReactJS frontend. The purpose of this application is to let users login with LDAP and create temporary users that have an expire time.
+PatientSky One Time User is a small application that runs a Golang API backend and ReactJS frontend. The purpose of this application is to let users login with LDAP and create temporary users that have an expire time.
 
 ## Quickstart
 

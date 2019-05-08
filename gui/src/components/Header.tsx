@@ -11,15 +11,29 @@ const Header: React.FunctionComponent<IProps> = ({ displayName }) => {
         <Navbar>           
             <Navbar.Group align={Alignment.LEFT}>                
               <div className="logo-white"></div>
-              <Navbar.Heading >Patientsky One Time User</Navbar.Heading>
+              <Navbar.Heading >PatientSky One Time User</Navbar.Heading>
               <Navbar.Divider />                                            
             </Navbar.Group>
             <Navbar.Group align={Alignment.RIGHT}>                
                 {displayName ? 
                 <>
                 <Button className="bp3-minimal" icon="person" text={displayName} />
-                {/* <Button className="bp3-minimal" icon="cog" text="" />                 */}
-                <Button className="bp3-minimal" icon="log-out" text="" onClick={ () => {
+                <Button 
+                  className="bp3-minimal" 
+                  icon="book" 
+                  text="Docs"
+                  onClick={ () => {                                        
+                    window.open(
+                      'https://github.com/pasientskyhosting/ps-otu-ldap/',
+                      '_blank'
+                    );
+                  }}
+                 />
+                <Button 
+                  className="bp3-minimal" 
+                  icon="log-out" 
+                  text="" 
+                  onClick={ () => {
                   localStorage.removeItem('jwt.token')
                   AppToaster.show(
                     {
