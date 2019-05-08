@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 )
@@ -110,21 +109,13 @@ func TestGroupsGetAllGroupUsers(t *testing.T) {
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
-	// Body is encrypted so this has to be read
-	cipherKey := []byte(a.server.env.ekey)
-	decryptedPayload, err := decryptHash(cipherKey, response.Body.String())
-
-	if err != nil {
-		log.Fatalf("error: %s", err)
-	}
-
 	var users = []User{}
 
-	err = json.Unmarshal([]byte(decryptedPayload), &users)
+	err := json.Unmarshal([]byte(response.Body.String()), &users)
 
 	// handle parse error
 	if err != nil {
-		t.Errorf("Error while parsing body %s", decryptedPayload)
+		t.Errorf("Error while parsing body %s", response.Body.String())
 	}
 
 	// Check if error in body

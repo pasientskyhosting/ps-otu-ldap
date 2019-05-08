@@ -212,14 +212,17 @@ func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, _ := json.Marshal(users)
+	// u, _ := json.Marshal(users)
 
-	log.Printf("users: %+v, key %s", users, s.env.ekey)
+	// log.Printf("users: %+v, key %s", users, s.env.ekey)
 
-	cipherKey := []byte(s.env.ekey)
-	ciphertext, err := encryptHash(cipherKey, string(u))
+	// cipherKey := []byte(s.env.ekey)
+	// ciphertext, err := encryptHash(cipherKey, string(u))
 
-	render.PlainText(w, r, string(ciphertext))
+	// render.PlainText(w, r, string(ciphertext))
+
+	render.Status(r, 200)
+	render.JSON(w, r, users)
 	return
 
 }
