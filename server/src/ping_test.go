@@ -24,7 +24,7 @@ func TestPing(t *testing.T) {
 	}
 
 	// Check if error in body
-	if ping.Version == "" || ping.Message == "" {
+	if ping.Version == "" || ping.Message == "" || ping.Date == "" {
 		t.Errorf("Error with body: %+v", ping)
 	}
 

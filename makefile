@@ -1,3 +1,5 @@
+VERSION ?= "v1.0.3"
+
 all: stop test build run
 
 stop: 
@@ -5,7 +7,7 @@ stop:
 
 push: build
 	docker push pasientskyhosting/ps-otu-ldap:latest && \
-	docker push pasientskyhosting/ps-otu-ldap:v1.0.1
+	docker push pasientskyhosting/ps-otu-ldap:"$(VERSION)"
 
 run: stop
 	docker run -d --name=swagger-api --rm -p 8082:8080 -e API_URL=https://raw.githubusercontent.com/pasientskyhosting/ps-otu-ldap/master/api-description.yml swaggerapi/swagger-ui; \
@@ -23,8 +25,8 @@ run: stop
 	pasientskyhosting/ps-otu-ldap:latest
 
 build:
-	docker build -t pasientskyhosting/ps-otu-ldap:latest . && \
-	docker build -t pasientskyhosting/ps-otu-ldap:v1.0.1 .
+	docker build --build-arg version="$(VERSION)" -t pasientskyhosting/ps-otu-ldap:latest . && \
+	docker build --build-arg version="$(VERSION)" -t pasientskyhosting/ps-otu-ldap:"$(VERSION)" .
 
 test:
 	export API_ENCRYPTION_KEY=$(API_ENCRYPTION_KEY); \

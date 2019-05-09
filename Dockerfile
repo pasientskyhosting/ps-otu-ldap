@@ -2,7 +2,8 @@
 # Node Builder Stage                                                    
 ###################################################################
 FROM node:10-alpine as node_builder
-ENV BABEL_ENV production
+ARG babel_env=production
+ENV BABEL_ENV ${babel_env}
 
 RUN apk update \
     && apk add git openssh \
@@ -20,6 +21,8 @@ RUN npm install && \
 ###################################################################
 FROM golang:alpine AS go_builder
 
+ARG version
+
 RUN apk update \
     && apk add git gcc g++ upx \
     && rm  -rf /tmp/* /var/cache/apk/*
@@ -31,8 +34,8 @@ ADD server/src .
 # Get dependencies
 RUN go get -d . 
 
-# Compiule project
-RUN go build -ldflags="-s -w" -o otu-ldap
+# Compile project
+RUN go build -ldflags "-s -w -X main.version=${version} -X main.date=$(date '+%Y-%m-%dT%H:%M:%S%z')" -o otu-ldap
 
 ###################################################################
 # Final Stage                                                    

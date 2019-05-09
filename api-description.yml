@@ -111,34 +111,68 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'          
     
-          
   # -------------------
-  # Group
+  # LDAP-Group
+  # -------------------
+  /ldap-groups:
+  
+    get:
+      tags:
+        - LDAP-Groups
+      security:
+        - BearerAuth: []
+      summary: Get all LDAP groups
+      description: Returns list of the LDAP groups the user is a member of
+      operationId: getAllLDAPGroups
+      responses:
+        '200':
+          description: Successful result
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LDAPGroup'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # -------------------
+  # OTU-Group
   # -------------------
         
-  /groups:
+  /ldap-groups/{ldap_group_name}/otu-groups:
     
     post:
       tags:
-        - Groups
+        - LDAP-Groups
       security:
         - BearerAuth: []
       summary: "Create one time user group"
-      description: "Users in specific LDAP groups can create an one time user group. This group is mapped from glauth "
+      description: "Users in this LDAP group can create an one time user group. This group is mapped from glauth"
       operationId: "createGroup"
+      parameters:
+        - name: ldap_group_name
+          in: path
+          description: LDAP group name
+          required: true
+          x-example: "proxy-sql"
+          schema:
+            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/GroupNew'
+              $ref: '#/components/schemas/OTUGroupNew'
       responses:
         '200':
           description: User response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: '#/components/schemas/OTUGroup'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -150,12 +184,20 @@ paths:
       
     get:
       tags:
-        - Groups
+        - LDAP-Groups
       security:
         - BearerAuth: []
-      summary: "Get groups for one time user generation"
-      description: "Returns all groups that the specific user has access to. User can create one time users from these groups. These groups are mapped 1:1 with LDAP groups"
+      summary: "Get otu-groups for one time user generation"
+      description: "Returns otu-groups created for this LDAP group. Users can create one time users from these groups."
       operationId: "getGroups"
+      parameters:
+        - name: ldap_group_name
+          in: path
+          description: LDAP group name
+          required: true
+          x-example: "proxy-sql"
+          schema:
+            type: string
       responses:
         '200':
           description: Successful result
@@ -164,22 +206,22 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Group'
+                  $ref: '#/components/schemas/OTUGroup'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'        
           
-  /groups/{group_name}:
+  /otu-groups/{group_name}:
   
     delete:
       tags:
-        - Groups
+        - OTU-Groups
       security:
         - BearerAuth: []
-      summary: "Delete group"
-      description: "Deletes group and invalidates all users"
-      operationId: "deleteGroup"
+      summary: "Delete otu-group"
+      description: "Deletes otu-group and invalidates all users"
+      operationId: "deleteOTUGroup"
       parameters:
         - name: group_name
           in: path
@@ -194,16 +236,16 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundError'
 
-  /groups/{group_name}/users:
+  /otu-groups/{group_name}/users:
   
     post:
       tags:
-        - Groups
+        - OTU-Groups
       security:
         - BearerAuth: []
       summary: "Generate a new one time user"
-      description: "Generate a one time user for the specifiec LDAP group name"
-      operationId: "generateUser"
+      description: "Generate a one time user for the specific otu-group"
+      operationId: "generateOTUUser"
       parameters:
         - name: group_name
           in: path
@@ -226,12 +268,12 @@ paths:
           
     get:
       tags:
-        - Groups
+        - OTU-Groups
       security:
         - ApiKeyAuth: []
-      summary: "Get all users in group"
-      description: "Get all users in a given LDAP group."
-      operationId: "getGroupUsers"
+      summary: "Get all users in otu-group"
+      description: "Get all users in a given otu-group."
+      operationId: "getOTUGroupUsers"
       parameters:
         - name: group_name
           in: path
@@ -346,12 +388,36 @@ components:
           description: LDAP password + OTP token
           type: "string"
           example: "password+otp"
-          
+
     # -------------------
-    # Group
+    # LDAP-Group
+    # -------------------
+
+    LDAPGroup:
+      type: "object"
+      properties:
+        ldap_group_name:
+          type: string
+          example: proxy-sql
+
+    # -------------------
+    # OTUGroup
     # -------------------
     
-    Group:
+    OTUGroupCustomProps:
+      type: "object"
+      properties:
+        key_name_1:
+          type: string
+          example: "key_name_1_value"
+        key_name_2:
+          type: string
+          example: "key_name_2_value"
+        key_name_3:
+          type: integer
+          example: 3
+    
+    OTUGroup:
       type: "object"
       properties:
         group_name:
@@ -364,6 +430,8 @@ components:
           type: integer
           example: 720 # 12 hours
           description: Lease time in minutes
+        custom_properties:
+          $ref: '#/components/schemas/OTUGroupCustomProps'
         create_time:
           type: integer
           example: 1554102608          
@@ -371,7 +439,7 @@ components:
           type: string
           example: kj
           
-    GroupNew:
+    OTUGroupNew:
       type: "object"
       properties:
         group_name:

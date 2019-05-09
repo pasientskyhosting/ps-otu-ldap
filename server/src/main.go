@@ -17,6 +17,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+var testingMode bool
+
 type server struct {
 	db     *sql.DB
 	router *chi.Mux

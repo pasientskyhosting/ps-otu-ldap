@@ -16,21 +16,23 @@ import (
 
 // Group desc
 type Group struct {
-	GroupName     string `json:"group_name"`
-	LdapGroupName string `json:"ldap_group_name"`
-	LeaseTime     int    `json:"lease_time"`
-	CreateTime    int64  `json:"create_time"`
-	CreateBy      string `json:"create_by"`
+	GroupName        string `json:"group_name"`
+	LdapGroupName    string `json:"ldap_group_name"`
+	CustomAttribures string `json:"custom_attributes"`
+	LeaseTime        int    `json:"lease_time"`
+	CreateTime       int64  `json:"create_time"`
+	CreateBy         string `json:"create_by"`
 }
 
 // GroupDB desc
 type GroupDB struct {
-	id            int64
-	GroupName     string
-	LdapGroupName string
-	LeaseTime     int
-	CreateTime    int64
-	CreateBy      string
+	id               int64
+	GroupName        string
+	LdapGroupName    string
+	CustomAttribures string
+	LeaseTime        int
+	CreateTime       int64
+	CreateBy         string
 }
 
 func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
