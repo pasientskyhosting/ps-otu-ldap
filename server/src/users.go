@@ -244,3 +244,82 @@ func (s *server) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
+
+func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
+
+	var users = []User{}
+	g, err := s.GetGroup(chi.URLParam(r, "GroupName"))
+
+	if err != nil {
+		render.Status(r, 404)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	// Get all users in a specific group
+	log.Printf("Get users for group=%d, and expire_time > %d", g.id, time.Now().Unix())
+	rows, err := s.db.Query("SELECT users.username, users.password, groups.group_name, users.expire_time, users.create_time, users.create_by FROM users LEFT JOIN GROUPS ON users.group_id = groups.id WHERE groups.deleted=0 AND groups.id=$1 AND users.expire_time > $2;", g.id, time.Now().Unix())
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: connecting to DB: %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	for rows.Next() {
+
+		var username string
+		var password string
+		var groupName string
+		var expireTime int64
+		var createTime int64
+		var createBy string
+
+		err = rows.Scan(&username, &password, &groupName, &expireTime, &createTime, &createBy)
+
+		if err != nil {
+			// handle this error better than this
+			log.Printf("ERROR: looping through DB rows: %+v", err)
+			render.Status(r, 500)
+			render.JSON(w, r, nil)
+			return
+		}
+
+		decryptedPassword, _ := decryptHash([]byte(s.env.ekey), password)
+
+		if err != nil {
+			// handle this error better than this
+			log.Printf("ERROR: decryption failed: %+v", err)
+			render.Status(r, 500)
+			render.JSON(w, r, nil)
+			return
+		}
+
+		users = append(users, User{
+			Username:   username,
+			Password:   decryptedPassword,
+			GroupName:  groupName,
+			ExpireTime: expireTime,
+			CreateTime: createTime,
+			CreateBy:   createBy,
+		})
+	}
+
+	// get any error encountered during iteration
+	err = rows.Err()
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: handling DB rows: %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	render.Status(r, 200)
+	render.JSON(w, r, users)
+	return
+
+}

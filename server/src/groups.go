@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,12 +15,18 @@ import (
 
 // Group desc
 type Group struct {
-	GroupName        string `json:"group_name"`
-	LdapGroupName    string `json:"ldap_group_name"`
-	CustomAttribures string `json:"custom_attributes"`
-	LeaseTime        int    `json:"lease_time"`
-	CreateTime       int64  `json:"create_time"`
-	CreateBy         string `json:"create_by"`
+	GroupName        string             `json:"group_name"`
+	LdapGroupName    string             `json:"ldap_group_name"`
+	CustomProperties []CustomProperties `json:"custom_properties"`
+	LeaseTime        int                `json:"lease_time"`
+	CreateTime       int64              `json:"create_time"`
+	CreateBy         string             `json:"create_by"`
+}
+
+// CustomProperties desc
+type CustomProperties struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 // GroupDB desc
@@ -29,7 +34,7 @@ type GroupDB struct {
 	id               int64
 	GroupName        string
 	LdapGroupName    string
-	CustomAttribures string
+	CustomProperties string
 	LeaseTime        int
 	CreateTime       int64
 	CreateBy         string
@@ -37,17 +42,22 @@ type GroupDB struct {
 
 func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
+	// Get ldap group name from URL
+	lg := chi.URLParam(r, "LDAPGroupName")
+
 	var LDAPUser, err = s.getLDAPUser(r)
 
 	// Check ldap user
 	if !LDAPUser.Admin || err != nil {
-		render.Status(r, 401)
+		render.Status(r, 403)
 		render.JSON(w, r, nil)
 		return
 	}
 
+	// Create group struct
 	var g Group
 
+	// Unmarshal body and check for errors
 	b, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
@@ -60,6 +70,29 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		render.Status(r, 400)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	// Set LDAP group name
+	g.LdapGroupName = lg
+
+	// Chech matching LDAP group exits and user has access
+	lcheck, err := s.lc.CheckLDAPGroup(g.LdapGroupName, LDAPUser.Username)
+
+	if err != nil {
+		log.Printf("Error with LDAP backend: %s", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	} else if !lcheck.exists {
+		log.Printf("LDAP group does not exist")
+		render.Status(r, 404)
+		render.JSON(w, r, nil)
+		return
+	} else if !lcheck.authorized {
+		log.Printf("User is not authorized for this LDAP group")
+		render.Status(r, 403)
 		render.JSON(w, r, nil)
 		return
 	}
@@ -84,10 +117,18 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	g.CreateTime = time.Now().Unix()
 	g.CreateBy = LDAPUser.Username
-	g.LdapGroupName = g.GroupName
+
+	cp, err := json.Marshal(g.CustomProperties)
+
+	if err != nil {
+		render.Status(r, 500)
+		log.Printf("ERROR: Marshal custom properties %+v", err)
+		render.JSON(w, r, nil)
+		return
+	}
 
 	// insert
-	insert, err := s.db.Prepare("INSERT INTO groups (group_name, ldap_group_name, lease_time, deleted, create_by, create_time) values(?,?,?,?,?,?)")
+	insert, err := s.db.Prepare("INSERT INTO groups (group_name, ldap_group_name, lease_time, custom_properties, deleted, create_by, create_time) values(?,?,?,?,?,?,?)")
 
 	if err != nil {
 		// handle this error better than this
@@ -98,7 +139,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Use group name as LDAP group name
-	_, err = insert.Exec(g.GroupName, g.GroupName, g.LeaseTime, "0", g.CreateBy, g.CreateTime)
+	_, err = insert.Exec(g.GroupName, g.LdapGroupName, g.LeaseTime, cp, 0, g.CreateBy, g.CreateTime)
 
 	if err != nil {
 		// handle this error better than this
@@ -125,17 +166,6 @@ func (g *Group) validateCreateGroup(s *server) url.Values {
 
 	if len(g.GroupName) < 2 || len(g.GroupName) > 120 {
 		errs.Add("group_name", "The group_name field must be between 2-120 chars!")
-	} else {
-
-		// Chech matching LDAP group exits
-		exists, err := s.lc.checkLDAPGroupExists(g.GroupName)
-
-		if err != nil {
-			errs.Add("group_name", fmt.Sprintf("Error with LDAP backend: %s", err))
-		} else if !exists {
-			errs.Add("group_name", "LDAP group does not exist with this name")
-		}
-
 	}
 
 	// check if the title empty
@@ -149,94 +179,6 @@ func (g *Group) validateCreateGroup(s *server) url.Values {
 	}
 
 	return errs
-}
-
-func (s *server) GetAllGroupUsers(w http.ResponseWriter, r *http.Request) {
-
-	var users = []User{}
-	g, err := s.GetGroup(chi.URLParam(r, "GroupName"))
-
-	if err != nil {
-		render.Status(r, 404)
-		render.JSON(w, r, nil)
-		return
-	}
-
-	// Get all users in a specific group
-	log.Printf("Get users for group=%d, and expire_time > %d", g.id, time.Now().Unix())
-	rows, err := s.db.Query("SELECT users.username, users.password, groups.group_name, users.expire_time, users.create_time, users.create_by FROM users LEFT JOIN GROUPS ON users.group_id = groups.id WHERE groups.deleted=0 AND groups.id=$1 AND users.expire_time > $2;", g.id, time.Now().Unix())
-
-	if err != nil {
-		// handle this error better than this
-		log.Printf("ERROR: connecting to DB: %+v", err)
-		render.Status(r, 500)
-		render.JSON(w, r, nil)
-		return
-	}
-
-	for rows.Next() {
-
-		var username string
-		var password string
-		var groupName string
-		var expireTime int64
-		var createTime int64
-		var createBy string
-
-		err = rows.Scan(&username, &password, &groupName, &expireTime, &createTime, &createBy)
-
-		if err != nil {
-			// handle this error better than this
-			log.Printf("ERROR: looping through DB rows: %+v", err)
-			render.Status(r, 500)
-			render.JSON(w, r, nil)
-			return
-		}
-
-		decryptedPassword, _ := decryptHash([]byte(s.env.ekey), password)
-
-		if err != nil {
-			// handle this error better than this
-			log.Printf("ERROR: decryption failed: %+v", err)
-			render.Status(r, 500)
-			render.JSON(w, r, nil)
-			return
-		}
-
-		users = append(users, User{
-			Username:   username,
-			Password:   decryptedPassword,
-			GroupName:  groupName,
-			ExpireTime: expireTime,
-			CreateTime: createTime,
-			CreateBy:   createBy,
-		})
-	}
-
-	// get any error encountered during iteration
-	err = rows.Err()
-
-	if err != nil {
-		// handle this error better than this
-		log.Printf("ERROR: handling DB rows: %+v", err)
-		render.Status(r, 500)
-		render.JSON(w, r, nil)
-		return
-	}
-
-	// u, _ := json.Marshal(users)
-
-	// log.Printf("users: %+v, key %s", users, s.env.ekey)
-
-	// cipherKey := []byte(s.env.ekey)
-	// ciphertext, err := encryptHash(cipherKey, string(u))
-
-	// render.PlainText(w, r, string(ciphertext))
-
-	render.Status(r, 200)
-	render.JSON(w, r, users)
-	return
-
 }
 
 // GetGroup - returns group from db
@@ -329,7 +271,7 @@ func (s *server) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 
 	// Check ldap user
 	if !LDAPUser.Admin || err != nil {
-		render.Status(r, 401)
+		render.Status(r, 403)
 		render.JSON(w, r, nil)
 		return
 	}

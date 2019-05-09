@@ -162,7 +162,7 @@ func main() {
 	log.Printf("Started REST API on %s with db %s", s.env.listen, s.env.dbFile)
 
 	// Create temp token
-	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": "apiTest", "exp": jwtauth.ExpireIn(30 * time.Minute)})
+	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": "apiTest", "exp": jwtauth.ExpireIn(3600 * time.Minute)})
 
 	// Start rand seed
 	rand.Seed(time.Now().UnixNano())

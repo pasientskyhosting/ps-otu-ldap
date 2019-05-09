@@ -12,7 +12,7 @@ func TestGroupsGetAllGroups(t *testing.T) {
 	a := newAPITest(t, "GET", "/api/v1/groups", nil)
 	defer a.tearDown(t)
 
-	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true)))
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 
@@ -37,7 +37,7 @@ func TestGroupsDeleteGroup(t *testing.T) {
 	a := newAPITest(t, "DELETE", "/api/v1/groups/apitemptest", nil)
 	defer a.tearDown(t)
 
-	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true)))
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusNoContent, response.Code)
 
@@ -65,33 +65,31 @@ func TestGroupsGetAllGroupsShouldFailWhenUnAuthorized(t *testing.T) {
 
 func TestGroupsCreateGroup(t *testing.T) {
 
-	a := newAPITest(t, "POST", "/api/v1/groups", []byte(`{"group_name": "voip-superheroes","lease_time": 3600}`))
+	a := newAPITest(t, "POST", "/api/v1/ldap-groups/voip/groups", []byte(`{"group_name":"voip-random","lease_time":8600,"custom_properties":[{"key":"hello","value":"world"},{"key":"hello","value":"2"}]}`))
 	defer a.tearDown(t)
 
-	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true))) // Since this user does not really have LDAP access an 403 is accepted
 
 	response := executeRequest(a.server, a.req)
-	checkResponseCode(t, http.StatusCreated, response.Code)
+	checkResponseCode(t, http.StatusForbidden, response.Code)
 
-	var g Group
+}
 
-	err := json.Unmarshal([]byte(response.Body.String()), &g)
+func TestGroupsCreateGroupShouldFailWhenNotAdmin(t *testing.T) {
 
-	// handle parse error
-	if err != nil {
-		t.Errorf("Error while parsing body %s", response.Body.String())
-	}
+	a := newAPITest(t, "POST", "/api/v1/ldap-groups/voip/groups", nil)
+	defer a.tearDown(t)
 
-	// Check if error in body
-	if g.GroupName == "" || g.LdapGroupName == "" {
-		t.Errorf("Error with body: %s", response.Body.String())
-	}
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", false)))
+
+	response := executeRequest(a.server, a.req)
+	checkResponseCode(t, http.StatusForbidden, response.Code)
 
 }
 
 func TestGroupsCreateGroupShouldFailWhenUnAuthorized(t *testing.T) {
 
-	a := newAPITest(t, "POST", "/api/v1/groups", []byte(`{"group_name": "proxy-sql","ldap_group_name": "proxy-sql","lease_time": 3600}`))
+	a := newAPITest(t, "POST", "/api/v1/ldap-groups/voip/groups", nil)
 	defer a.tearDown(t)
 
 	response := executeRequest(a.server, a.req)

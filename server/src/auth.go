@@ -27,9 +27,9 @@ type Auth struct {
 }
 
 // Create temp token for e.g api test
-func (s *server) getToken(expire time.Duration, username string) string {
+func (s *server) getToken(expire time.Duration, username string, isAdmin bool) string {
 
-	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": username, "exp": jwtauth.ExpireIn(time.Minute * expire), "is_admin": true, "display_name": username})
+	_, ts, _ := s.token.Encode(jwt.MapClaims{"user_id": username, "exp": jwtauth.ExpireIn(time.Minute * expire), "is_admin": isAdmin, "display_name": username})
 
 	return ts
 }
@@ -100,7 +100,7 @@ func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": lu.Username, "exp": jwtauth.ExpireIn(60 * time.Minute), "is_admin": lu.Admin, "display_name": lu.DisplayName})
+	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": lu.Username, "exp": jwtauth.ExpireIn(3600 * time.Minute), "is_admin": lu.Admin, "display_name": lu.DisplayName})
 
 	render.JSON(w, r, Token{Token: tokenString})
 

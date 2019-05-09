@@ -23,7 +23,9 @@ func (s *server) routes() *chi.Mux {
 		middleware.Recoverer,       // Recover from panics without crashing server
 	)
 
+	// -----------------------------------
 	// JWT routes
+	// -----------------------------------
 	s.router.Group(func(r chi.Router) {
 
 		// Seek, verify and validate JWT tokens
@@ -32,22 +34,48 @@ func (s *server) routes() *chi.Mux {
 		// Handle valid / invalid tokens.
 		r.Use(jwtauth.Authenticator)
 
-		r.Get("/api/v1/auth/verify", s.Verify)
-		r.Get("/api/v1/users", s.GetAllUsers)
-		r.Post("/api/v1/groups", s.CreateGroup)
+		// -----------------------------------
+		// AUTH routes
+		// -----------------------------------
+		r.Get("/api/v1/auth", s.Verify)
+
+		// -----------------------------------
+		// Users routes
+		// -----------------------------------
+		r.Get("/api/v1/groups/{GroupName}/users", s.GetAllGroupUsers)
 		r.Post("/api/v1/groups/{GroupName}/users", s.CreateUser)
-		r.Delete("/api/v1/groups/{GroupName}", s.DeleteGroup)
+		r.Get("/api/v1/users", s.GetAllUsers)
+
+		// -----------------------------------
+		// LDAP Group routes
+		// -----------------------------------
+		r.Get("/api/v1/ldap-groups", s.GetAllLDAPGroups)
+
+		// -----------------------------------
+		// Group routes
+		// -----------------------------------
+		r.Post("/api/v1/ldap-groups/{LDAPGroupName}/groups", s.CreateGroup)
 		r.Get("/api/v1/groups", s.GetAllGroups)
+		r.Delete("/api/v1/groups/{GroupName}", s.DeleteGroup)
+
 	})
 
+	// -----------------------------------
 	// Public routes
+	// -----------------------------------
 	s.router.Group(func(r chi.Router) {
-		r.Post("/api/v1/auth/authorize", s.Authorize)
+		r.Post("/api/v1/auth", s.Authorize)
 		r.Get("/api/v1/ping", s.Ping)
 	})
 
-	// API-KEY routes
+	// -----------------------------------
+	// X-API-KEY routes
+	// -----------------------------------
 	s.router.Group(func(r chi.Router) {
+
+		// -----------------------------------
+		// OTU Group routes
+		// -----------------------------------
 		r.Get("/api/v1/groups/{GroupName}/users", s.isAPIKeyAuthorized(s.GetAllGroupUsers))
 	})
 

@@ -15,7 +15,7 @@ func TestUsersCreateUser(t *testing.T) {
 	a := newAPITest(t, "POST", "/api/v1/groups/apitemptest/users", nil)
 	defer a.tearDown(t)
 
-	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true)))
 
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusCreated, response.Code)
@@ -52,7 +52,7 @@ func TestUsersGetAllUsers(t *testing.T) {
 	a := newAPITest(t, "GET", "/api/v1/users", nil)
 	defer a.tearDown(t)
 
-	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest")))
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true)))
 
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusOK, response.Code)

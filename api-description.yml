@@ -3,13 +3,13 @@ openapi: "3.0.0"
 info:
   version: 1.0.0
   title: PatientSky One Time User API
-  description: API to generate temporary one time users from LDAP backend
+  description: API to generate temporary/one-time users ("Users") and groups ("Groups") mapped from a LDAP backend ("LDAP-Groups"). </br></br>Users login with their LDAP credentials ("Auth") and are able to generate new temporary/one-time users from the visible groups. These groups have specified lease times and are mapped to the LDAP backend groups. </br></br>An LDAP group can have many mapped groups with different lease times and custom properties.</br></br>When users are created various sync-services can fetch these temporary/one-time users and create them locally with their own business logic.
   contact:
     name: PatientSky Infrastructure Team
     email: kj@patientsky.com
   license:
-    name: Apache 2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0.html
+    name: MIT
+    url: https://opensource.org/licenses/MIT
     
 servers:
   - url: https://odn1-inf-otu.privatedns.zone/api/v1
@@ -42,13 +42,13 @@ paths:
   # Auth
   # -------------------
   
-  /auth/verify:
+  /auth:
     get:
       security:
         - BearerAuth: []
       tags:
         - Auth
-      summary: Verify token
+      summary: Verify JWT token
       description: Verify JWT token is valid
       operationId: authVerify
       responses:
@@ -60,12 +60,11 @@ paths:
                 $ref: '#/components/schemas/Verify'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-          
-  /auth/authorize:
+        
     post:
       tags:
         - Auth
-      summary: Authenticate
+      summary: Authenticate with LDAP
       description: Authenticate with LDAP credentials
       operationId: authAuthenticate
       requestBody:
@@ -85,8 +84,68 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
 
   # -------------------
-  # User  
+  # Users
   # -------------------
+  /groups/{group_name}/users:
+  
+    get:
+      tags:
+        - Users
+      security:
+        - ApiKeyAuth: []
+      summary: Get all users for Sync Services
+      description: Get active users. On each run, the LDAP grooup is checked and, if not exists, then the the group will be deleted and all users expired.
+      operationId: getUsers
+      parameters:
+        - name: group_name
+          in: path
+          description: Group name
+          required: true
+          x-example: "proxy-sql"
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful result
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError' 
+  
+    post:
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      summary: "Generate a user"
+      description: "Generate a user for the specific group. Checks if user has access to matched LDAP group."
+      operationId: "generateUser"
+      parameters:
+        - name: group_name
+          in: path
+          description: LDAP group name
+          required: true
+          x-example: "proxy-sql"
+          schema:
+            type: string
+      responses:
+        '201':
+          description: User response
+          content:
+            application/json:
+              schema:                
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+   
   
   /users:
     get:
@@ -94,9 +153,9 @@ paths:
         - Users
       security:
         - BearerAuth: []
-      summary: Get active users
-      description: Get active users created by self
-      operationId: getUsers
+      summary: Get active one time users
+      description: Get active users created by this LDAP user. Checks if user still has access to mapped LDAP groups.
+      operationId: getActiveUsers
       responses:
         '200':
           description: Successful result
@@ -139,18 +198,18 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
 
   # -------------------
-  # OTU-Group
+  # Group
   # -------------------
         
-  /ldap-groups/{ldap_group_name}/otu-groups:
+  /ldap-groups/{ldap_group_name}/groups:
     
     post:
       tags:
-        - LDAP-Groups
+        - Groups
       security:
         - BearerAuth: []
-      summary: "Create one time user group"
-      description: "Users in this LDAP group can create an one time user group. This group is mapped from glauth"
+      summary: "Create a group for this LDAP-group"
+      description: "Users with the correct credentials can create an group. This group is mapped from glauth LDAP groups. Only users in the the admins LDAP groups are allowed to call this endpoint."
       operationId: "createGroup"
       parameters:
         - name: ldap_group_name
@@ -165,14 +224,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OTUGroupNew'
+              $ref: '#/components/schemas/GroupNew'
       responses:
         '200':
           description: User response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OTUGroup'
+                $ref: '#/components/schemas/Group'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -181,23 +240,17 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ConflictError'
-      
+         
+  /groups:
+  
     get:
       tags:
-        - LDAP-Groups
+        - Groups
       security:
         - BearerAuth: []
-      summary: "Get otu-groups for one time user generation"
-      description: "Returns otu-groups created for this LDAP group. Users can create one time users from these groups."
-      operationId: "getGroups"
-      parameters:
-        - name: ldap_group_name
-          in: path
-          description: LDAP group name
-          required: true
-          x-example: "proxy-sql"
-          schema:
-            type: string
+      summary: "Get all groups for user generation"
+      description: "Returns all groups created. Will only return groups that the user has LDAP access to"
+      operationId: "getAllGroups"
       responses:
         '200':
           description: Successful result
@@ -206,22 +259,22 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/OTUGroup'
+                  $ref: '#/components/schemas/Group'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'        
+          $ref: '#/components/responses/UnauthorizedError'
           
-  /otu-groups/{group_name}:
+  /groups/{group_name}:
   
     delete:
       tags:
-        - OTU-Groups
+        - Groups
       security:
         - BearerAuth: []
-      summary: "Delete otu-group"
-      description: "Deletes otu-group and invalidates all users"
-      operationId: "deleteOTUGroup"
+      summary: "Delete group"
+      description: "Deletes group and invalidates all users. Checks if user has access to LDAP group."
+      operationId: "deleteGroup"
       parameters:
         - name: group_name
           in: path
@@ -235,67 +288,6 @@ paths:
           description: No Content
         '404':
           $ref: '#/components/responses/NotFoundError'
-
-  /otu-groups/{group_name}/users:
-  
-    post:
-      tags:
-        - OTU-Groups
-      security:
-        - BearerAuth: []
-      summary: "Generate a new one time user"
-      description: "Generate a one time user for the specific otu-group"
-      operationId: "generateOTUUser"
-      parameters:
-        - name: group_name
-          in: path
-          description: LDAP group name
-          required: true
-          x-example: "proxy-sql"
-          schema:
-            type: string
-      responses:
-        '201':
-          description: User response
-          content:
-            application/json:
-              schema:                
-                $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-          
-    get:
-      tags:
-        - OTU-Groups
-      security:
-        - ApiKeyAuth: []
-      summary: "Get all users in otu-group"
-      description: "Get all users in a given otu-group."
-      operationId: "getOTUGroupUsers"
-      parameters:
-        - name: group_name
-          in: path
-          description: LDAP group name
-          required: true
-          x-example: "proxy-sql"
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful result
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'            
-                  
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedErrorAPIKey'        
   
 
 security:
@@ -401,10 +393,10 @@ components:
           example: proxy-sql
 
     # -------------------
-    # OTUGroup
+    # Group
     # -------------------
     
-    OTUGroupCustomProps:
+    GroupCustomProps:
       type: "object"
       properties:
         key_name_1:
@@ -413,11 +405,8 @@ components:
         key_name_2:
           type: string
           example: "key_name_2_value"
-        key_name_3:
-          type: integer
-          example: 3
     
-    OTUGroup:
+    Group:
       type: "object"
       properties:
         group_name:
@@ -431,7 +420,7 @@ components:
           example: 720 # 12 hours
           description: Lease time in minutes
         custom_properties:
-          $ref: '#/components/schemas/OTUGroupCustomProps'
+          $ref: '#/components/schemas/GroupCustomProps'
         create_time:
           type: integer
           example: 1554102608          
@@ -439,7 +428,7 @@ components:
           type: string
           example: kj
           
-    OTUGroupNew:
+    GroupNew:
       type: "object"
       properties:
         group_name:
