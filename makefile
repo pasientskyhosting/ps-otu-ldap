@@ -1,11 +1,11 @@
-VERSION ?= "v1.1.0"
+VERSION ?= "v1.1.1"
 
 all: stop test build run
 
 stop: 
 	-docker stop otu-ldap; docker stop swagger-api;
 
-push: build
+push: test build
 	docker push pasientskyhosting/ps-otu-ldap:latest && \
 	docker push pasientskyhosting/ps-otu-ldap:"$(VERSION)"
 
