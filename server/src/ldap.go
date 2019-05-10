@@ -39,7 +39,7 @@ type LDAPGroup struct {
 	LDAPGroupName string `json:"ldap_group_name"`
 }
 
-func (s *server) GetAllLDAPGroups(w http.ResponseWriter, r *http.Request) {
+func (s *server) GetUserLDAPGroups(w http.ResponseWriter, r *http.Request) {
 
 	var LDAPUser, err = s.getLDAPUser(r)
 
@@ -51,7 +51,7 @@ func (s *server) GetAllLDAPGroups(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Chech matching LDAP group exits and user has access
-	LDAPGroups, err := s.lc.GetAllLDAPGroups()
+	LDAPGroups, err := s.lc.GetUserLDAPGroups(LDAPUser.Username)
 
 	if err != nil {
 		log.Printf("Error with LDAP backend: %s", LDAPGroups)
@@ -73,7 +73,7 @@ func (s *server) GetAllLDAPGroups(w http.ResponseWriter, r *http.Request) {
 }
 
 // CheckLDAPGroup
-func (lc *ldapConn) GetAllLDAPGroups() ([]LDAPGroup, error) {
+func (lc *ldapConn) GetUserLDAPGroups(username string) ([]LDAPGroup, error) {
 
 	port, err := strconv.Atoi(lc.Port)
 
@@ -96,12 +96,12 @@ func (lc *ldapConn) GetAllLDAPGroups() ([]LDAPGroup, error) {
 		return nil, err
 	}
 
-	// Search for the given username
+	// Search for the given username and get all groups
 	searchRequest := ldap.NewSearchRequest(
 		lc.Base,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprint("(objectClass=posixGroup)"), // The filter to apply
-		[]string{"cn"},
+		fmt.Sprintf("(&(uid=%s)(objectClass=posixaccount))", username),
+		[]string{"dn", "memberOf", "displayName"},
 		nil,
 	)
 
@@ -113,8 +113,18 @@ func (lc *ldapConn) GetAllLDAPGroups() ([]LDAPGroup, error) {
 
 	var lg []LDAPGroup
 
-	for _, v := range sr.Entries {
-		lg = append(lg, LDAPGroup{LDAPGroupName: strings.Split(strings.Split(v.DN, ",")[0], "cn=")[1]})
+	for _, v := range sr.Entries[0].Attributes {
+
+		switch v.Name {
+		case "memberOf":
+			for _, v := range v.Values {
+
+				lg = append(lg, LDAPGroup{LDAPGroupName: strings.Split(strings.Split(v, ",")[0], "cn=")[1]})
+
+			}
+			break
+		}
+
 	}
 
 	return lg, err

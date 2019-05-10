@@ -18,20 +18,42 @@ export interface ILogin {
     token: string
 }
 
+export interface IAPIError {
+    error: IAPIErrorContent
+	status_code: number
+}
+
+interface IAPIErrorContent {
+    messages: IAPIErrorMessage[]
+}
+
+interface IAPIErrorMessage {
+	key:   string
+	value: string
+}
+
+
 class APIService {
 
     private baseUrl: string
     private token: string
+
     public success: boolean  
     public status: number    
-    public error: object
+    public error: IAPIError
 
     constructor(baseUrl?: string) {
 
         this.baseUrl = baseUrl || ""        
         this.success = false        
         this.status = 0
-        this.error = {}
+
+        this.error = {
+            error: {
+                messages: []
+            },
+            status_code: 0
+        }
         
         const token = localStorage.getItem('jwt.token')
             
@@ -46,17 +68,14 @@ class APIService {
 
         switch(response.status) {           
                 
-            case 400:                
-                this.success = false                         
-                break
-            case 401:                               
-                this.success = false
-                break
-            case 409:                
-                this.success = false                        
-                break
-            default:
+            case 200:
+            case 201:
+            case 203:
+            case 204:
                 this.success = true
+                break;            
+            default:
+                this.success = false
         }
         
         if(this.success) {  
@@ -64,12 +83,13 @@ class APIService {
             try {                
                 return await response.json()
             } catch (error) { 
-                console.log(error)
+                console.log(error)                
                 return null
             }    
             
         } else {            
-            this.error = await response.json()
+            
+            this.error = await response.json()            
             return null
         }              
 
@@ -79,7 +99,7 @@ class APIService {
 
         try {
 
-            let response = await fetch(this.baseUrl + '/auth/authorize', {
+            let response = await fetch(this.baseUrl + '/auth', {
                 method: 'post',                        
                 body: JSON.stringify({  
                     username, password
@@ -95,18 +115,16 @@ class APIService {
             }
 
         } catch (error) {
-
-            this.success = false
-            this.status = 0            
+            this.resetConn()           
         }        
 
     }    
 
-    public async groupCreate(group_name: string, lease_time: number): Promise<IGroup | null>  {
+    public async groupCreate(ldap_group_name: string, group_name: string, lease_time: number): Promise<IGroup | null>  {
 
         try {
 
-            let response = await fetch(this.baseUrl + '/groups', {
+            let response = await fetch(this.baseUrl + '/ldap-groups/' + ldap_group_name + '/groups', {
                     method: 'post',    
                     headers: { "Authorization": `Bearer ${this.token}`  },                   
                     body: JSON.stringify({  
@@ -118,8 +136,7 @@ class APIService {
 
         } catch (error) {
 
-            this.success = false
-            this.status = 0            
+            this.resetConn()
         }        
 
         return null
@@ -137,10 +154,8 @@ class APIService {
             return (await this.parseResponse<IGroup[]>(response)) || []
 
         } catch (error) {
-
-            console.log(error)
-            this.success = false
-            this.status = 0         
+            
+            this.resetConn()   
         } 
 
         return []
@@ -160,8 +175,7 @@ class APIService {
 
         } catch (error) {
 
-            this.success = false
-            this.status = 0            
+            this.resetConn()
         } 
 
         return []
@@ -181,8 +195,7 @@ class APIService {
 
         } catch (error) {
 
-            this.success = false
-            this.status = 0            
+            this.resetConn()        
         }        
 
         return null
@@ -202,8 +215,20 @@ class APIService {
 
         } catch (error) {
 
-            this.success = false
-            this.status = 0
+            this.resetConn()
+        }
+
+    }
+
+    private resetConn () {
+
+        this.success = false
+        this.status = 0
+        this.error = {
+            error: {
+                messages: []
+            },
+            status_code: 0
         }
 
     }

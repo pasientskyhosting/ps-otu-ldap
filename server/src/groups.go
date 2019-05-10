@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -49,8 +49,11 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	// Check ldap user
 	if !LDAPUser.Admin || err != nil {
-		render.Status(r, 403)
-		render.JSON(w, r, nil)
+
+		error := NewForbiddenError()
+
+		render.Status(r, error.StatusCode)
+		render.JSON(w, r, error)
 		return
 	}
 
@@ -61,16 +64,23 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
-		render.Status(r, 400)
-		render.JSON(w, r, nil)
+
+		error := NewValidationError()
+		error.AddMessage("body", "Cannot read body")
+
+		render.Status(r, error.StatusCode)
+		render.JSON(w, r, error)
 		return
 	}
 
 	err = json.Unmarshal(b, &g)
 
 	if err != nil {
-		render.Status(r, 400)
-		render.JSON(w, r, nil)
+		error := NewValidationError()
+		error.AddMessage("body", "Cannot parse JSON")
+
+		render.Status(r, error.StatusCode)
+		render.JSON(w, r, error)
 		return
 	}
 
@@ -81,28 +91,27 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	lcheck, err := s.lc.CheckLDAPGroup(g.LdapGroupName, LDAPUser.Username)
 
 	if err != nil {
-		log.Printf("Error with LDAP backend: %s", err)
-		render.Status(r, 500)
-		render.JSON(w, r, nil)
+		error := LDAPConnError()
+		error.AddMessage("ldap", fmt.Sprintf("LDAP backend: %s", err))
+		render.Status(r, error.StatusCode)
+		render.JSON(w, r, error)
 		return
 	} else if !lcheck.exists {
-		log.Printf("LDAP group does not exist")
-		render.Status(r, 404)
-		render.JSON(w, r, nil)
+		error := NewAssetNotFoundError()
+		error.AddMessage("ldap_group_name", "LDAP group does not exist")
+		render.Status(r, error.StatusCode)
+		render.JSON(w, r, error)
 		return
 	} else if !lcheck.authorized {
-		log.Printf("User is not authorized for this LDAP group")
-		render.Status(r, 403)
-		render.JSON(w, r, nil)
+		error := NewForbiddenError()
+		render.Status(r, error.StatusCode)
+		render.JSON(w, r, error)
 		return
 	}
 
-	if validErrs := g.validateCreateGroup(s); len(validErrs) > 0 {
-
-		err := map[string]interface{}{"validation_error": validErrs}
-
-		render.Status(r, 400)
-		render.JSON(w, r, err)
+	if validErrs := g.validateCreateGroup(s); len(validErrs.GetMessages()) > 0 {
+		render.Status(r, validErrs.StatusCode)
+		render.JSON(w, r, validErrs)
 		return
 	}
 
@@ -110,8 +119,10 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	groupAlreadyExists, _ := s.GetGroup(g.GroupName)
 
 	if groupAlreadyExists.GroupName != "" {
-		render.Status(r, 409)
-		render.JSON(w, r, nil)
+		error := NewAssetAlreadyExistsError()
+		error.AddMessage("group_name", "Group already exists")
+		render.Status(r, error.StatusCode)
+		render.JSON(w, r, error)
 		return
 	}
 
@@ -155,30 +166,30 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (g *Group) validateCreateGroup(s *server) url.Values {
+func (g *Group) validateCreateGroup(s *server) APIError {
 
-	errs := url.Values{}
+	err := NewValidationError()
 
 	// check if the title empty
 	if g.GroupName == "" {
-		errs.Add("group_name", "The group_name field is required!")
+		err.AddMessage("group_name", "The group_name field is required!")
 	}
 
 	if len(g.GroupName) < 2 || len(g.GroupName) > 120 {
-		errs.Add("group_name", "The group_name field must be between 2-120 chars!")
+		err.AddMessage("group_name", "The group_name field must be between 2-120 chars!")
 	}
 
 	// check if the title empty
 	if g.LeaseTime == 0 {
-		errs.Add("lease_time", "The lease_time field is required!")
+		err.AddMessage("lease_time", "The lease_time field is required!")
 	}
 
 	// check the title field is between 3 to 120 chars
 	if g.LeaseTime < 60 || g.LeaseTime > 20160 {
-		errs.Add("lease_time", "The lease_time field must be between 1h (60) and 1y (20160)")
+		err.AddMessage("lease_time", "The lease_time field must be between 1h (60) and 1y (20160)")
 	}
 
-	return errs
+	return err
 }
 
 // GetGroup - returns group from db

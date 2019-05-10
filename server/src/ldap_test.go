@@ -12,7 +12,7 @@ func TestLDAPGetAllLDAPGroups(t *testing.T) {
 	a := newAPITest(t, "GET", "/api/v1/ldap-groups", nil)
 	defer a.tearDown(t)
 
-	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true)))
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "kj", true)))
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusOK, response.Code)
 

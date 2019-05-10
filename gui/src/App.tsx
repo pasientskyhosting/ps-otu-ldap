@@ -51,15 +51,14 @@ class App extends React.Component<{}, IState>{
     private updateAuth() {
 
         let tokenPayload = this.getTokenPayload()
-        let isVerified = false
-        let loginFailed = false
+        let isVerified = false        
 
         if (tokenPayload) {
             isVerified = true
         }
 
         this.setState({
-            tokenPayload, isVerified, loginFailed
+            tokenPayload, isVerified
         })
     }
 
@@ -83,20 +82,21 @@ class App extends React.Component<{}, IState>{
         )
     }
 
-    private onGroupCreateHandler(success: boolean, status_code: number) {
+    private onGroupCreateHandler(success: boolean) {
 
         if (success) {
+            AppToaster.show({
+                intent: Intent.SUCCESS, 
+                message: "Group created successfully."
+            })
+        } else {
+            AppToaster.show({
+                intent: Intent.DANGER, 
+                message: "An error occured while creating group" 
+            })
+        }       
 
-            AppToaster.show(
-                {
-                    intent: Intent.SUCCESS, 
-                    message: "Group created successfully." 
-                }
-            )
-
-        }
-
-        this.onFinishedHandler(success, status_code)
+        this.onFinishedHandler()
         
         if(success && this.groupListRef) {
             this.groupListRef.fetch() 
@@ -104,25 +104,8 @@ class App extends React.Component<{}, IState>{
         
     }
 
-    private onFinishedHandler(success: boolean, status_code: number) {
-
-        let isVerified = false
-        let loginFailed = false
-
-        if (status_code != 401) {
-            isVerified = true
-            loginFailed = false
-        } else {
-            isVerified = false
-            loginFailed = false
-        }
-
-        this.updateAuth()
-
-        this.setState({
-            isVerified, loginFailed
-        })
-        
+    private onFinishedHandler() {
+        this.updateAuth()        
     }  
 
     private renderSearchGroup() {
@@ -130,14 +113,14 @@ class App extends React.Component<{}, IState>{
             <GroupList 
                 is_admin={this.state.tokenPayload ? this.state.tokenPayload.is_admin : false } 
                 ref={(ref) => this.groupListRef = ref} 
-                onGroupsFetchHandler={ (success: boolean, status_code: number) => this.onFinishedHandler(success, status_code) }
+                onGroupsFetchHandler={ (success: boolean, status_code: number) => this.onFinishedHandler() }
             />
         )
     }
 
     private renderCreateGroup() {
         return (
-            <GroupCreate onGroupCreateHandler={(success: boolean, status_code: number) => this.onGroupCreateHandler(success, status_code) } />
+            <GroupCreate onGroupCreateHandler={(success: boolean, status_code: number) => this.onGroupCreateHandler(success) } />
         )
     }
 
@@ -160,7 +143,7 @@ class App extends React.Component<{}, IState>{
             
         } else {
             return (                
-                <LoginForm onLoginHandler={(success: boolean, status_code: number) => this.onFinishedHandler(success, status_code) } />
+                <LoginForm onLoginHandler={(success: boolean, status_code: number) => this.onFinishedHandler() } />
             )
         }
     }    

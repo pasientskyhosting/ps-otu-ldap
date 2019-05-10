@@ -53,6 +53,18 @@ func TestGroupsDeleteGroupWhenUnAuthorized(t *testing.T) {
 
 }
 
+func TestGroupsDeleteGroupWhenNotAdmin(t *testing.T) {
+
+	a := newAPITest(t, "DELETE", "/api/v1/groups/apitemptest", nil)
+	defer a.tearDown(t)
+
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", false)))
+
+	response := executeRequest(a.server, a.req)
+	checkResponseCode(t, http.StatusForbidden, response.Code)
+
+}
+
 func TestGroupsGetAllGroupsShouldFailWhenUnAuthorized(t *testing.T) {
 
 	a := newAPITest(t, "GET", "/api/v1/groups", nil)

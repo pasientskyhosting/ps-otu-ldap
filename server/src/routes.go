@@ -49,7 +49,7 @@ func (s *server) routes() *chi.Mux {
 		// -----------------------------------
 		// LDAP Group routes
 		// -----------------------------------
-		r.Get("/api/v1/ldap-groups", s.GetAllLDAPGroups)
+		r.Get("/api/v1/ldap-groups", s.GetUserLDAPGroups)
 
 		// -----------------------------------
 		// Group routes

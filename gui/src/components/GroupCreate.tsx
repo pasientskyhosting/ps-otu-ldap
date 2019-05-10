@@ -4,13 +4,13 @@ import ValidatedInputGroup from './ValidatedInputGroup';
 import APIService from '../services/APIService';
 
 interface IProps {    
-    onGroupCreateHandler: (success: boolean, status_code: number) => void,        
+    onGroupCreateHandler: (success: boolean) => void,        
 }
 
 interface IState {    
+    ldap_group_name: string
     group_name: string
-    lease_time: number
-    connecting?: boolean
+    lease_time: number    
     errorMessage: string
 }
 
@@ -21,6 +21,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
         super(props)
 
         this.state = {
+            ldap_group_name: "",
             group_name: "",
             lease_time: 720,
             errorMessage: ""
@@ -28,24 +29,14 @@ export default class GroupCreate extends React.Component<IProps, IState> {
 
     }
 
-    private async onSubmit() {
-
-        this.setState({
-            connecting: true
-        })
+    private async onSubmit() {        
     
-       const group = await APIService.groupCreate(this.state.group_name, this.state.lease_time)
-
-       console.log(group)
+       const group = await APIService.groupCreate(this.state.group_name, this.state.group_name, this.state.lease_time)
     
         if(!APIService.success) {
-
-            console.log(APIService.error)
-
             this.setState({
-                errorMessage: JSON.stringify(APIService.error.validation_error.group_name)
+                errorMessage: APIService.error.error.messages[0].value
             })
-
         } else {
             this.setState({
                 errorMessage: ""
@@ -53,7 +44,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
         }
           
         // call login handler
-        this.props.onGroupCreateHandler(APIService.success, APIService.status)
+        this.props.onGroupCreateHandler(APIService.success)
   
     }
 
@@ -131,59 +122,3 @@ export default class GroupCreate extends React.Component<IProps, IState> {
     }
 
 }
-
-
-
-// private async onGroupCreate(group_name: string, lease_time: number) {
-
-//     try {
-        
-//         let response = await fetch('/api/v1/groups', {
-//             method: 'post',    
-//             headers: { "Authorization": `Bearer ${this.state.token}`  },                   
-//             body: JSON.stringify({  
-//                 group_name, lease_time
-//             })
-//         })
-
-//         if (response.status !== 201) {
-
-//             let responseParsed = await response.json()
-
-//             switch(response.status) {
-//                 case 401:                        
-//                     this.setState({                                
-//                         isVerified: false,
-//                         loginFailed: false,                                                
-//                     })
-//                     break
-//                 case 400:                        
-//                     this.setState({                                
-//                         errorMesssage: responseParsed.validation_error.group_name,                            
-//                     })
-//                     break
-//                 case 409:                        
-//                     this.setState({                                
-//                         errorMesssage: "Group does already exist with this name",
-//                     })
-//                     break
-//             }                
-
-//         } else {                                    
-            
-//             this.setState({
-//                 isVerified: true,
-//                 errorMesssage: "",
-//             })
-//         }                        
-
-//     } catch (error)
-//     {
-//         this.setState({                                
-//             loginFailed: true,
-//             errorMesssage: "Wrong username or password"
-//         })
-//         console.log(error)
-//     }
-
-// }
