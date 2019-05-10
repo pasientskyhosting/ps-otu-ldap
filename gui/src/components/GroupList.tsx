@@ -107,6 +107,7 @@ export default class GroupList extends React.Component<IProps, IState> {
             >
                 <thead>
                     <tr>
+                        <td>LDAP group</td>
                         <td>Group name</td>
                         <td>Lease time</td>
                         <td>User Options</td>
@@ -128,6 +129,7 @@ export default class GroupList extends React.Component<IProps, IState> {
 
                     return (
                         <tr key={group.group_name}>
+                            <td>{group.ldap_group_name}</td>
                             <td>{group.group_name}</td>
                             <td>{this.formatSeconds(group.lease_time)}</td>
                             <td>
@@ -157,6 +159,7 @@ export default class GroupList extends React.Component<IProps, IState> {
             >
                 <thead>
                     <tr>
+                        <td>LDAP group</td>
                         <td>Group name</td>
                         <td>Lease time</td>
                         <td>One Time User</td>                 
@@ -179,6 +182,7 @@ export default class GroupList extends React.Component<IProps, IState> {
 
                     return (
                         <tr key={group.group_name}>
+                            <td>{group.ldap_group_name}</td>
                             <td>{group.group_name}</td>
                             <td>{this.formatSeconds(group.lease_time)}</td>
                             <td>

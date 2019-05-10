@@ -1,4 +1,9 @@
+export interface ILDAPGroup {
+    ldap_group_name: string
+}
+
 export interface IGroup {
+    ldap_group_name: string
     group_name: string    
     lease_time: number
     create_time: number
@@ -160,7 +165,27 @@ class APIService {
 
         return []
 
-    }  
+    }
+    
+    public async getAllLDAPGroups(): Promise<ILDAPGroup[]> {
+
+        try {
+
+            let response = await fetch(this.baseUrl + '/ldap-groups', {
+                method: 'get',                       
+                headers: { "Authorization": `Bearer ${this.token}`  }             
+            })
+        
+            return (await this.parseResponse<ILDAPGroup[]>(response)) || []
+
+        } catch (error) {
+            
+            this.resetConn()   
+        } 
+
+        return []
+
+    }
     
     public async getAllActiveUsers(): Promise<IUser[]> {
 

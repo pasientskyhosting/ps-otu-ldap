@@ -1,10 +1,13 @@
 import React from 'react';
-import { FormGroup, Intent, Button, Elevation, Card, HTMLSelect, ControlGroup, Callout, Label } from "@blueprintjs/core";
+import { FormGroup, Intent, Button, Elevation, Card, HTMLSelect, Callout, } from "@blueprintjs/core";
+
 import ValidatedInputGroup from './ValidatedInputGroup';
 import APIService from '../services/APIService';
+import { AppToaster } from '../services/Toaster';
+import LDAPGroupSearch from './LDAPGroupSearch';
 
 interface IProps {    
-    onGroupCreateHandler: (success: boolean) => void,        
+    onGroupCreateHandler: (success: boolean) => void, 
 }
 
 interface IState {    
@@ -15,7 +18,8 @@ interface IState {
 }
 
 export default class GroupCreate extends React.Component<IProps, IState> {
-   
+
+
     constructor (props: IProps) {
         
         super(props)
@@ -27,11 +31,22 @@ export default class GroupCreate extends React.Component<IProps, IState> {
             errorMessage: ""
         }        
 
+    }    
+
+    private onLDAPGroupsFetchHandler(success: boolean) {
+
+        if (!success) {
+            AppToaster.show({
+                intent: Intent.DANGER, 
+                message: "An error occured while loading LDAP groups"
+            })
+        }
+
     }
 
     private async onSubmit() {        
     
-       const group = await APIService.groupCreate(this.state.group_name, this.state.group_name, this.state.lease_time)
+       const group = await APIService.groupCreate(this.state.ldap_group_name, this.state.group_name, this.state.lease_time)
     
         if(!APIService.success) {
             this.setState({
@@ -48,7 +63,8 @@ export default class GroupCreate extends React.Component<IProps, IState> {
   
     }
 
-    render () {
+
+    render () {        
 
         return (                   
             
@@ -57,13 +73,28 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                     <div className="groups-create-content">
                     <h2>Create Group</h2>
                     {this.state.errorMessage ? <Callout title="Error" className="group-create-error-message" intent={Intent.DANGER} >{this.state.errorMessage}</Callout> : null }
+
+                    <FormGroup                     
+                     label="LDAP group"
+                     labelFor="ldap-groups"                     
+                    >
+                    <LDAPGroupSearch                  
+                        value={this.state.ldap_group_name}                        
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {                            
+                            this.setState({
+                                ldap_group_name: e.target.value
+                            })
+                        }}
+                        
+                    />                    
+                    </FormGroup>
                    
                     <FormGroup                     
                      label="Group name"
                      labelFor="text-input"                     
                     >                                       
                     <ValidatedInputGroup                                                                                                          
-                        placeholder="Insert group name here..."  
+                        placeholder="Group name..."  
                         validate={(currentValue: string) => {
                             if(currentValue.length == 0 || (currentValue.length > 2 && currentValue.match(/^[_\-0-9a-z]+$/g)) ) {
                                 return true

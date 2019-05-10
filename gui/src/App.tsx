@@ -120,7 +120,7 @@ class App extends React.Component<{}, IState>{
 
     private renderCreateGroup() {
         return (
-            <GroupCreate onGroupCreateHandler={(success: boolean, status_code: number) => this.onGroupCreateHandler(success) } />
+            <GroupCreate onGroupCreateHandler={(success: boolean) => this.onGroupCreateHandler(success) } />
         )
     }
 
