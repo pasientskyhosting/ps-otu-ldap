@@ -50,7 +50,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	// Check ldap user
 	if !LDAPUser.Admin || err != nil {
 
-		error := NewForbiddenError()
+		error := ErrorForbidden()
 
 		render.Status(r, error.StatusCode)
 		render.JSON(w, r, error)
@@ -65,7 +65,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		error := NewValidationError()
+		error := ErrorValidation()
 		error.AddMessage("body", "Cannot read body")
 
 		render.Status(r, error.StatusCode)
@@ -76,7 +76,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(b, &g)
 
 	if err != nil {
-		error := NewValidationError()
+		error := ErrorValidation()
 		error.AddMessage("body", "Cannot parse JSON")
 
 		render.Status(r, error.StatusCode)
@@ -91,19 +91,19 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	lcheck, err := s.lc.CheckLDAPGroup(g.LdapGroupName, LDAPUser.Username)
 
 	if err != nil {
-		error := LDAPConnError()
+		error := ErrorLDAPConn()
 		error.AddMessage("ldap", fmt.Sprintf("LDAP backend: %s", err))
 		render.Status(r, error.StatusCode)
 		render.JSON(w, r, error)
 		return
 	} else if !lcheck.exists {
-		error := NewAssetNotFoundError()
+		error := ErrorAssetNotFound()
 		error.AddMessage("ldap_group_name", "LDAP group does not exist")
 		render.Status(r, error.StatusCode)
 		render.JSON(w, r, error)
 		return
 	} else if !lcheck.authorized {
-		error := NewForbiddenError()
+		error := ErrorForbidden()
 		render.Status(r, error.StatusCode)
 		render.JSON(w, r, error)
 		return
@@ -119,7 +119,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	groupAlreadyExists, _ := s.GetGroup(g.GroupName)
 
 	if groupAlreadyExists.GroupName != "" {
-		error := NewAssetAlreadyExistsError()
+		error := ErrorAssetAlreadyExists()
 		error.AddMessage("group_name", "Group already exists")
 		render.Status(r, error.StatusCode)
 		render.JSON(w, r, error)
@@ -166,9 +166,9 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (g *Group) validateCreateGroup(s *server) APIError {
+func (g *Group) validateCreateGroup(s *server) ErrorAPI {
 
-	err := NewValidationError()
+	err := ErrorValidation()
 
 	// check if the title empty
 	if g.GroupName == "" {

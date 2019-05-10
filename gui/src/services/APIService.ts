@@ -84,7 +84,7 @@ class APIService {
         }
         
         if(this.success) {  
-            
+                        
             try {                
                 return await response.json()
             } catch (error) { 

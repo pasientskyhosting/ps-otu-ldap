@@ -1,65 +1,59 @@
 package main
 
-// APIError - creates
-type APIError struct {
-	Error      APIErrorContent `json:"error"`
+// ErrorAPI - creates
+type ErrorAPI struct {
+	Error      ErrorAPIContent `json:"error"`
 	StatusCode int             `json:"status_code"`
 }
 
-// APIErrorContent - creates
-type APIErrorContent struct {
-	Msg []APIErrorMessage `json:"messages"`
+// ErrorAPIContent - creates
+type ErrorAPIContent struct {
+	Msg []ErrorAPIMessage `json:"messages"`
 }
 
-// APIErrorMessage - creates
-type APIErrorMessage struct {
+// ErrorAPIMessage - creates
+type ErrorAPIMessage struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
 
-// NewAssetAlreadyExistsError - create
-func NewAssetAlreadyExistsError() APIError {
-	a := APIError{}
+func ErrorAssetAlreadyExists() ErrorAPI {
+	a := ErrorAPI{}
 	a.StatusCode = 409
 	return a
 }
 
-// NewForbiddenError - creates new forbidden error
-func NewForbiddenError() APIError {
-	a := APIError{}
+func ErrorForbidden() ErrorAPI {
+	a := ErrorAPI{}
 	a.StatusCode = 403
 	a.AddMessage("ldap-users", "Forbidden")
 	return a
 }
 
-// LDAPConnError - creates
-func LDAPConnError() APIError {
-	a := APIError{}
+func ErrorLDAPConn() ErrorAPI {
+	a := ErrorAPI{}
 	a.StatusCode = 500
 	return a
 }
 
-// NewAssetNotFoundError - creates
-func NewAssetNotFoundError() APIError {
-	a := APIError{}
+func ErrorAssetNotFound() ErrorAPI {
+	a := ErrorAPI{}
 	a.StatusCode = 404
 	return a
 }
 
-// NewValidationError - creates
-func NewValidationError() APIError {
-	a := APIError{}
+// ValidationError - creates
+func ErrorValidation() ErrorAPI {
+	a := ErrorAPI{}
 	a.StatusCode = 400
 	return a
 }
 
-// AddMessage - creates
-func (a *APIError) AddMessage(key string, val string) *APIError {
-	a.Error.Msg = append(a.Error.Msg, APIErrorMessage{Key: key, Value: val})
+func (a *ErrorAPI) AddMessage(key string, val string) *ErrorAPI {
+	a.Error.Msg = append(a.Error.Msg, ErrorAPIMessage{Key: key, Value: val})
 	return a
 }
 
-// GetMessages - creates
-func (a *APIError) GetMessages() []APIErrorMessage {
+func (a *ErrorAPI) GetMessages() []ErrorAPIMessage {
 	return a.Error.Msg
 }

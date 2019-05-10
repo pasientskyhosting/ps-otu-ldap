@@ -3,7 +3,6 @@ import { FormGroup, Intent, Button, Elevation, Card, HTMLSelect, Callout, } from
 
 import ValidatedInputGroup from './ValidatedInputGroup';
 import APIService from '../services/APIService';
-import { AppToaster } from '../services/Toaster';
 import LDAPGroupSearch from './LDAPGroupSearch';
 
 interface IProps {    
@@ -33,17 +32,6 @@ export default class GroupCreate extends React.Component<IProps, IState> {
 
     }    
 
-    private onLDAPGroupsFetchHandler(success: boolean) {
-
-        if (!success) {
-            AppToaster.show({
-                intent: Intent.DANGER, 
-                message: "An error occured while loading LDAP groups"
-            })
-        }
-
-    }
-
     private async onSubmit() {        
     
        const group = await APIService.groupCreate(this.state.ldap_group_name, this.state.group_name, this.state.lease_time)
@@ -63,6 +51,11 @@ export default class GroupCreate extends React.Component<IProps, IState> {
   
     }
 
+    private onLDAPGroupChange(ldap_group_name: string) {
+        this.setState({
+            ldap_group_name: ldap_group_name
+        })
+    }
 
     render () {        
 
@@ -78,14 +71,9 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                      label="LDAP group"
                      labelFor="ldap-groups"                     
                     >
-                    <LDAPGroupSearch                  
-                        value={this.state.ldap_group_name}                        
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {                            
-                            this.setState({
-                                ldap_group_name: e.target.value
-                            })
-                        }}
-                        
+                    <LDAPGroupSearch
+                        id="ldap-groups"                                               
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => this.onLDAPGroupChange(e.target.value)}                        
                     />                    
                     </FormGroup>
                    

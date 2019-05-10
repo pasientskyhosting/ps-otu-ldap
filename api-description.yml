@@ -59,7 +59,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Verify'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/UnAuthorizedError'
         
     post:
       tags:
@@ -81,7 +81,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Authorize'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/UnAuthorizedError'
 
   # -------------------
   # Users
@@ -116,7 +116,7 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError' 
+          $ref: '#/components/responses/UnAuthorizedError' 
   
     post:
       tags:
@@ -142,9 +142,9 @@ paths:
               schema:                
                 $ref: '#/components/schemas/User'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/UnAuthorizedError'
         '404':
-          $ref: '#/components/responses/NotFoundError'
+          $ref: '#/components/responses/AssetNotFoundError'
    
   
   /users:
@@ -168,7 +168,7 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'          
+          $ref: '#/components/responses/UnAuthorizedError'          
     
   # -------------------
   # LDAP-Group
@@ -195,7 +195,7 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/UnAuthorizedError'
 
   # -------------------
   # Group
@@ -235,7 +235,7 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/UnAuthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '409':
@@ -263,7 +263,7 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          $ref: '#/components/responses/UnAuthorizedError'
           
   /groups/{group_name}:
   
@@ -289,7 +289,7 @@ paths:
         '403':
           $ref: '#/components/responses/ForbiddenError'
         '404':
-          $ref: '#/components/responses/NotFoundError'
+          $ref: '#/components/responses/AssetNotFoundError'
   
 
 security:
@@ -300,19 +300,19 @@ security:
 components:
 
   responses:
-        
-    ForbiddenError:
-      $ref: "#/components/schemas/ForbiddenError"
+       
     ValidationError:
-      $ref: "#/components/schemas/ValidationError"
-    UnauthorizedError:
-      description: Access token is missing or invalid
+      $ref: '#/components/schemas/ErrorAPI' 
+    ForbiddenError:
+      $ref: '#/components/schemas/ErrorAPI'
+    UnAuthorizedError:
+      $ref: '#/components/schemas/ErrorAPI'
     ConflictError:
-      description: Item already exists
+      $ref: '#/components/schemas/ErrorAPI'
     UnauthorizedErrorAPIKey:
-      description: API key s missing or invalid
-    NotFoundError:
-      description: Not found
+      $ref: '#/components/schemas/ErrorAPI'
+    AssetNotFoundError:
+      $ref: '#/components/schemas/ErrorAPI'
 
   securitySchemes:
   
@@ -329,23 +329,31 @@ components:
   schemas:
 
     # -------------------
-    # Error
+    # Errors
     # -------------------
+    ErrorAPI:
+      description: API error object
+      type: "object"
+      properties:
+        error:
+          type: "object"
+          properties:
+            messages:
+              type: "array"
+              items:
+                $ref: '#/components/schemas/ErrorAPIMessages'
+        status_code:
+          type: "integer"   
+          
+    ErrorAPIMessages:
+      description: API error object
+      type: "object"
+      properties:
+        key:
+          type: "string"
+        value:
+          type: "string"
     
-    ForbiddenError:
-      description: Not allowed access to this resource
-      type: "object"
-      properties:
-        forbidden_error:
-          type: "object"
-            
-    ValidationError:
-      description: Bad request
-      type: "object"
-      properties:
-        validation_error:
-          type: "object"
-
     # -------------------
     # Ping  
     # -------------------
