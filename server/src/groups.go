@@ -128,17 +128,13 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	g.CreateTime = time.Now().Unix()
 	g.CreateBy = LDAPUser.Username
+	cstring, err := json.Marshal(g.CustomProperties) // take user input and create string
 
-	cp, err := json.Marshal(g.CustomProperties)
-
-	if err != nil {
-		render.Status(r, 500)
-		log.Printf("ERROR: Marshal custom properties %+v", err)
-		render.JSON(w, r, nil)
-		return
+	// Check for null and set empty array instead
+	if string(cstring) == "null" {
+		cstring = []byte("[]")
 	}
 
-	// insert
 	insert, err := s.db.Prepare("INSERT INTO groups (group_name, ldap_group_name, lease_time, custom_properties, deleted, create_by, create_time) values(?,?,?,?,?,?,?)")
 
 	if err != nil {
@@ -150,7 +146,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Use group name as LDAP group name
-	_, err = insert.Exec(g.GroupName, g.LdapGroupName, g.LeaseTime, cp, 0, g.CreateBy, g.CreateTime)
+	_, err = insert.Exec(g.GroupName, g.LdapGroupName, g.LeaseTime, cstring, 0, g.CreateBy, g.CreateTime)
 
 	if err != nil {
 		// handle this error better than this
@@ -326,6 +322,80 @@ func (s *server) DeleteGroup(w http.ResponseWriter, r *http.Request) {
 
 	render.Status(r, 204)
 	render.JSON(w, r, nil)
+	return
+
+}
+
+func (s *server) GetAllGroupsInLDAPScope(w http.ResponseWriter, r *http.Request) {
+
+	lg := chi.URLParam(r, "LDAPGroupName")
+	var groups []Group
+	var c []CustomProperties
+
+	// Get all users in a specific group
+	rows, err := s.db.Query("SELECT groups.group_name, groups.ldap_group_name, groups.lease_time, groups.custom_properties, groups.create_time, groups.create_by FROM groups WHERE groups.deleted=0 AND groups.ldap_group_name=$1;", lg)
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: connecting to DB: %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	for rows.Next() {
+
+		var groupName string
+		var ldapGroupName string
+		var LeaseTime int
+		var customProperties string
+		var createTime int64
+		var createBy string
+
+		err = rows.Scan(&groupName, &ldapGroupName, &LeaseTime, &customProperties, &createTime, &createBy)
+
+		if err != nil {
+			// handle this error better than this
+			log.Printf("ERROR: looping through DB rows: %+v", err)
+			render.Status(r, 500)
+			render.JSON(w, r, nil)
+			return
+		}
+
+		err = json.Unmarshal([]byte(customProperties), &c)
+
+		if err != nil {
+			log.Printf("Error with custom properties: %+v", c)
+			error := ErrorValidation()
+			error.AddMessage("body", "Cannot parse JSON from DB")
+			render.Status(r, error.StatusCode)
+			render.JSON(w, r, error)
+			return
+		}
+
+		groups = append(groups, Group{
+			GroupName:        groupName,
+			LdapGroupName:    ldapGroupName,
+			CustomProperties: c,
+			LeaseTime:        LeaseTime,
+			CreateTime:       createTime,
+			CreateBy:         createBy,
+		})
+	}
+
+	// get any error encountered during iteration
+	err = rows.Err()
+
+	if err != nil {
+		// handle this error better than this
+		log.Printf("ERROR: handling DB rows: %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	render.Status(r, 200)
+	render.JSON(w, r, groups)
 	return
 
 }

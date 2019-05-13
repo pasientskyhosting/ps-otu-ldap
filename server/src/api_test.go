@@ -55,7 +55,7 @@ func (s *server) insertTestData() {
 	// first delete anything
 	s.deleteTestData()
 
-	insertGroup, err := s.db.Prepare("INSERT INTO groups (id, group_name, ldap_group_name, lease_time, deleted, create_by, create_time) values('-1','apitemptest','apitemptest',720,0,'apiTest','1')")
+	insertGroup, err := s.db.Prepare("INSERT INTO groups (id, group_name, ldap_group_name, lease_time, custom_properties, deleted, create_by, create_time) values('-1','apitemptest','apitemptest',720,'[]',0,'apiTest','1')")
 
 	if err != nil {
 		log.Fatalf("ERROR: preparing delete statement %+v", err)
@@ -136,11 +136,14 @@ func newAPITest(t *testing.T, method string, url string, body []byte) *apiTest {
 
 }
 
-func checkResponseCode(t *testing.T, expected, actual int) {
+func checkResponseCode(t *testing.T, expected, actual int) bool {
 
 	if expected != actual {
 		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
+		return false
 	}
+
+	return true
 }
 
 func executeRequest(s *server, req *http.Request) *httptest.ResponseRecorder {

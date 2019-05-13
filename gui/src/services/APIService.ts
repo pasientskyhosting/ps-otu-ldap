@@ -147,6 +147,28 @@ class APIService {
         return null
     }
 
+    public async groupUpdate(ldap_group_name: string, group_name: string, lease_time: number): Promise<IGroup | null>  {
+
+        try {
+
+            let response = await fetch(this.baseUrl + '/ldap-groups/' + ldap_group_name + '/groups', {
+                    method: 'patch',    
+                    headers: { "Authorization": `Bearer ${this.token}`  },                   
+                    body: JSON.stringify({  
+                    group_name, lease_time
+                })
+            })
+
+            return await (this.parseResponse<IGroup>(response)) || null
+
+        } catch (error) {
+
+            this.resetConn()
+        }        
+
+        return null
+    }
+
     public async getAllGroups(): Promise<IGroup[]> {
 
         try {

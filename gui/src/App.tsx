@@ -110,7 +110,7 @@ class App extends React.Component<{}, IState>{
 
     private renderSearchGroup() {
         return (
-            <GroupList 
+            <GroupList
                 is_admin={this.state.tokenPayload ? this.state.tokenPayload.is_admin : false } 
                 ref={(ref) => this.groupListRef = ref} 
                 onGroupsFetchHandler={ (success: boolean, status_code: number) => this.onFinishedHandler() }

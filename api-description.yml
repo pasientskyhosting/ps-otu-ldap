@@ -203,6 +203,34 @@ paths:
         
   /ldap-groups/{ldap_group_name}/groups:
     
+    get:
+      tags:
+        - Groups
+      security:
+         - ApiKeyAuth: []
+      summary: "Get all groups for Sync Services"
+      description: "Returns all groups created in this LDAP scope. Will return all groups regardless of login."
+      operationId: "getAllGroupsInScope"
+      parameters:
+        - name: ldap_group_name
+          in: path
+          description: LDAP group name
+          required: true
+          x-example: "proxy-sql"
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful result
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+        '401':
+          $ref: '#/components/responses/UnAuthorizedError'
+          
     post:
       tags:
         - Groups
@@ -311,7 +339,7 @@ components:
       $ref: '#/components/schemas/ErrorAPI'
     UnauthorizedErrorAPIKey:
       $ref: '#/components/schemas/ErrorAPI'
-    AssetNotFoundError:
+    AssetNotFoundError:      
       $ref: '#/components/schemas/ErrorAPI'
 
   securitySchemes:
@@ -344,6 +372,7 @@ components:
                 $ref: '#/components/schemas/ErrorAPIMessages'
         status_code:
           type: "integer"   
+          example: 400
           
     ErrorAPIMessages:
       description: API error object
@@ -351,8 +380,10 @@ components:
       properties:
         key:
           type: "string"
+          example: "group_name"
         value:
           type: "string"
+          example: "The group_name field must be between 2-120 chars"
     
     # -------------------
     # Ping  
@@ -443,15 +474,14 @@ components:
       properties:
         group_name:
           type: string
-          example: proxy-sql
-        ldap_group_name:
-          type: string
-          example: proxy-sql
+          example: proxy-sql       
         lease_time:
           type: integer
           example: 720 # 12 hours 
           description: Lease time in minutes
-  
+        custom_properties:
+          $ref: '#/components/schemas/GroupCustomProps'     
+
     # -------------------
     # User  
     # -------------------

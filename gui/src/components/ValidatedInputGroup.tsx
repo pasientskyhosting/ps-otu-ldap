@@ -6,6 +6,7 @@ interface IProps extends IInputGroupProps {
     errorMessage: (currentValue: string) => string
     onKeyDown: (e: React.KeyboardEvent) => void
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+    defaultValue?: string
 }
 
 interface IState {    
@@ -13,16 +14,20 @@ interface IState {
 }
 
 export default class ValidatedInputGroup extends React.Component<IProps, IState> {
-    constructor(props: IProps) {
-        super(props)
 
+    constructor(props: IProps) {
+
+        super(props)
+        
         this.state = {
-            currentValue: ""
+            currentValue: this.props.defaultValue || ""
         }
     }
  
     private onChangeHandler(e: React.ChangeEvent<HTMLInputElement>) {
         
+        console.log(e.target.value)
+
         this.setState({
             currentValue: e.target.value
         })

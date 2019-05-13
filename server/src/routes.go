@@ -77,6 +77,7 @@ func (s *server) routes() *chi.Mux {
 		// OTU Group routes
 		// -----------------------------------
 		r.Get("/api/v1/groups/{GroupName}/users", s.isAPIKeyAuthorized(s.GetAllGroupUsers))
+		r.Get("/api/v1/ldap-groups/{LDAPGroupName}/groups", s.isAPIKeyAuthorized(s.GetAllGroupsInLDAPScope))
 	})
 
 	workDir, _ := os.Getwd()

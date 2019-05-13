@@ -144,3 +144,42 @@ func TestGroupsGetAllGroupUsersShouldFailWhenUnAuthorized(t *testing.T) {
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 
 }
+
+func TestGroupsGetAllGroupsInLDAPScope(t *testing.T) {
+
+	a := newAPITest(t, "GET", "/api/v1/ldap-groups/apitemptest/groups", nil)
+	defer a.tearDown(t)
+
+	a.req.Header.Set("X-API-KEY", a.server.env.apiKey)
+
+	response := executeRequest(a.server, a.req)
+
+	// Check repsonse
+	if checkResponseCode(t, http.StatusOK, response.Code) {
+
+		var groups = []Group{}
+
+		err := json.Unmarshal([]byte(response.Body.String()), &groups)
+
+		// handle parse error
+		if err != nil {
+			t.Errorf("Error while parsing body %s", response.Body.String())
+		}
+
+		// Check if error in body
+		if groups[0].GroupName == "" || groups[0].LdapGroupName == "" {
+			t.Errorf("Error with body: %+v", groups)
+		}
+	}
+
+}
+
+func TestGroupsGetAllGroupsInLDAPScopeShouldFailWhenUnAuthorized(t *testing.T) {
+
+	a := newAPITest(t, "GET", "/api/v1/ldap-groups/apitemptest/groups", nil)
+	defer a.tearDown(t)
+
+	response := executeRequest(a.server, a.req)
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+
+}

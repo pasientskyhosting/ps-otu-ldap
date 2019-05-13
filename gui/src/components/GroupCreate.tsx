@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormGroup, Intent, Button, Elevation, Card, HTMLSelect, Callout, } from "@blueprintjs/core";
+import { FormGroup, Intent, Button, Elevation, Card, HTMLSelect, Callout, ButtonGroup, InputGroup, } from "@blueprintjs/core";
 
 import ValidatedInputGroup from './ValidatedInputGroup';
 import APIService from '../services/APIService';
@@ -66,16 +66,18 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                     <div className="groups-create-content">
                     <h2>Create Group</h2>
                     {this.state.errorMessage ? <Callout title="Error" className="group-create-error-message" intent={Intent.DANGER} >{this.state.errorMessage}</Callout> : null }
-
+                    
+                                        
+                    
                     <FormGroup                     
                      label="LDAP group"
-                     labelFor="ldap-groups"                     
-                    >
+                     labelFor="ldap-groups"                                          
+                    >                    
                     <LDAPGroupSearch
-                        id="ldap-groups"                                               
+                        id="ldap-groups"                         
                         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => this.onLDAPGroupChange(e.target.value)}                        
                     />                    
-                    </FormGroup>
+                    </FormGroup>                       
                    
                     <FormGroup                     
                      label="Group name"
@@ -108,7 +110,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                      label="Lease time"
                      labelFor="lease-time"                     
                     >
-                    <HTMLSelect                        
+                    <HTMLSelect                                  
                         id="lease-time"
                         value={this.state.lease_time}                        
                         onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {                            
@@ -122,9 +124,24 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                     <option value="1440">24 hours</option>
                     <option value="10080">1 week</option>
                     <option value="20160">2 weeks</option>
-                    </HTMLSelect>                                        
+                    </HTMLSelect>
+                    </FormGroup>     
+                                                                       
+                    <FormGroup                     
+                     label="Custom properties"
+                     labelFor="custom-props"                     
+                    >
+                    
+                    <ButtonGroup>
+                    <InputGroup
+                    placeholder="Key"
+                    ></InputGroup>&nbsp;
+                    <InputGroup
+                    placeholder="Value"
+                    ></InputGroup>
                    
-                    </FormGroup>                     
+                    </ButtonGroup>
+                    </FormGroup>                                      
                          
                     <Button                          
                         style={{ width: "100%", marginTop: "20px" }}              
