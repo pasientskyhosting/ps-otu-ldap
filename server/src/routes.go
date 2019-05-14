@@ -57,6 +57,7 @@ func (s *server) routes() *chi.Mux {
 		r.Post("/api/v1/ldap-groups/{LDAPGroupName}/groups", s.CreateGroup)
 		r.Get("/api/v1/groups", s.GetAllGroups)
 		r.Delete("/api/v1/groups/{GroupName}", s.DeleteGroup)
+		r.Patch("/api/v1/groups/{GroupName}", s.UpdateGroup)
 
 	})
 

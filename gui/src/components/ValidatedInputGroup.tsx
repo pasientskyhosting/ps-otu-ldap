@@ -26,11 +26,11 @@ export default class ValidatedInputGroup extends React.Component<IProps, IState>
  
     private onChangeHandler(e: React.ChangeEvent<HTMLInputElement>) {
         
-        console.log(e.target.value)
-
         this.setState({
             currentValue: e.target.value
         })
+
+        console.log(this.state)
 
         this.props.onChange && this.props.onChange(e)
     }

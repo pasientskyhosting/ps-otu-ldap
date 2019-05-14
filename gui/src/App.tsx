@@ -104,6 +104,28 @@ class App extends React.Component<{}, IState>{
         
     }
 
+    private onGroupUpdateHandler(success: boolean) {
+
+        if (success) {
+            AppToaster.show({
+                intent: Intent.SUCCESS, 
+                message: "Group updated successfully."
+            })
+        } else {
+            AppToaster.show({
+                intent: Intent.DANGER, 
+                message: "An error occured while updating group" 
+            })
+        }       
+
+        this.onFinishedHandler()
+        
+        if(success && this.groupListRef) {
+            this.groupListRef.fetch() 
+        }
+        
+    }
+
     private onFinishedHandler() {
         this.updateAuth()        
     }  
@@ -114,6 +136,7 @@ class App extends React.Component<{}, IState>{
                 is_admin={this.state.tokenPayload ? this.state.tokenPayload.is_admin : false } 
                 ref={(ref) => this.groupListRef = ref} 
                 onGroupsFetchHandler={ (success: boolean, status_code: number) => this.onFinishedHandler() }
+                onGroupUpdateHandler={ (success: boolean) => this.onGroupUpdateHandler(success) }
             />
         )
     }

@@ -6,9 +6,16 @@ export interface IGroup {
     ldap_group_name: string
     group_name: string    
     lease_time: number
+    custom_properties: IGroupCustomProps[]
     create_time: number
     create_by: string
 }
+
+export interface IGroupCustomProps {
+    key: string
+    value: string
+}
+
 
 export interface IUser {
     username: string
@@ -147,15 +154,17 @@ class APIService {
         return null
     }
 
-    public async groupUpdate(ldap_group_name: string, group_name: string, lease_time: number): Promise<IGroup | null>  {
+    public async groupUpdate(group_name: string, group: IGroup): Promise<IGroup | null>  {
 
         try {
 
-            let response = await fetch(this.baseUrl + '/ldap-groups/' + ldap_group_name + '/groups', {
-                    method: 'patch',    
+            let response = await fetch(this.baseUrl + '/groups/' + group_name, {
+                    method: 'PATCH',    
                     headers: { "Authorization": `Bearer ${this.token}`  },                   
                     body: JSON.stringify({  
-                    group_name, lease_time
+                        group_name: group.group_name,
+                        lease_time: group.lease_time,
+                        custom_properties: group.custom_properties
                 })
             })
 

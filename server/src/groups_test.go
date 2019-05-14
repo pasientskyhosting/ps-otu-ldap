@@ -183,3 +183,54 @@ func TestGroupsGetAllGroupsInLDAPScopeShouldFailWhenUnAuthorized(t *testing.T) {
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
 
 }
+
+func TestGroupsUpdateGroup(t *testing.T) {
+
+	a := newAPITest(t, "PATCH", "/api/v1/groups/apitemptest", []byte(`{"group_name":"apitemptest-updatedname","lease_time":363,"custom_properties":[{"key":"updated1","value":"updated2"},{"key":"hello","value":"2"}]}`))
+	defer a.tearDown(t)
+
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "kj", true)))
+
+	response := executeRequest(a.server, a.req)
+
+	// Check repsonse
+	if checkResponseCode(t, http.StatusOK, response.Code) {
+
+		var group Group
+
+		err := json.Unmarshal([]byte(response.Body.String()), &group)
+
+		// handle parse error
+		if err != nil {
+			t.Errorf("Error while parsing body %s", response.Body.String())
+		}
+
+		// Check if error in body
+		if group.GroupName != "apitemptest-updatedname" || group.LeaseTime != 363 {
+			t.Errorf("Error with body: %+v", group)
+		}
+	}
+
+}
+
+func TestGroupsUpdateGroupShouldFailWhenUnAuthorized(t *testing.T) {
+
+	a := newAPITest(t, "PATCH", "/api/v1/groups/apitemptest", nil)
+	defer a.tearDown(t)
+
+	response := executeRequest(a.server, a.req)
+	checkResponseCode(t, http.StatusUnauthorized, response.Code)
+
+}
+
+func TestGroupsUpdateGroupShouldFailWhenNotAdmin(t *testing.T) {
+
+	a := newAPITest(t, "PATCH", "/api/v1/groups/apitemptest", nil)
+	defer a.tearDown(t)
+
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apitest", false)))
+
+	response := executeRequest(a.server, a.req)
+	checkResponseCode(t, http.StatusForbidden, response.Code)
+
+}

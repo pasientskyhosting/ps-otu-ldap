@@ -188,27 +188,45 @@ func (g *Group) validateCreateGroup(s *server) ErrorAPI {
 	return err
 }
 
+func (g *Group) validateUpdateGroup(s *server) ErrorAPI {
+
+	err := ErrorValidation()
+
+	if g.GroupName != "" && (len(g.GroupName) < 2 || len(g.GroupName) > 120) {
+		err.AddMessage("group_name", "The group_name field must be between 2-120 chars!")
+	}
+
+	// check the title field is between 3 to 120 chars
+	if g.LeaseTime > 0 && (g.LeaseTime < 60 || g.LeaseTime > 20160) {
+		err.AddMessage("lease_time", "The lease_time field must be between 1h (60) and 1y (20160)")
+	}
+
+	return err
+}
+
 // GetGroup - returns group from db
 func (s *server) GetGroup(groupName string) (GroupDB, error) {
 
-	sqlStatement := `SELECT id, ldap_group_name, lease_time, create_time, create_by FROM groups WHERE deleted=0 AND group_name=$1;`
+	sqlStatement := `SELECT id, ldap_group_name, lease_time, custom_properties, create_time, create_by FROM groups WHERE deleted=0 AND group_name=$1;`
 	row := s.db.QueryRow(sqlStatement, groupName)
 
 	var id int64
 	var ldapGroupName string
-	var LeaseTime int
+	var leaseTime int
+	var customProperties string
 	var createTime int64
 	var createBy string
 
-	switch err := row.Scan(&id, &ldapGroupName, &LeaseTime, &createTime, &createBy); err {
+	switch err := row.Scan(&id, &ldapGroupName, &leaseTime, &customProperties, &createTime, &createBy); err {
 	case nil:
 		return GroupDB{
-			id:            id,
-			GroupName:     groupName,
-			LdapGroupName: ldapGroupName,
-			LeaseTime:     LeaseTime,
-			CreateTime:    createTime,
-			CreateBy:      createBy,
+			id:               id,
+			GroupName:        groupName,
+			LdapGroupName:    ldapGroupName,
+			LeaseTime:        leaseTime,
+			CustomProperties: customProperties,
+			CreateTime:       createTime,
+			CreateBy:         createBy,
 		}, nil
 	}
 
@@ -218,8 +236,9 @@ func (s *server) GetGroup(groupName string) (GroupDB, error) {
 func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
 	var groups []Group
+	var c []CustomProperties
 
-	rows, err := s.db.Query("SELECT group_name, ldap_group_name, lease_time, create_time, create_by FROM groups WHERE deleted=0 ORDER BY ldap_group_name, group_name;")
+	rows, err := s.db.Query("SELECT group_name, ldap_group_name, lease_time, custom_properties, create_time, create_by FROM groups WHERE deleted=0 ORDER BY ldap_group_name, group_name;")
 
 	if err != nil {
 		// handle this error better than this
@@ -233,11 +252,12 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
 		var groupName string
 		var ldapGroupName string
-		var LeaseTime int
+		var leaseTime int
+		var customProperties string
 		var createTime int64
 		var createBy string
 
-		err = rows.Scan(&groupName, &ldapGroupName, &LeaseTime, &createTime, &createBy)
+		err = rows.Scan(&groupName, &ldapGroupName, &leaseTime, &customProperties, &createTime, &createBy)
 
 		if err != nil {
 			// handle this error better than this
@@ -247,12 +267,24 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		err = json.Unmarshal([]byte(customProperties), &c)
+
+		if err != nil {
+			log.Printf("Error with custom properties: %+v", c)
+			error := ErrorValidation()
+			error.AddMessage("body", "Cannot parse JSON from DB")
+			render.Status(r, error.StatusCode)
+			render.JSON(w, r, error)
+			return
+		}
+
 		groups = append(groups, Group{
-			GroupName:     groupName,
-			LdapGroupName: ldapGroupName,
-			LeaseTime:     LeaseTime,
-			CreateTime:    createTime,
-			CreateBy:      createBy,
+			GroupName:        groupName,
+			LdapGroupName:    ldapGroupName,
+			LeaseTime:        leaseTime,
+			CustomProperties: c,
+			CreateTime:       createTime,
+			CreateBy:         createBy,
 		})
 	}
 
@@ -268,6 +300,107 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, groups)
+	return
+
+}
+
+func (s *server) UpdateGroup(w http.ResponseWriter, r *http.Request) {
+
+	var LDAPUser, err = s.getLDAPUser(r)
+
+	// Check ldap user
+	if !LDAPUser.Admin || err != nil {
+		render.Status(r, 403)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	gdb, err := s.GetGroup(chi.URLParam(r, "GroupName"))
+
+	if err != nil {
+		error := ErrorAssetNotFound()
+		error.AddMessage("asset", "Group was not found")
+		render.Status(r, 404)
+		render.JSON(w, r, error)
+		return
+	}
+
+	// Create group struct
+	var gpatch Group
+
+	// Unmarshal body and check for errors
+	b, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		error := ErrorValidation()
+		error.AddMessage("body", "Cannot read body")
+		render.Status(r, error.StatusCode)
+		render.JSON(w, r, error)
+		return
+	}
+
+	err = json.Unmarshal(b, &gpatch)
+
+	if validErrs := gpatch.validateUpdateGroup(s); len(validErrs.GetMessages()) > 0 {
+		render.Status(r, validErrs.StatusCode)
+		render.JSON(w, r, validErrs)
+		return
+	}
+
+	// set group to deleted
+	update, err := s.db.Prepare("UPDATE groups SET group_name=$1, lease_time=$2, custom_properties=$3 WHERE id=$5 AND deleted=0;")
+
+	if err != nil {
+		log.Printf("Error: Could not prepare statement %+v", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+	}
+
+	// Update only fields that have changed
+	if gpatch.GroupName != "" && gpatch.GroupName != gdb.GroupName {
+		gdb.GroupName = gpatch.GroupName
+	}
+
+	if gpatch.LeaseTime != 0 && gpatch.LeaseTime != gdb.LeaseTime {
+		gdb.LeaseTime = gpatch.LeaseTime
+	}
+
+	// Create json string from patched object
+	cpstr, err := json.Marshal(gpatch.CustomProperties) // take user input and create string
+
+	if string(cpstr) != "null" && string(cpstr) != gdb.CustomProperties && len(gpatch.CustomProperties) > 0 {
+		gdb.CustomProperties = string(cpstr)
+	} else if string(cpstr) == "[]" {
+		gdb.CustomProperties = "[]"
+	}
+
+	_, err = update.Exec(gdb.GroupName, gdb.LeaseTime, gdb.CustomProperties, gdb.id)
+
+	if err != nil {
+		log.Printf("Could not update db: %s", err)
+		render.Status(r, 500)
+		render.JSON(w, r, nil)
+		return
+
+	}
+
+	// Create grpup return object
+	var gr Group
+	var c []CustomProperties
+
+	gr.GroupName = gdb.GroupName
+	gr.LdapGroupName = gdb.LdapGroupName
+	gr.LeaseTime = gdb.LeaseTime
+
+	err = json.Unmarshal([]byte(gdb.CustomProperties), &c)
+	gr.CustomProperties = c
+
+	gr.CreateBy = gdb.CreateBy
+	gr.CreateTime = gdb.CreateTime
+
+	render.Status(r, 200)
+	render.JSON(w, r, gr)
 	return
 
 }

@@ -1,24 +1,33 @@
     import { Button, ButtonGroup, IconName, Popover, Position, Intent, Classes, Toaster } from "@blueprintjs/core";
     import * as React from "react";
-    import APIService from '../services/APIService'
+    import APIService, { IGroup } from '../services/APIService'
 
     interface IProps {
-        onGroupDeleteHandler: (success: boolean, status_code: number) => void,        
-        group_name: string                        
+        onGroupDeleteHandler: (success: boolean, status_code: number) => void,   
+        onGroupUpdateHandler: () => void,       
+        group: IGroup
     }
 
-    export default class GroupOptions extends React.PureComponent<IProps> {
+    interface IState {        
+        group: IGroup
+    }
+
+
+    export default class GroupOptions extends React.PureComponent<IProps, IState> {
 
         constructor(props: IProps) {
+            super(props)            
 
-            super(props)
-            
+            this.state = {
+                group: this.props.group
+            }
         }
         
         public render() {
             
             return (
                 <ButtonGroup {...this.state} style={{ minWidth: 120 }} fill={false}>                                  
+                    {this.renderUpdateButton()}  
                     {this.renderDeleteButton()}                
                 </ButtonGroup>
             );
@@ -41,6 +50,7 @@
                         icon="trash"
                         text="Delete"                    
                         large={false}
+                        intent={Intent.DANGER}
                     />
                     <div key="text">
                         <h3>Confirm deletion</h3>
@@ -52,7 +62,7 @@
                             <Button 
                                 intent={Intent.DANGER} 
                                 className={Classes.POPOVER_DISMISS}
-                                name={this.props.group_name}
+                                name={this.props.group.group_name}
                                 onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => this.deleteGroup(e.currentTarget.name) }                        
                             >
                                 Delete
@@ -63,9 +73,26 @@
             );
         }
 
+        private renderUpdateButton() {                
+            
+            const position = Position.RIGHT_TOP;        
+
+            const { ...popoverProps } = this.state;
+
+            return (                            
+                <Button 
+                    icon="tick"
+                    text="Update"                    
+                    large={false}
+                    intent={Intent.SUCCESS}
+                    onClick={() => this.props.onGroupUpdateHandler()}
+                />
+            );
+        }        
+
         private async deleteGroup(groupName: string) {        
         
-            const group = await APIService.deleteGroup(groupName)        
+            const group = await APIService.deleteGroup(groupName)
            
             // Call login handler
             this.props.onGroupDeleteHandler(APIService.success, APIService.status)

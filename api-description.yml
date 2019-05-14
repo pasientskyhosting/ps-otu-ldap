@@ -294,6 +294,44 @@ paths:
           $ref: '#/components/responses/UnAuthorizedError'
           
   /groups/{group_name}:
+
+    patch:
+      tags:
+        - Groups
+      security:
+        - BearerAuth: []
+      summary: "Update group"
+      description: "Updates group. Checks if user has admin rights"
+      operationId: "updateGroup"
+      parameters:
+        - name: group_name
+          in: path
+          description: Group name
+          required: true
+          x-example: "proxy-sql"
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupNew'
+      responses:
+        '200':
+          description: Successful result
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/AssetNotFoundError'
   
     delete:
       tags:
@@ -306,7 +344,7 @@ paths:
       parameters:
         - name: group_name
           in: path
-          description: LDAP group name
+          description: Group name
           required: true
           x-example: "proxy-sql"
           schema:
