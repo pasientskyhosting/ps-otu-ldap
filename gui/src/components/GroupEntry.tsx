@@ -34,19 +34,7 @@ export default class GroupEntry extends React.Component<IProps, IState> {
         const onRemove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {            
             alert("Yesman")
         }
-
-        // Create all tags
-        this.props.group.custom_properties.map((props: IGroupCustomProps) => {                        
-            tags.push(
-                <Tag
-                    className="tags" 
-                    minimal={true}
-                    onRemove={onRemove}           
-                    key={this.props.group.group_name+"-"+props.key+"+"+props.value} >
-                    {props.key}={props.value}
-                </Tag>
-            )            
-        })
+        
 
         this.state = {            
             tags: tags,            
@@ -95,14 +83,19 @@ export default class GroupEntry extends React.Component<IProps, IState> {
 
         return (
             <HTMLSelect                                                  
-                value={this.state.group.lease_time}                        
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {        
-                    var group = this.state.group            
-                    group.lease_time = parseInt(e.target.value)
+                value={this.state.mangledGroup.lease_time}  
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {                    
+                    
+                    let mangled = this.state.mangledGroup
+                    mangled.lease_time = parseInt(e.target.value)
+
                     this.setState({
-                        group
+                        mangledGroup: mangled
                     })
-                }}
+
+                    console.log(this.state)
+
+                }}                
             >                    
             <option value="60">{this.formatSeconds(60)}</option>
             <option value="720">{this.formatSeconds(720)}</option>
@@ -158,7 +151,7 @@ export default class GroupEntry extends React.Component<IProps, IState> {
     }    
 
     private async onGroupUpdateAPIHandler() {
-        
+
         let response = await APIService.groupUpdate(this.state.group.group_name, this.state.mangledGroup)
         
         // Update group name
@@ -179,6 +172,19 @@ export default class GroupEntry extends React.Component<IProps, IState> {
     private renderGroupRow () {       
                     
         let user = this.state.user ? this.state.user : undefined
+
+        // Create all tags
+        this.props.group.custom_properties.map((props: IGroupCustomProps) => {                        
+            this.tags.push(
+                <Tag
+                    className="tags" 
+                    minimal={true}
+                    onRemove={ this.props.onReturnEditModeHandler() && onRemove}           
+                    key={this.props.group.group_name+"-"+props.key+"+"+props.value} >
+                    {props.key}={props.value}
+                </Tag>
+            )            
+        })
 
         return (
             <tr key={this.state.group.group_name}>
