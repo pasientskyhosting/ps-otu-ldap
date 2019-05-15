@@ -1,54 +1,47 @@
 import React from 'react';
-import { Intent, Button, HTMLSelect, Tag, ButtonGroup } from "@blueprintjs/core";
+import { HTMLSelect, Tag, ButtonGroup, FormGroup, InputGroup, ITagProps } from "@blueprintjs/core";
 import UserOptions from './UserOptions'
 import APIService, { IGroup, IUser, IGroupCustomProps } from '../services/APIService';
 import GroupOptions from './GroupOptions';
 import ValidatedInputGroup from './ValidatedInputGroup';
-import { AppToaster } from '../services/Toaster';
-import { UNDERLINE } from '@blueprintjs/icons/lib/esm/generated/iconContents';
 
 interface IProps {    
   onGroupUpdateHandler: (success: boolean, status_code: number) => void,  
   onGroupDeleteHandler: (success: boolean, status_code: number) => void,    
-  onReturnEditModeHandler: () => boolean,      
+  editMode: boolean,
   group: IGroup
   user?: IUser | undefined  
 }
 
-interface IState {
-    tags: JSX.Element[]; 
-    group: IGroup
+interface IState {    
+    group: IGroup    
     mangledGroup: IGroup
     user?: IUser | undefined
-    errorMessage?: string        
-    editMode: boolean,
+    errorMessage?: string
+    custPropKey: string
+    custPropValue: string    
+    disableUpdate: boolean
 }
 
+type Nullable<T> = T | null
+
 export default class GroupEntry extends React.Component<IProps, IState> {
-           
+    
+    private custPropsKeyRef: Nullable<HTMLInputElement>   
+
     constructor(props: IProps) {
 
-        super(props)
+        super(props)    
 
-        var tags = [] as JSX.Element[];          
-        const onRemove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {            
-            alert("Yesman")
-        }
-        
+        this.custPropsKeyRef = null
 
-        this.state = {            
-            tags: tags,            
+        this.state = {              
             group: this.props.group,
-            mangledGroup: {
-                ldap_group_name: this.props.group.create_by,
-                group_name: this.props.group.group_name,
-                lease_time: this.props.group.lease_time,
-                custom_properties: this.props.group.custom_properties,
-                create_time: this.props.group.create_time,
-                create_by: this.props.group.create_by
-            },
-            editMode: this.props.onReturnEditModeHandler(),
-            user: this.props.user || undefined  
+            mangledGroup: Object.assign({}, this.props.group),
+            user: this.props.user || undefined,
+            custPropKey: "",
+            custPropValue: "",
+            disableUpdate: true
         }
 
     }
@@ -90,10 +83,9 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                     mangled.lease_time = parseInt(e.target.value)
 
                     this.setState({
-                        mangledGroup: mangled
-                    })
-
-                    console.log(this.state)
+                        mangledGroup: mangled,
+                        disableUpdate: false               
+                    })                    
 
                 }}                
             >                    
@@ -139,7 +131,8 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                     mangled.group_name = e.target.value
 
                     this.setState({
-                        mangledGroup: mangled
+                        mangledGroup: mangled,
+                        disableUpdate: false 
                     })
 
                     console.log(this.state)
@@ -157,10 +150,10 @@ export default class GroupEntry extends React.Component<IProps, IState> {
         // Update group name
         if(APIService.success) {
             
-            if(response) {
-                console.log("Setting state")
+            if(response) {                
                 this.setState({
-                    group: response                    
+                    group: response,
+                    disableUpdate: true                    
                 })
             }            
         }        
@@ -169,42 +162,147 @@ export default class GroupEntry extends React.Component<IProps, IState> {
 
     }
 
-    private renderGroupRow () {       
-                    
-        let user = this.state.user ? this.state.user : undefined
+    private renderTags() {
+
+        let tags = [] as JSX.Element[];        
+        const onRemove = (this.props.editMode) ? (e: MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) } : undefined        
 
         // Create all tags
-        this.props.group.custom_properties.map((props: IGroupCustomProps) => {                        
-            this.tags.push(
+        this.state.mangledGroup.custom_properties.map((custprops: IGroupCustomProps) => {                        
+            tags.push(
                 <Tag
                     className="tags" 
                     minimal={true}
-                    onRemove={ this.props.onReturnEditModeHandler() && onRemove}           
-                    key={this.props.group.group_name+"-"+props.key+"+"+props.value} >
-                    {props.key}={props.value}
+                    onRemove={onRemove}           
+                    key={custprops.key+custprops.value}
+                    id={custprops.key+custprops.value}            
+                     >
+                    {custprops.key}={custprops.value}                    
                 </Tag>
             )            
         })
+
+        return tags
+
+    }
+
+    private addTag(key: string, value: string) {
+
+        let tag: IGroupCustomProps
+        tag = { key, value }
+        
+        let mangledGroup = Object.assign({},this.state.mangledGroup)
+        mangledGroup.custom_properties = mangledGroup.custom_properties.concat(tag);
+        
+        this.setState({
+            mangledGroup: mangledGroup,
+            custPropKey: "",
+            custPropValue: "",
+            disableUpdate: false   
+        })
+
+        this.custPropsKeyRef && this.custPropsKeyRef.focus()
+
+    }
+
+    private removeTag(key?: string) {
+        
+        let mangledGroup = Object.assign({},this.state.mangledGroup)                
+
+        this.state.mangledGroup.custom_properties.map((custprops: IGroupCustomProps, index: number) => {                        
+            let search = custprops.key+custprops.value
+            if(search == key) {                
+                mangledGroup.custom_properties.splice(index, 1);       
+            }
+        })
+        
+        this.setState({
+            mangledGroup: mangledGroup,
+            custPropKey: "",
+            custPropValue: "",
+            disableUpdate: false     
+        })
+
+    }
+
+    private renderAddTags() {
+        return (
+            <FormGroup>            
+                <ButtonGroup                    
+                >
+                    <ValidatedInputGroup 
+                        inputRef={(input) => this.custPropsKeyRef = input}
+                        value={this.state.custPropKey}                                               
+                        onKeyDown={(e: React.KeyboardEvent<Element>) => {
+                                    
+                        }}
+                        validate={(currentValue: string) => {
+                           return true                      
+                        }}
+                        errorMessage={(currentValue: string) =>{
+                            return "Not a valid key"
+                        }}
+                        placeholder="Key"
+                        onChange={(e) => {     
+                            this.setState({
+                                custPropKey: e.target.value,
+                                disableUpdate: false
+                            })               
+                        }}
+                    >
+                    </ValidatedInputGroup>
+                    &nbsp;
+                    <ValidatedInputGroup                                                
+                        value={this.state.custPropValue}                                               
+                        onKeyDown={(e: React.KeyboardEvent<Element>) => {
+                            if(e.keyCode == 13) {                                                                                                                                         
+                                this.addTag(this.state.custPropKey, this.state.custPropValue)
+                            }        
+                        }}
+                        validate={(currentValue: string) => {
+                            return true
+                        }}
+                        errorMessage={(currentValue: string) =>{
+                            return "Not a valid key"
+                        }}
+                        placeholder="Value"
+                        onChange={(e) => {                    
+                            this.setState({
+                                custPropValue: e.target.value,
+                                disableUpdate: false
+                            })
+                        }}
+                    >
+                    </ValidatedInputGroup>                
+                </ButtonGroup>
+            </FormGroup> 
+        )
+    }
+
+    private renderGroupRow() {       
+                    
+        let user = this.state.user ? this.state.user : undefined        
 
         return (
             <tr key={this.state.group.group_name}>
                 <td>{this.state.group.ldap_group_name}</td>
                 <td>                                
-                    {this.props.onReturnEditModeHandler() ? (
+                    {this.props.editMode ? (
                         this.renderEditGroupName()
                     ) : (                            
                         this.state.group.group_name
                     )}                                
                 </td>
                 <td>                            
-                    {this.props.onReturnEditModeHandler() ? (
+                    {this.props.editMode ? (
                         this.renderEditLeaseTime()
                     ) : (    
                         this.formatSeconds(this.state.group.lease_time)
                     )}
                 </td>
                 <td>
-                    {this.state.tags}
+                    { this.props.editMode && this.renderAddTags() }                    
+                    {this.renderTags()}                    
                 </td>
                 <td>
                     
@@ -222,12 +320,13 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                         />
                     )}
                 </td>        
-                { this.props.onReturnEditModeHandler() &&
+                { this.props.editMode &&
                     <td>                                    
                     <GroupOptions                                    
                         group={this.state.group}
                         onGroupDeleteHandler={(success: boolean, status_code: number) => this.onGroupDeleteHandler(success, status_code) }                          
-                        onGroupUpdateHandler={() => this.onGroupUpdateAPIHandler() }   
+                        onGroupUpdateHandler={() => this.onGroupUpdateAPIHandler() }                   
+                        disableUpdate={this.state.disableUpdate}   
                     />
                     </td>
                 }                    
@@ -236,6 +335,7 @@ export default class GroupEntry extends React.Component<IProps, IState> {
     }    
     
     render () {
+        
         return (       
             this.renderGroupRow()
         )

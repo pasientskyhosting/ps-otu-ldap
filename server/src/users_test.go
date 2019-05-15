@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"testing"
 )
@@ -12,7 +13,7 @@ func TestUsersCreateUser(t *testing.T) {
 	var u User
 
 	// create user
-	a := newAPITest(t, "POST", "/api/v1/groups/apitemptest/users", nil)
+	a := newAPITest(t, "POST", "/api/v1/groups/voip/users", nil)
 	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true)))
@@ -56,6 +57,8 @@ func TestUsersGetAllUsers(t *testing.T) {
 
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusOK, response.Code)
+
+	log.Printf("%s", response.Body.String())
 
 	err := json.Unmarshal([]byte(response.Body.String()), &users)
 

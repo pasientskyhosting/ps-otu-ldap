@@ -132,7 +132,7 @@ class APIService {
 
     }    
 
-    public async groupCreate(ldap_group_name: string, group_name: string, lease_time: number): Promise<IGroup | null>  {
+    public async groupCreate(ldap_group_name: string, group_name: string, lease_time: number, custom_properties: IGroupCustomProps[]): Promise<IGroup | null>  {
 
         try {
 
@@ -140,7 +140,7 @@ class APIService {
                     method: 'post',    
                     headers: { "Authorization": `Bearer ${this.token}`  },                   
                     body: JSON.stringify({  
-                    group_name, lease_time
+                    group_name, lease_time, custom_properties
                 })
             })
 

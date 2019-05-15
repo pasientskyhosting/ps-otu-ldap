@@ -236,7 +236,6 @@ func (s *server) GetGroup(groupName string) (GroupDB, error) {
 func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
 	var groups []Group
-	var c []CustomProperties
 
 	rows, err := s.db.Query("SELECT group_name, ldap_group_name, lease_time, custom_properties, create_time, create_by FROM groups WHERE deleted=0 ORDER BY ldap_group_name, group_name;")
 
@@ -250,6 +249,7 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 
+		var c []CustomProperties
 		var groupName string
 		var ldapGroupName string
 		var leaseTime int

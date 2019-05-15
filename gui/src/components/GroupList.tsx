@@ -100,7 +100,7 @@ export default class GroupList extends React.Component<IProps, IState> {
                         onGroupUpdateHandler={(success: boolean, status_code: number) => {
                             this.onGroupUpdateHandler(success, status_code)
                         }}                 
-                        onReturnEditModeHandler={() => this.getEditMode()}
+                        editMode={this.state.editMode}
                        >
                        </GroupEntry>
                     )
@@ -138,10 +138,6 @@ export default class GroupList extends React.Component<IProps, IState> {
 
         this.loadData()
 
-    }
-
-    private getEditMode(): boolean {        
-        return this.state.editMode
     }
     
     render () {

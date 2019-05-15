@@ -23,14 +23,17 @@ export default class ValidatedInputGroup extends React.Component<IProps, IState>
             currentValue: this.props.defaultValue || ""
         }
     }
+
+    public getCurrentValue(): string {
+        return this.state.currentValue
+    }      
+    
  
     private onChangeHandler(e: React.ChangeEvent<HTMLInputElement>) {
         
         this.setState({
             currentValue: e.target.value
         })
-
-        console.log(this.state)
 
         this.props.onChange && this.props.onChange(e)
     }

@@ -68,7 +68,10 @@ func (s *server) insertTestData() {
 		log.Fatalf("ERROR: Insert apiTest test groups%+v", err)
 	}
 
-	insertUser, err := s.db.Prepare("INSERT INTO users (username, password, group_id, expire_time, create_by, create_time) values('apiTest-apitemptest-testblabla','Tj9cfKOMV2mvCB2-ozftPHKq6SjrdJjbXbcscA==',-1,$1,'apiTest','1');")
+	password := "userpassword"
+	passwordEncrypted, err := encryptHash([]byte(s.env.ekey), password)
+
+	insertUser, err := s.db.Prepare("INSERT INTO users (username, password, group_id, expire_time, create_by, create_time) values('apiTest-apitemptest-testblabla',$1,-1,$2,'apiTest','1');")
 
 	if err != nil {
 		log.Fatalf("ERROR: preparing delete statement %+v", err)
@@ -76,7 +79,7 @@ func (s *server) insertTestData() {
 
 	expires := time.Now().Unix() + 3600
 
-	_, err = insertUser.Exec(expires)
+	_, err = insertUser.Exec(passwordEncrypted, expires)
 
 	if err != nil {
 		// handle this error better than this

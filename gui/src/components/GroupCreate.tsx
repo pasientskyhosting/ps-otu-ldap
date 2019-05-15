@@ -1,8 +1,8 @@
 import React from 'react';
-import { FormGroup, Intent, Button, Elevation, Card, HTMLSelect, Callout, ButtonGroup, InputGroup, } from "@blueprintjs/core";
+import { FormGroup, Intent, Button, Elevation, Card, HTMLSelect, Callout, ButtonGroup, InputGroup, ITagProps, Tag, } from "@blueprintjs/core";
 
 import ValidatedInputGroup from './ValidatedInputGroup';
-import APIService from '../services/APIService';
+import APIService, { IGroupCustomProps } from '../services/APIService';
 import LDAPGroupSearch from './LDAPGroupSearch';
 
 interface IProps {    
@@ -14,27 +14,98 @@ interface IState {
     group_name: string
     lease_time: number    
     errorMessage: string
+    custPropKey: string
+    custPropValue: string
+    tags: IGroupCustomProps[]
 }
 
-export default class GroupCreate extends React.Component<IProps, IState> {
+type Nullable<T> = T | null
 
+const lease_time_default = 720
+
+export default class GroupCreate extends React.Component<IProps, IState> {
+    
+    private custPropsKeyRef: Nullable<HTMLInputElement>   
 
     constructor (props: IProps) {
-        
+                
         super(props)
 
+        this.custPropsKeyRef = null
+
         this.state = {
+            tags: [],
             ldap_group_name: "",
             group_name: "",
             lease_time: 720,
-            errorMessage: ""
+            errorMessage: "",
+            custPropKey: "",
+            custPropValue: ""
         }        
 
     }    
 
+    private addTag(key: string, value: string) {
+
+        let tag: IGroupCustomProps = { key, value }                
+        let tags = this.state.tags.concat(tag);
+        
+        this.setState({
+            tags: tags,
+            custPropKey: "",
+            custPropValue: ""            
+        })
+
+        this.custPropsKeyRef && this.custPropsKeyRef.focus()
+
+    }
+
+    private removeTag(key?: string) {
+        
+        let tags = this.state.tags
+
+        this.state.tags.map((custprops: IGroupCustomProps, index: number) => {                        
+            let search = custprops.key+custprops.value
+            if(search == key) {                
+                tags.splice(index, 1);
+            }
+        })
+        
+        this.setState({
+            tags: tags,
+            custPropKey: "",
+            custPropValue: ""   
+        })
+
+    }
+
+    private renderTags() {
+
+        let tags = [] as JSX.Element[];        
+        const onRemove = (e: MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) }      
+
+        // Create all tags
+        this.state.tags.map((custprops: IGroupCustomProps) => {                        
+            tags.push(
+                <Tag
+                    className="tags" 
+                    minimal={true}
+                    onRemove={onRemove}           
+                    key={custprops.key+custprops.value}
+                    id={custprops.key+custprops.value}            
+                     >
+                    {custprops.key}={custprops.value}                    
+                </Tag>
+            )            
+        })
+
+        return tags
+
+    }
+
     private async onSubmit() {        
     
-       const group = await APIService.groupCreate(this.state.ldap_group_name, this.state.group_name, this.state.lease_time)
+       const group = await APIService.groupCreate(this.state.ldap_group_name, this.state.group_name, this.state.lease_time, this.state.tags)
     
         if(!APIService.success) {
             this.setState({
@@ -42,7 +113,13 @@ export default class GroupCreate extends React.Component<IProps, IState> {
             })
         } else {
             this.setState({
-                errorMessage: ""
+                errorMessage: "",
+                ldap_group_name: "None",
+                custPropKey: "",
+                custPropValue: "",
+                group_name: "",
+                lease_time: lease_time_default
+                
             })
         }
           
@@ -66,8 +143,6 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                     <div className="groups-create-content">
                     <h2>Create Group</h2>
                     {this.state.errorMessage ? <Callout title="Error" className="group-create-error-message" intent={Intent.DANGER} >{this.state.errorMessage}</Callout> : null }
-                    
-                                        
                     
                     <FormGroup                     
                      label="LDAP group"
@@ -132,16 +207,54 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                      labelFor="custom-props"                     
                     >
                     
-                    <ButtonGroup>
-                    <InputGroup
-                    placeholder="Key"
-                    ></InputGroup>&nbsp;
-                    <InputGroup
-                    placeholder="Value"
-                    ></InputGroup>
-                   
-                    </ButtonGroup>
-                    </FormGroup>                                      
+                    <ButtonGroup                    
+                    >
+                        <ValidatedInputGroup
+                            inputRef={(input) => this.custPropsKeyRef = input}                             
+                            value={this.state.custPropKey}                                               
+                            onKeyDown={(e: React.KeyboardEvent<Element>) => {
+                                        
+                            }}
+                            validate={(currentValue: string) => {
+                            return true                      
+                            }}
+                            errorMessage={(currentValue: string) =>{
+                                return "Not a valid key"
+                            }}
+                            placeholder="Key"
+                            onChange={(e) => {     
+                                this.setState({
+                                    custPropKey: e.target.value,                                    
+                                })               
+                            }}
+                        >
+                        </ValidatedInputGroup>
+                        &nbsp;
+                        <ValidatedInputGroup                                                
+                            value={this.state.custPropValue}                                               
+                            onKeyDown={(e: React.KeyboardEvent<Element>) => {
+                                if(e.keyCode == 13) {
+                                    this.addTag(this.state.custPropKey, this.state.custPropValue)
+                                }        
+                            }}
+                            validate={(currentValue: string) => {
+                                return true
+                            }}
+                            errorMessage={(currentValue: string) =>{
+                                return "Not a valid key"
+                            }}
+                            placeholder="Value"
+                            onChange={(e) => {                    
+                                this.setState({
+                                    custPropValue: e.target.value                                    
+                                })
+                            }}
+                        >
+                        </ValidatedInputGroup>      
+                    </ButtonGroup>                                        
+                    </FormGroup>                      
+
+                    {this.renderTags()}                 
                          
                     <Button                          
                         style={{ width: "100%", marginTop: "20px" }}              
