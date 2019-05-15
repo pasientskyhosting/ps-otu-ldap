@@ -116,14 +116,8 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                     return "Length must be greater than 2, and be URL friendly"
                 }}
                 large={false}                        
-                onKeyDown={(e: React.KeyboardEvent) => {                
-                    
-                    if(e.keyCode == 13) {                                                
-                        this.onGroupUpdateAPIHandler()
-                    } else if (e.keyCode === 27) {                        
-                        // TODO exit edit mode
-                    }
-                    
+                onSubmit={() => {                
+                    this.onGroupUpdateAPIHandler()
                 }}  
                 onChange={(e) => {                    
                     
@@ -233,11 +227,11 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                     <ValidatedInputGroup 
                         inputRef={(input) => this.custPropsKeyRef = input}
                         value={this.state.custPropKey}                                               
-                        onKeyDown={(e: React.KeyboardEvent<Element>) => {
-                                    
-                        }}
+                        onSubmit={() => {                
+                            
+                        }}  
                         validate={(currentValue: string) => {
-                           return true                      
+                            return (currentValue == "" ) ? false : true
                         }}
                         errorMessage={(currentValue: string) =>{
                             return "Not a valid key"
@@ -254,16 +248,14 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                     &nbsp;
                     <ValidatedInputGroup                                                
                         value={this.state.custPropValue}                                               
-                        onKeyDown={(e: React.KeyboardEvent<Element>) => {
-                            if(e.keyCode == 13) {                                                                                                                                         
-                                this.addTag(this.state.custPropKey, this.state.custPropValue)
-                            }        
+                        onSubmit={() => {                
+                            this.addTag(this.state.custPropKey, this.state.custPropValue)                            
                         }}
                         validate={(currentValue: string) => {
-                            return true
+                            return (currentValue == "" ) ? false : true
                         }}
                         errorMessage={(currentValue: string) =>{
-                            return "Not a valid key"
+                            return "Not a valid value"
                         }}
                         placeholder="Value"
                         onChange={(e) => {                    

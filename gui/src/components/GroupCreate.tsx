@@ -104,7 +104,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
     }
 
     private async onSubmit() {        
-    
+            
        const group = await APIService.groupCreate(this.state.ldap_group_name, this.state.group_name, this.state.lease_time, this.state.tags)
     
         if(!APIService.success) {
@@ -160,6 +160,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                     >                                       
                     <ValidatedInputGroup                                                                                                          
                         placeholder="Group name..."  
+                        onSubmit={() => {}}
                         validate={(currentValue: string) => {
                             if(currentValue.length == 0 || (currentValue.length > 2 && currentValue.match(/^[_\-0-9a-z]+$/g)) ) {
                                 return true
@@ -169,11 +170,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                         }}
                         errorMessage={(currentValue: string) =>{
                             return "Length must be greater than 2, and be URL friendly"
-                        }}
-                        large={false}                        
-                        onKeyDown={(e: React.KeyboardEvent) => {                
-                            if(e.keyCode == 13) this.onSubmit()
-                        }}
+                        }}                                                
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {                            
                             this.setState({
                                 group_name: e.target.value
@@ -212,11 +209,9 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                         <ValidatedInputGroup
                             inputRef={(input) => this.custPropsKeyRef = input}                             
                             value={this.state.custPropKey}                                               
-                            onKeyDown={(e: React.KeyboardEvent<Element>) => {
-                                        
-                            }}
+                            onSubmit={() => {}}
                             validate={(currentValue: string) => {
-                            return true                      
+                                return (currentValue == "" ) ? false : true
                             }}
                             errorMessage={(currentValue: string) =>{
                                 return "Not a valid key"
@@ -231,14 +226,12 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                         </ValidatedInputGroup>
                         &nbsp;
                         <ValidatedInputGroup                                                
-                            value={this.state.custPropValue}                                               
-                            onKeyDown={(e: React.KeyboardEvent<Element>) => {
-                                if(e.keyCode == 13) {
-                                    this.addTag(this.state.custPropKey, this.state.custPropValue)
-                                }        
-                            }}
+                            value={this.state.custPropValue}  
+                            onSubmit={() => {
+                                this.addTag(this.state.custPropKey, this.state.custPropValue)
+                            }}                            
                             validate={(currentValue: string) => {
-                                return true
+                                return (currentValue == "" ) ? false : true
                             }}
                             errorMessage={(currentValue: string) =>{
                                 return "Not a valid key"
