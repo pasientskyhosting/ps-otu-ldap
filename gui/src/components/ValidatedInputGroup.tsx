@@ -4,7 +4,7 @@ import { IInputGroupProps, InputGroup, Tooltip, Intent, Position, Label } from '
 interface IProps extends IInputGroupProps {
     validate: (currentValue: string) => boolean
     errorMessage: (currentValue: string) => string
-    onSubmit: () => void    
+    onKeyEnter: () => void    
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     defaultValue?: string
 }
@@ -12,6 +12,7 @@ interface IProps extends IInputGroupProps {
 interface IState {    
     currentValue: string
     valid: boolean    
+    displayError: boolean
 }
 
 export default class ValidatedInputGroup extends React.Component<IProps, IState> {
@@ -22,7 +23,8 @@ export default class ValidatedInputGroup extends React.Component<IProps, IState>
         
         this.state = {
             currentValue: this.props.defaultValue || "",
-            valid: true            
+            valid: true,         
+            displayError: false
         }
     }
  
@@ -38,39 +40,47 @@ export default class ValidatedInputGroup extends React.Component<IProps, IState>
     
     private renderWithTooltip() {
         return (
-            <Tooltip isOpen={!(this.state.valid)} autoFocus={false} content={this.props.errorMessage(this.state.currentValue)} intent={Intent.DANGER} position={Position.RIGHT}>
+            <Tooltip isOpen={this.state.displayError} autoFocus={false} content={this.props.errorMessage(this.state.currentValue)} intent={Intent.DANGER} position={Position.RIGHT}>
                {this.renderInputGroup()}
             </Tooltip>
         )
+    }
+
+    private onBlurHandler(e: any) {
+        this.setState({                                
+            valid: true,
+            displayError: false
+        })
     }
        
     private renderInputGroup() {
 
         let props: IProps = Object.assign({}, this.props, {
-            onChange: (e: React.ChangeEvent<HTMLInputElement>) => this.onChangeHandler(e)
+            onChange: (e: React.ChangeEvent<HTMLInputElement>) => this.onChangeHandler(e),
+            onBlur: (e: any) => this.onBlurHandler(e),
+            onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => this.onKeyEnterHandler(e) 
         })        
 
         delete props.errorMessage
         delete props.validate
 
         return (                
-            <InputGroup 
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => this.onKeyDownHandler(e)} 
-                intent={(this.state.valid) ? "none" :  Intent.DANGER } 
+            <InputGroup                                      
+                intent={!(this.state.valid) ? Intent.DANGER : "none" } 
                 value={this.state.currentValue} 
                 {...props}
             />            
         )
     }
 
-    private onKeyDownHandler(e: React.KeyboardEvent<HTMLInputElement>) {
+    private onKeyEnterHandler(e: React.KeyboardEvent<HTMLInputElement>) {
 
         if(e.keyCode == 13) {            
             if ( this.props.validate(this.state.currentValue) ) {
                 this.setState( {valid: true} )
-                this.props.onSubmit()
+                this.props.onKeyEnter()
             } else {
-                this.setState({valid: false})
+                this.setState({valid: false, displayError: true})
             }
         }
 

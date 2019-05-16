@@ -247,7 +247,7 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                     </ValidatedInputGroup>
                     &nbsp;
                     <ValidatedInputGroup                                                
-                        value={this.state.custPropValue}                                               
+                        value={this.state.custPropValue}                                                             
                         onSubmit={() => {                
                             this.addTag(this.state.custPropKey, this.state.custPropValue)                            
                         }}

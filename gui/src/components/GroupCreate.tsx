@@ -227,6 +227,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                         &nbsp;
                         <ValidatedInputGroup                                                
                             value={this.state.custPropValue}  
+                            change=""
                             onSubmit={() => {
                                 this.addTag(this.state.custPropKey, this.state.custPropValue)
                             }}                            
