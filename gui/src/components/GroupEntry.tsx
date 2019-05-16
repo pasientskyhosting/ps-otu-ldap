@@ -1,5 +1,5 @@
 import React from 'react';
-import { HTMLSelect, Tag, ButtonGroup, FormGroup, InputGroup, ITagProps } from "@blueprintjs/core";
+import { HTMLSelect, Tag, ButtonGroup, FormGroup, InputGroup, ITagProps, Button } from "@blueprintjs/core";
 import UserOptions from './UserOptions'
 import APIService, { IGroup, IUser, IGroupCustomProps } from '../services/APIService';
 import GroupOptions from './GroupOptions';
@@ -116,7 +116,7 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                     return "Length must be greater than 2, and be URL friendly"
                 }}
                 large={false}                        
-                onSubmit={() => {                
+                onKeyEnter={() => {                
                     this.onGroupUpdateAPIHandler()
                 }}  
                 onChange={(e) => {                    
@@ -159,7 +159,7 @@ export default class GroupEntry extends React.Component<IProps, IState> {
     private renderTags() {
 
         let tags = [] as JSX.Element[];        
-        const onRemove = (this.props.editMode) ? (e: MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) } : undefined        
+        const onRemove = (this.props.editMode) ? (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) } : undefined        
 
         // Create all tags
         this.state.mangledGroup.custom_properties.map((custprops: IGroupCustomProps) => {                        
@@ -226,10 +226,7 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                 >
                     <ValidatedInputGroup 
                         inputRef={(input) => this.custPropsKeyRef = input}
-                        value={this.state.custPropKey}                                               
-                        onSubmit={() => {                
-                            
-                        }}  
+                        value={this.state.custPropKey}                        
                         validate={(currentValue: string) => {
                             return (currentValue == "" ) ? false : true
                         }}
@@ -248,8 +245,8 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                     &nbsp;
                     <ValidatedInputGroup                                                
                         value={this.state.custPropValue}                                                             
-                        onSubmit={() => {                
-                            this.addTag(this.state.custPropKey, this.state.custPropValue)                            
+                        onKeyEnter={() => {                
+                            this.addTag(this.state.custPropKey, this.state.custPropValue)
                         }}
                         validate={(currentValue: string) => {
                             return (currentValue == "" ) ? false : true
@@ -265,10 +262,27 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                             })
                         }}
                     >
-                    </ValidatedInputGroup>                
+                    </ValidatedInputGroup>   
+                    <Button
+                        icon="plus"                                                
+                        text=""                        
+                        onClick={(e: React.MouseEvent<HTMLElement, MouseEvent> ) => {
+                            if(this.validateTagKey(this.state.custPropKey) && this.validateTagValue(this.state.custPropValue)) {
+                                this.addTag(this.state.custPropKey, this.state.custPropValue)
+                            }                                    
+                        }}
+                    ></Button>             
                 </ButtonGroup>
             </FormGroup> 
         )
+    }
+
+    private validateTagKey(str: string): boolean {
+        return (str == "" || !(str.match(/^[_\-0-9a-z]+$/g))) ? false : true 
+    }
+
+    private validateTagValue(str: string): boolean {
+        return (str == "" || !(str.match(/^[_\-0-9a-z]+$/g))) ? false : true
     }
 
     private renderGroupRow() {       

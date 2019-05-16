@@ -17,6 +17,7 @@ interface IState {
     custPropKey: string
     custPropValue: string
     tags: IGroupCustomProps[]
+    disableCreate: boolean
 }
 
 type Nullable<T> = T | null
@@ -40,7 +41,8 @@ export default class GroupCreate extends React.Component<IProps, IState> {
             lease_time: 720,
             errorMessage: "",
             custPropKey: "",
-            custPropValue: ""
+            custPropValue: "",
+            disableCreate: true
         }        
 
     }    
@@ -82,7 +84,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
     private renderTags() {
 
         let tags = [] as JSX.Element[];        
-        const onRemove = (e: MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) }      
+        const onRemove = (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) }      
 
         // Create all tags
         this.state.tags.map((custprops: IGroupCustomProps) => {                        
@@ -105,26 +107,24 @@ export default class GroupCreate extends React.Component<IProps, IState> {
 
     private async onSubmit() {        
             
-       const group = await APIService.groupCreate(this.state.ldap_group_name, this.state.group_name, this.state.lease_time, this.state.tags)
-    
-        if(!APIService.success) {
-            this.setState({
-                errorMessage: APIService.error.error.messages[0].value
-            })
-        } else {
-            this.setState({
-                errorMessage: "",
-                ldap_group_name: "None",
-                custPropKey: "",
-                custPropValue: "",
-                group_name: "",
-                lease_time: lease_time_default
+        if (this.validateFields()) {
+        
+            const group = await APIService.groupCreate(this.state.ldap_group_name, this.state.group_name, this.state.lease_time, this.state.tags)
+            
+                if(!APIService.success) {
+                    this.setState({
+                        errorMessage: APIService.error.error.messages[0].value
+                    })
+                } else {
+                    this.setState({
+                        errorMessage: ""
+                    })
+                }
                 
-            })
+                // call login handler
+                this.props.onGroupCreateHandler(APIService.success)
+
         }
-          
-        // call login handler
-        this.props.onGroupCreateHandler(APIService.success)
   
     }
 
@@ -159,15 +159,12 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                      labelFor="text-input"                     
                     >                                       
                     <ValidatedInputGroup                                                                                                          
-                        placeholder="Group name..."  
-                        onSubmit={() => {}}
-                        validate={(currentValue: string) => {
-                            if(currentValue.length == 0 || (currentValue.length > 2 && currentValue.match(/^[_\-0-9a-z]+$/g)) ) {
-                                return true
-                            } else {
-                                return false
-                            }                       
+                        placeholder="Group name..."      
+                        onKeyEnter={() => {
+                            this.onSubmit()
                         }}
+                        value={this.state.group_name}                    
+                        validate={(currentValue: string) => this.validateGroupName(currentValue)}
                         errorMessage={(currentValue: string) =>{
                             return "Length must be greater than 2, and be URL friendly"
                         }}                                                
@@ -208,11 +205,8 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                     >
                         <ValidatedInputGroup
                             inputRef={(input) => this.custPropsKeyRef = input}                             
-                            value={this.state.custPropKey}                                               
-                            onSubmit={() => {}}
-                            validate={(currentValue: string) => {
-                                return (currentValue == "" ) ? false : true
-                            }}
+                            value={this.state.custPropKey}                            
+                            validate={(currentValue: string) => this.validateTagKey(currentValue)}
                             errorMessage={(currentValue: string) =>{
                                 return "Not a valid key"
                             }}
@@ -226,14 +220,11 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                         </ValidatedInputGroup>
                         &nbsp;
                         <ValidatedInputGroup                                                
-                            value={this.state.custPropValue}  
-                            change=""
-                            onSubmit={() => {
+                            value={this.state.custPropValue}                            
+                            onKeyEnter={() => {
                                 this.addTag(this.state.custPropKey, this.state.custPropValue)
                             }}                            
-                            validate={(currentValue: string) => {
-                                return (currentValue == "" ) ? false : true
-                            }}
+                            validate={(currentValue: string) => this.validateTagValue(currentValue)}
                             errorMessage={(currentValue: string) =>{
                                 return "Not a valid key"
                             }}
@@ -244,7 +235,16 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                                 })
                             }}
                         >
-                        </ValidatedInputGroup>      
+                        </ValidatedInputGroup>   
+                        <Button
+                            icon="plus"                                                
+                            text=""
+                            onClick={(e: React.MouseEvent<HTMLElement, MouseEvent> ) => {
+                                if(this.validateTagKey(this.state.custPropKey) && this.validateTagValue(this.state.custPropValue)) {
+                                    this.addTag(this.state.custPropKey, this.state.custPropValue)
+                                }                                    
+                            }}
+                        ></Button>   
                     </ButtonGroup>                                        
                     </FormGroup>                      
 
@@ -254,7 +254,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                         style={{ width: "100%", marginTop: "20px" }}              
                         large={false}
                         intent={Intent.PRIMARY}                
-                        onClick={() => this.onSubmit()}
+                        onClick={() => this.onSubmit()}                        
                     >Create</Button>
                     </div>
                 </Card>
@@ -262,6 +262,36 @@ export default class GroupCreate extends React.Component<IProps, IState> {
         
         )
         
+    }
+
+    private validateLDAPGroupName (ldap_group_name: string): boolean {    
+        return (ldap_group_name.length == 0 || ldap_group_name == "None" ) ? false : true
+    }
+
+    private validateGroupName (group_name: string): boolean {        
+        return (group_name.length == 0 || !(group_name.length > 2 && group_name.match(/^[_\-0-9a-z]+$/g)) ) ? false : true
+    }
+
+    private validateTagKey(str: string): boolean {
+        return (str == "" || !(str.match(/^[_\-0-9a-zA-Z]+$/g))) ? false : true 
+    }
+
+    private validateTagValue(str: string): boolean {
+        return (str == "" || !(str.match(/^[_\-0-9a-zA-Z]+$/g))) ? false : true
+    }
+
+    private validateFields(): boolean {
+
+        if( this.validateLDAPGroupName(this.state.ldap_group_name) == false ) {
+            return false
+        }
+
+        if( this.validateGroupName(this.state.group_name) == false ) {
+            return false
+        }
+        
+        return true
+
     }
 
 }

@@ -6,7 +6,7 @@ interface IProps {
   displayName: string
 }
 
-const exampleMenu = (
+const subDocMenu = (
   <Menu>
     <MenuItem 
         icon="book" 
@@ -36,19 +36,25 @@ const Header: React.FunctionComponent<IProps> = ({ displayName }) => {
         <Navbar>           
             <Navbar.Group align={Alignment.LEFT}>                
               <div 
-                className="logo-white"
+                className="logo-white pointer"
                 onClick={ () => {                                        
                   location.href = "/"
                 }}
               ></div>
-              <Navbar.Heading>PatientSky One Time User</Navbar.Heading>
+              <Navbar.Heading 
+                className="pointer"
+                onClick={ () => {                                        
+                  location.href = "/"
+                }}
+                >PatientSky One Time User
+              </Navbar.Heading>
               <Navbar.Divider />                                            
             </Navbar.Group>            
             <Navbar.Group align={Alignment.RIGHT}>                
                 {displayName ? 
                 <>
                 <Button className="bp3-minimal" icon="person" text={displayName} />
-                <Popover content={exampleMenu} position={Position.RIGHT_BOTTOM}>
+                <Popover content={subDocMenu} position={Position.RIGHT_BOTTOM}>
                     <Button icon="book" text="Docs" className="bp3-minimal"  />
                 </Popover>         
                 <Button 

@@ -4,7 +4,7 @@ import { IInputGroupProps, InputGroup, Tooltip, Intent, Position, Label } from '
 interface IProps extends IInputGroupProps {
     validate: (currentValue: string) => boolean
     errorMessage: (currentValue: string) => string
-    onKeyEnter: () => void    
+    onKeyEnter?: () => void    
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     defaultValue?: string
 }
@@ -46,11 +46,21 @@ export default class ValidatedInputGroup extends React.Component<IProps, IState>
         )
     }
 
+    // Dont show error onBlur if empty
     private onBlurHandler(e: any) {
-        this.setState({                                
-            valid: true,
-            displayError: false
-        })
+
+        if(this.state.currentValue == "" ) {
+            this.setState({                                
+                valid: true,
+                displayError: false
+            })
+        } else {
+            this.setState({                                
+                valid: this.props.validate(this.state.currentValue),
+                displayError: !this.props.validate(this.state.currentValue)
+            })
+        }
+        
     }
        
     private renderInputGroup() {
@@ -78,7 +88,7 @@ export default class ValidatedInputGroup extends React.Component<IProps, IState>
         if(e.keyCode == 13) {            
             if ( this.props.validate(this.state.currentValue) ) {
                 this.setState( {valid: true} )
-                this.props.onKeyEnter()
+                this.props.onKeyEnter && this.props.onKeyEnter()
             } else {
                 this.setState({valid: false, displayError: true})
             }
