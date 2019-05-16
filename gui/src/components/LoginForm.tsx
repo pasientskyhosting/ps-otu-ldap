@@ -15,6 +15,8 @@ interface IState {
 
 type Nullable<T> = T | null
 
+const glauthURL = process.env.GLAUTH_URL;
+
 export default class LoginForm extends React.Component<IProps, IState> {
     
     private usernameInputRef: Nullable<HTMLInputElement>    
@@ -151,7 +153,7 @@ export default class LoginForm extends React.Component<IProps, IState> {
             </div>
           </Card>
           <Card interactive={false} elevation={Elevation.THREE} style={{ backgroundColor: "#394B59", align: "center" }} >
-          <p><a href="http://odn-glauth01.privatedns.zone/">Lost your password?</a></p>
+          <p><a href={glauthURL}>Lost your password?</a></p>
           </Card>
         </div>
       )

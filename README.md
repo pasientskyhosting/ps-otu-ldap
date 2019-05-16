@@ -49,7 +49,10 @@ A new temp token will be created each time the server starts for debugging purpo
 Goto `http://localhost:8081/` and login with your LDAP credentials.
 
 The Golang API will be served by default at:
-`http://localhost:8051/api/v1/`
+`http://localhost:8081/api/v1/`
+
+The Swagger API Doc will be served at:
+`http://localhost:8082`
 
 Check connectivity to API by running:
 `curl -X GET http://localhost:8081/api/v1/ping`

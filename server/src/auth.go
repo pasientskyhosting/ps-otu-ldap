@@ -100,7 +100,8 @@ func (s *server) Authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": lu.Username, "exp": jwtauth.ExpireIn(3600 * time.Minute), "is_admin": lu.Admin, "display_name": lu.DisplayName})
+	// Create 1 hour token
+	_, tokenString, _ := s.token.Encode(jwt.MapClaims{"user_id": lu.Username, "exp": jwtauth.ExpireIn(60 * time.Minute), "is_admin": lu.Admin, "display_name": lu.DisplayName})
 
 	render.JSON(w, r, Token{Token: tokenString})
 
