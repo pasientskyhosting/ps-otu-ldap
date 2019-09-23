@@ -463,7 +463,6 @@ func (s *server) GetAllGroupsInLDAPScope(w http.ResponseWriter, r *http.Request)
 
 	lg := chi.URLParam(r, "LDAPGroupName")
 	var groups []Group
-	var c []CustomProperties
 
 	// Get all users in a specific group
 	rows, err := s.db.Query("SELECT groups.group_name, groups.ldap_group_name, groups.lease_time, groups.custom_properties, groups.create_time, groups.create_by FROM groups WHERE groups.deleted=0 AND groups.ldap_group_name=$1;", lg)
@@ -478,6 +477,7 @@ func (s *server) GetAllGroupsInLDAPScope(w http.ResponseWriter, r *http.Request)
 
 	for rows.Next() {
 
+		var c []CustomProperties
 		var groupName string
 		var ldapGroupName string
 		var LeaseTime int
