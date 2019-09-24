@@ -1,4 +1,4 @@
-VERSION ?= "v1.2.2"
+VERSION ?= "v1.2.3"
 
 all: stop test build run
 
@@ -20,7 +20,7 @@ run: stop
 	-e API_JWT_SECRET=$(API_JWT_SECRET) \
 	-e API_KEY=$(API_KEY) \
 	-e API_LISTEN=0.0.0.0:8081 \
-	-v `pwd`/db/otu.db:/data/otu-ldap/otu.db \
+	-v `pwd`/db/:/data/otu-ldap/ \
 	-p 8081:8081 \
 	pasientskyhosting/ps-otu-ldap:latest
 

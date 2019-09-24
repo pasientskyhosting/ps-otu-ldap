@@ -6,16 +6,12 @@ export interface IGroup {
     ldap_group_name: string
     group_name: string    
     lease_time: number
-    custom_properties: IGroupCustomProps[]
+    custom_properties: IGroupCustomProps
     create_time: number
     create_by: string
 }
 
-export interface IGroupCustomProps {
-    key: string
-    value: string
-}
-
+export interface IGroupCustomProps {[key: string]: string }
 
 export interface IUser {
     username: string
@@ -75,8 +71,8 @@ class APIService {
 
     private async parseResponse<TResponseType>(response: Response): Promise<TResponseType | null > {
 
-        console.log("Response status is " + response.status)
-        this.status = response.status
+        console.log("Response is " + response.status)
+        this.status = response.status        
 
         switch(response.status) {           
                 
@@ -85,7 +81,12 @@ class APIService {
             case 203:
             case 204:
                 this.success = true
-                break;            
+                break;
+            case 401:
+                if(!response.url.includes("auth")) {;
+                    location.href = "/"
+                }                
+                break;
             default:
                 this.success = false
         }
@@ -132,10 +133,10 @@ class APIService {
 
     }    
 
-    public async groupCreate(ldap_group_name: string, group_name: string, lease_time: number, custom_properties: IGroupCustomProps[]): Promise<IGroup | null>  {
+    public async groupCreate(ldap_group_name: string, group_name: string, lease_time: number, custom_properties: {[key: string]: string }): Promise<IGroup | null>  {
 
         try {
-
+            
             let response = await fetch(this.baseUrl + '/ldap-groups/' + ldap_group_name + '/groups', {
                     method: 'post',    
                     headers: { "Authorization": `Bearer ${this.token}`  },                   
@@ -157,6 +158,8 @@ class APIService {
     public async groupUpdate(group_name: string, group: IGroup): Promise<IGroup | null>  {
 
         try {
+
+            console.log(group)
 
             let response = await fetch(this.baseUrl + '/groups/' + group_name, {
                     method: 'PATCH',    

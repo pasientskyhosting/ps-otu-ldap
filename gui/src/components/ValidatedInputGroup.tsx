@@ -73,6 +73,7 @@ export default class ValidatedInputGroup extends React.Component<IProps, IState>
 
         delete props.errorMessage
         delete props.validate
+        delete props.onKeyEnter
 
         return (                
             <InputGroup                                      
