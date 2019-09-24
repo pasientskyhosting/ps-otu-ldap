@@ -4,12 +4,12 @@ run:
 	export API_JWT_SECRET=secretfarfar; \
 	export API_ENCRYPTION_KEY=thisisverysecurepassword; \
 	export API_KEY=hest; \
-	export API_DB_FILE=/Users/kj/Projects/github/pasientskyhosting/ps-otu-ldap/db/otu.db; \
+	export API_DB_FILE=`pwd`/db/otu.db; \
 	go run src/main.go src/auth.go src/groups.go src/ping.go src/routes.go src/users.go src/ldap.go src/crypt.go src/errors.go
 
 test:
 	export API_ENCRYPTION_KEY=$(API_ENCRYPTION_KEY); \
-	export API_DB_FILE=/Users/kj/Projects/github/pasientskyhosting/ps-otu-ldap/db/otu.db; \
+	export API_DB_FILE=`pwd`/db/otu.db; \
 	export API_LDAP_BIND_DN=$(API_LDAP_BIND_DN); \
 	export API_LDAP_SERVER=$(API_LDAP_SERVER); \
 	export API_LDAP_BIND_PASSWORD=$(API_LDAP_BIND_PASSWORD); \
