@@ -147,7 +147,9 @@ export default class GroupEntry extends React.Component<IProps, IState> {
             if(response) {                
                 this.setState({
                     group: response,
-                    disableUpdate: true                    
+                    disableUpdate: true,
+                    custPropKey: "",
+                    custPropValue: ""
                 })
             }            
         }        
@@ -157,65 +159,67 @@ export default class GroupEntry extends React.Component<IProps, IState> {
     }
 
     private renderTags() {
+        
+        let stateTags = this.state.mangledGroup.custom_properties    
+        let tagElements = [] as JSX.Element[];
 
-        let tags = [] as JSX.Element[];        
-        const onRemove = (this.props.editMode) ? (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) } : undefined        
+        const onRemove = (this.props.editMode) ? (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) } : undefined  
+        
+        // Looping through arrays created from Object.keys
+        const tagKeys = Object.keys(stateTags)
 
-        // Create all tags
-        this.state.mangledGroup.custom_properties.map((custprops: IGroupCustomProps) => {                        
-            tags.push(
+        for (const key of tagKeys) {            
+        
+            tagElements.push(
                 <Tag
                     className="tags" 
                     minimal={true}
                     onRemove={onRemove}           
-                    key={custprops.key+custprops.value}
-                    id={custprops.key+custprops.value}            
+                    key={key}
+                    id={key}
                      >
-                    {custprops.key}={custprops.value}                    
+                    {key}={stateTags[key]}
                 </Tag>
             )            
-        })
-
-        return tags
+        }
+        return tagElements
 
     }
 
     private addTag(key: string, value: string) {
-
-        let tag: IGroupCustomProps
-        tag = { key, value }
         
-        let mangledGroup = Object.assign({},this.state.mangledGroup)
-        mangledGroup.custom_properties = mangledGroup.custom_properties.concat(tag);
+        let mangledGroup = this.state.mangledGroup
+
+        // Append to current object
+        mangledGroup.custom_properties[key] = value;
         
         this.setState({
             mangledGroup: mangledGroup,
             custPropKey: "",
-            custPropValue: "",
-            disableUpdate: false   
+            custPropValue: "",            
+            disableUpdate: false
+            
         })
 
         this.custPropsKeyRef && this.custPropsKeyRef.focus()
 
     }
 
+    
     private removeTag(key?: string) {
-        
-        let mangledGroup = Object.assign({},this.state.mangledGroup)                
 
-        this.state.mangledGroup.custom_properties.map((custprops: IGroupCustomProps, index: number) => {                        
-            let search = custprops.key+custprops.value
-            if(search == key) {                
-                mangledGroup.custom_properties.splice(index, 1);       
-            }
-        })
-        
-        this.setState({
-            mangledGroup: mangledGroup,
-            custPropKey: "",
-            custPropValue: "",
-            disableUpdate: false     
-        })
+        if(key) {
+
+            let mangledGroup = this.state.mangledGroup
+            delete mangledGroup.custom_properties[key];
+            
+            this.setState({
+                mangledGroup: mangledGroup,
+                custPropKey: "",
+                custPropValue: "",
+                disableUpdate: false                
+            })
+        } 
 
     }
 
@@ -266,7 +270,7 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                     <Button
                         icon="plus"                                                
                         text=""                        
-                        onClick={(e: React.MouseEvent<HTMLElement, MouseEvent> ) => {
+                        onClick={(e: React.MouseEvent<HTMLElement, MouseEvent> ) => {                            
                             if(this.validateTagKey(this.state.custPropKey) && this.validateTagValue(this.state.custPropValue)) {
                                 this.addTag(this.state.custPropKey, this.state.custPropValue)
                             }                                    
@@ -278,11 +282,11 @@ export default class GroupEntry extends React.Component<IProps, IState> {
     }
 
     private validateTagKey(str: string): boolean {
-        return (str == "" || !(str.match(/^[_\-0-9a-z]+$/g))) ? false : true 
+        return (str == "") ? false : true 
     }
 
     private validateTagValue(str: string): boolean {
-        return (str == "" || !(str.match(/^[_\-0-9a-z]+$/g))) ? false : true
+        return (str == "") ? false : true
     }
 
     private renderGroupRow() {       

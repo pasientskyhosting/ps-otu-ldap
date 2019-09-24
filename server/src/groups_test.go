@@ -77,13 +77,15 @@ func TestGroupsGetAllGroupsShouldFailWhenUnAuthorized(t *testing.T) {
 
 func TestGroupsCreateGroup(t *testing.T) {
 
-	a := newAPITest(t, "POST", "/api/v1/ldap-groups/voip/groups", []byte(`{"group_name":"voip-random","lease_time":8600,"custom_properties":[{"key":"hello","value":"world"},{"key":"hello","value":"2"}]}`))
+	a := newAPITest(t, "POST", "/api/v1/ldap-groups/voip/groups", []byte(`{"group_name":"voip-random","lease_time":8600,"custom_properties":{"key_1":"hello","key_2":"world"}}`))
 	defer a.tearDown(t)
 
-	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true))) // Since this user does not really have LDAP access an 403 is accepted
+	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true)))
 
 	response := executeRequest(a.server, a.req)
 	checkResponseCode(t, http.StatusForbidden, response.Code)
+
+	fmt.Printf("body %s", response.Body.String())
 
 }
 

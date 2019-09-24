@@ -16,7 +16,7 @@ interface IState {
     errorMessage: string
     custPropKey: string
     custPropValue: string
-    tags: IGroupCustomProps[]
+    tags: IGroupCustomProps
     disableCreate: boolean
 }
 
@@ -35,7 +35,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
         this.custPropsKeyRef = null
 
         this.state = {
-            tags: [],
+            tags: {},
             ldap_group_name: "",
             group_name: "",
             lease_time: 720,
@@ -48,9 +48,11 @@ export default class GroupCreate extends React.Component<IProps, IState> {
     }    
 
     private addTag(key: string, value: string) {
+        
+        let tags = this.state.tags
 
-        let tag: IGroupCustomProps = { key, value }                
-        let tags = this.state.tags.concat(tag);
+        // Append to current object
+        tags[key] = value;
         
         this.setState({
             tags: tags,
@@ -64,45 +66,46 @@ export default class GroupCreate extends React.Component<IProps, IState> {
 
     private removeTag(key?: string) {
         
-        let tags = this.state.tags
+        if(key) {
 
-        this.state.tags.map((custprops: IGroupCustomProps, index: number) => {                        
-            let search = custprops.key+custprops.value
-            if(search == key) {                
-                tags.splice(index, 1);
-            }
-        })
-        
-        this.setState({
-            tags: tags,
-            custPropKey: "",
-            custPropValue: ""   
-        })
+            let tags = this.state.tags
+            delete tags[key]; 
+            
+            this.setState({
+                tags: tags,
+                custPropKey: "",
+                custPropValue: ""   
+            })
+        }        
 
     }
 
     private renderTags() {
 
-        let tags = [] as JSX.Element[];        
-        const onRemove = (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) }      
+        let stateTags = this.state.tags        
+        let tagElements = [] as JSX.Element[];        
 
-        // Create all tags
-        this.state.tags.map((custprops: IGroupCustomProps) => {                        
-            tags.push(
+        const onRemove = (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) }      
+        
+        // Looping through arrays created from Object.keys
+        const tagKeys = Object.keys(stateTags)
+
+        for (const key of tagKeys) {            
+        
+            tagElements.push(
                 <Tag
                     className="tags" 
                     minimal={true}
                     onRemove={onRemove}           
-                    key={custprops.key+custprops.value}
-                    id={custprops.key+custprops.value}            
+                    key={key}
+                    id={key}
                      >
-                    {custprops.key}={custprops.value}                    
+                    {key}={stateTags[key]}      
                 </Tag>
             )            
-        })
+        }
 
-        return tags
-
+        return tagElements
     }
 
     private async onSubmit() {        
@@ -273,11 +276,11 @@ export default class GroupCreate extends React.Component<IProps, IState> {
     }
 
     private validateTagKey(str: string): boolean {
-        return (str == "" || !(str.match(/^[_\-0-9a-zA-Z]+$/g))) ? false : true 
+        return (str == "") ? false : true 
     }
 
     private validateTagValue(str: string): boolean {
-        return (str == "" || !(str.match(/^[_\-0-9a-zA-Z]+$/g))) ? false : true
+        return (str == "") ? false : true
     }
 
     private validateFields(): boolean {

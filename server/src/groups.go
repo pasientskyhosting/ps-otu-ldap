@@ -14,19 +14,14 @@ import (
 )
 
 // Group desc
+// https://stackoverflow.com/questions/37657772/how-to-build-dynamic-structure-in-golang
 type Group struct {
-	GroupName        string             `json:"group_name"`
-	LdapGroupName    string             `json:"ldap_group_name"`
-	CustomProperties []CustomProperties `json:"custom_properties"`
-	LeaseTime        int                `json:"lease_time"`
-	CreateTime       int64              `json:"create_time"`
-	CreateBy         string             `json:"create_by"`
-}
-
-// CustomProperties desc
-type CustomProperties struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	GroupName        string            `json:"group_name"`
+	LdapGroupName    string            `json:"ldap_group_name"`
+	CustomProperties map[string]string `json:"custom_properties"`
+	LeaseTime        int               `json:"lease_time"`
+	CreateTime       int64             `json:"create_time"`
+	CreateBy         string            `json:"create_by"`
 }
 
 // GroupDB desc
@@ -132,7 +127,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	// Check for null and set empty array instead
 	if string(cstring) == "null" {
-		cstring = []byte("[]")
+		cstring = []byte("{}")
 	}
 
 	insert, err := s.db.Prepare("INSERT INTO groups (group_name, ldap_group_name, lease_time, custom_properties, deleted, create_by, create_time) values(?,?,?,?,?,?,?)")
@@ -249,7 +244,7 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 
-		var c []CustomProperties
+		var c map[string]string
 		var groupName string
 		var ldapGroupName string
 		var leaseTime int
@@ -371,8 +366,8 @@ func (s *server) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 
 	if string(cpstr) != "null" && string(cpstr) != gdb.CustomProperties && len(gpatch.CustomProperties) > 0 {
 		gdb.CustomProperties = string(cpstr)
-	} else if string(cpstr) == "[]" {
-		gdb.CustomProperties = "[]"
+	} else if string(cpstr) == "{}" {
+		gdb.CustomProperties = "{}"
 	}
 
 	_, err = update.Exec(gdb.GroupName, gdb.LeaseTime, gdb.CustomProperties, gdb.id)
@@ -387,7 +382,7 @@ func (s *server) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 
 	// Create grpup return object
 	var gr Group
-	var c []CustomProperties
+	var c map[string]string
 
 	gr.GroupName = gdb.GroupName
 	gr.LdapGroupName = gdb.LdapGroupName
@@ -463,7 +458,7 @@ func (s *server) GetAllGroupsInLDAPScope(w http.ResponseWriter, r *http.Request)
 
 	lg := chi.URLParam(r, "LDAPGroupName")
 	var groups []Group
-	var c []CustomProperties
+	var c map[string]string
 
 	// Get all users in a specific group
 	rows, err := s.db.Query("SELECT groups.group_name, groups.ldap_group_name, groups.lease_time, groups.custom_properties, groups.create_time, groups.create_by FROM groups WHERE groups.deleted=0 AND groups.ldap_group_name=$1;", lg)
