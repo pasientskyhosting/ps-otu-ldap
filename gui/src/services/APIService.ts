@@ -84,8 +84,10 @@ class APIService {
                 break;
             case 401:
                 if(!response.url.includes("auth")) {;
+                    console.log("Redirecting...")
+                    localStorage.removeItem('jwt.token')
                     location.href = "/"
-                }                
+                }
                 break;
             default:
                 this.success = false
