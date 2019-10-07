@@ -1,3 +1,9 @@
+# October 5, 2019
+
+Bugfix:
+
+* Redirect loop when getting 401 from backend
+
 # September 24, 2019
 
 Security:
