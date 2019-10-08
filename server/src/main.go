@@ -20,7 +20,7 @@ import (
 var testingMode bool
 
 type server struct {
-	db     *sql.DB
+db     *sql.DB
 	router *chi.Mux
 	token  *jwtauth.JWTAuth
 	lc     *ldapConn
@@ -40,7 +40,7 @@ type env struct {
 	ldapBindPassword string
 }
 
-func newServer(e *env) *server {
+func newServer(e *env)) *server {
 
 	// New server
 	s := server{
