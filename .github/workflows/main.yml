@@ -4,7 +4,8 @@ name: A workflow for validating the One Time User project
 on:
   pull_request:
     branches:
-    - master
+      - master
+      - development
 
 jobs:
 
