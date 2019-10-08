@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-func encryptHash(key []byte, message string) (encmess string, err error) {
+fund encryptHash(key []byte, message string) (encmess string, err error) {
 
 	plainText := []byte(message)
 
