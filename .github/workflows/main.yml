@@ -18,11 +18,8 @@ jobs:
     - name: gofmt
       uses: sjkaliski/go-github-actions/fmt@v0.5.0
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GO_WORKING_DIR: "./server/src"
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
     - name: golint
       uses: sjkaliski/go-github-actions/lint@v0.5.0
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GO_WORKING_DIR: "./server/src"
-        GO_LINT_PATHS:  = "./server/..."
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
