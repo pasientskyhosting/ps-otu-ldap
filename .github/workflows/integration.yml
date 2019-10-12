@@ -9,9 +9,9 @@ on:
 
 jobs:
 
-  linters:
+  dockerfile_lint:
 
-    name: Linters
+    name: dockerfile_lint
     runs-on: ubuntu-18.04
 
     steps:
@@ -22,6 +22,15 @@ jobs:
         uses: pasientskyhosting/github-actions/dockerfile-linter@v0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  golangci_lint:
+
+    name: golangci_lint
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@master
       - name: golangci-lint
         id: golangci-lint
         uses: pasientskyhosting/github-actions/golangci-lint@v0.2
