@@ -19,11 +19,11 @@ jobs:
         uses: actions/checkout@master
       - name: dockerfile-linter
         id: dockerfile-linter
-        uses: pasientskyhosting/github-actions/dockerfile-linter@v0.1
+        uses: pasientskyhosting/github-actions/dockerfile-linter@v0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: golangci-lint
         id: golangci-lint
-        uses: pasientskyhosting/github-actions/golangci-lint@v0.1
+        uses: pasientskyhosting/github-actions/golangci-lint@v0.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
