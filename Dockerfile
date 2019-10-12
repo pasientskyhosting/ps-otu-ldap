@@ -7,7 +7,7 @@ ENV BABEL_ENV ${babel_env}
 
 RUN apk update --no-cache \
     && apk add git openssh \
-    && rm  -rf /tmp/* /var/cache/apk/*
+    && rm -rf /var/cache/apk/*
 
 WORKDIR /app
 
@@ -25,7 +25,7 @@ ARG version
 
 RUN apk update --no-cache \
     && apk add git gcc g++ upx \
-    && rm  -rf /tmp/* /var/cache/apk/*
+    && rm -rf /var/cache/apk/*
 
 WORKDIR /go/src/github.com/pasientskyhosting/ps-otu-ldap
 
