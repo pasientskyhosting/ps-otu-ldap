@@ -5,7 +5,7 @@ FROM node:10-alpine as node_builder
 ARG babel_env=production
 ENV BABEL_ENV ${babel_env}
 
-RUN apk update \
+RUN apk update --no-cache \
     && apk add git openssh \
     && rm  -rf /tmp/* /var/cache/apk/*
 
@@ -23,7 +23,7 @@ FROM golang:alpine AS go_builder
 
 ARG version
 
-RUN apk update \
+RUN apk update --no-cache \
     && apk add git gcc g++ upx \
     && rm  -rf /tmp/* /var/cache/apk/*
 
@@ -40,7 +40,7 @@ RUN go build -ldflags "-s -w -X main.version=${version} -X main.date=$(date '+%Y
 ###################################################################
 # Final Stage                                                    
 ###################################################################
-FROM alpine
+FROM alpine:3.10
 
 # Create WORKDIR
 WORKDIR /app
