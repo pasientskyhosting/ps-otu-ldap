@@ -19,39 +19,26 @@ jobs:
         uses: actions/checkout@master
       - name: dockerfile-linter
         id: dockerfile-linter
-        uses: pasientskyhosting/github-actions/dockerfile-linter@v0.3
+        uses: pasientskyhosting/github-actions/dockerfile-linter@v0.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   golangci_lint:
     name: golangci_lint_job
     runs-on: ubuntu-latest
-    container:
-      image: golang:1.12.4
-      env:
-        GOPATH: /__w/ps-otu-ldap/go/
     steps:
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
-        path: go/src/github.com/pasientskyhosting/ps-otu-ldap
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
 
-    - name: Setup
-      run: |
-        cd ./server/src
-        go get -d
+      - name: golangci-lint
+        id: golangci-lint
+        uses: pasientskyhosting/github-actions/golangci-lint@v0.4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          level: warning
+          go_get: 'yes'
 
-    - name: golangci-lint
-      id: golangci-lint
-      uses: docker://reviewdog/action-golangci-lint:v1.0.4 # pre-build docker image
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        golangci_lint_flags: "--enable-all"
-        level: warning
-      env:
-        GOPATH: /__w/ps-otu-ldap/go/
 
     # - name: Debug
     #   run: |
