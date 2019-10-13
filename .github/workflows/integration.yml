@@ -37,3 +37,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           golangci_lint_flags: "--enable-all"
+          level: warning
