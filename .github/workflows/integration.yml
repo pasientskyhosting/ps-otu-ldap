@@ -33,12 +33,11 @@ jobs:
 
       - name: golangci-lint
         id: golangci-lint
-        uses: pasientskyhosting/github-actions/golangci-lint@v0.4
+        uses: pasientskyhosting/github-actions/golangci-lint@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           level: warning
           go_get: 'yes'
-
 
     # - name: Debug
     #   run: |
