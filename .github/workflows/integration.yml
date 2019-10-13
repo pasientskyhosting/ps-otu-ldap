@@ -11,7 +11,7 @@ jobs:
 
   dockerfile_lint:
 
-    name: dockerfile_lint
+    name: dockerfile_lint_job
     runs-on: ubuntu-18.04
 
     steps:
@@ -25,16 +25,25 @@ jobs:
 
   golangci_lint:
 
-    name: golangci_lint
+    name: golangci_lint_job
     runs-on: ubuntu-18.04
 
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@master
+      - name: Setup go
+        uses: actions/setup-go@v1
+        with:
+          go-version: '1.13'
+      - name: Setup dependecies
+        run: go get -d ./server/src
       - name: golangci-lint
         uses: docker://reviewdog/action-golangci-lint:v1.0.4 # pre-build docker image
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          golangci_lint_flags: "--enable-all"
+          level: warning
+          tool_name: errcheck
       # - name: golangci-lint
       #   id: golangci-lint
       #   uses: pasientskyhosting/github-actions/golangci-lint@v0.3
