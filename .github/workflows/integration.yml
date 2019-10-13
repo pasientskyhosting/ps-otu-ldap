@@ -31,17 +31,14 @@ jobs:
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@master
-      - name: Setup go
-        uses: actions/setup-go@v1
-        with:
-          go-version: '1.13'
-      - run: | 
-          cd server/src
-          go get -d
       - name: golangci-lint
-        id: golangci-lint
-        uses: pasientskyhosting/github-actions/golangci-lint@v0.3
+        uses: docker://reviewdog/action-golangci-lint:v1.0.4 # pre-build docker image
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          golangci_lint_flags: "--enable-all"
-          level: warning
+      # - name: golangci-lint
+      #   id: golangci-lint
+      #   uses: pasientskyhosting/github-actions/golangci-lint@v0.3
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     golangci_lint_flags: "--enable-all"
+      #     level: warning
