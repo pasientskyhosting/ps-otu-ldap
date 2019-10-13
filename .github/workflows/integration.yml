@@ -38,19 +38,26 @@ jobs:
         fetch-depth: 1
         path: go/src/github.com/pasientskyhosting/ps-otu-ldap
 
-    - name: Debug
-      run: |
-        pwd
-        echo ${HOME}
-        echo ${GITHUB_WORKSPACE}
-        echo ${GOPATH}
-        echo ${GOROOT}
-
-    - name: Test
+    - name: Setup
       run: |
         cd ./server/src
-        ls -lastr
         go get -d
+
+    - name: golangci-lint
+      id: golangci-lint
+      uses: pasientskyhosting/github-actions/golangci-lint@v0.3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        golangci_lint_flags: "--enable-all"
+        level: warning
+
+    # - name: Debug
+    #   run: |
+    #     pwd
+    #     echo ${HOME}
+    #     echo ${GITHUB_WORKSPACE}
+    #     echo ${GOPATH}
+    #     echo ${GOROOT}
 
   # golangci_lint:
 
