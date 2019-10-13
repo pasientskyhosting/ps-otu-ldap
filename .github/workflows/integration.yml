@@ -30,13 +30,14 @@ jobs:
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v1
+
       - name: golangci-lint
         id: golangci-lint
         uses: pasientskyhosting/github-actions/golangci-lint@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           level: warning
-          go_get: 'yes'
+          go_get: './server/src'
 
     # - name: Debug
     #   run: |
