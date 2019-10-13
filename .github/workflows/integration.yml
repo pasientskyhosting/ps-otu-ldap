@@ -29,14 +29,33 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
+
       - name: Check out code into the Go module directory
         uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+          path: go/src/github.com/pasientskyhosting/ps-otu-ldap
+      
       - name: Setup go
         uses: actions/setup-go@v1
         with:
           go-version: '1.13'
+
+      - name: Debug
+        run: |
+          pwd
+          echo ${HOME}
+          echo ${GITHUB_WORKSPACE}
+          echo ${GOPATH}
+          echo ${GOROOT}
+        env:
+          GOPATH: /home/runner/work/pasientskyhosting/go
+
       - name: Setup dependecies
-        run: go get -d ./server/src
+        run: go get -d
+        env:
+          GOPATH: /home/runner/work/pasientskyhosting/go
+
       - name: golangci-lint
         uses: docker://reviewdog/action-golangci-lint:v1.0.4 # pre-build docker image
         with:
@@ -44,6 +63,8 @@ jobs:
           golangci_lint_flags: "--enable-all"
           level: warning
           tool_name: errcheck
+        env:
+          GOPATH: /home/runner/work/pasientskyhosting/go
       # - name: golangci-lint
       #   id: golangci-lint
       #   uses: pasientskyhosting/github-actions/golangci-lint@v0.3
