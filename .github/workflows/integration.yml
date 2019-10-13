@@ -45,11 +45,13 @@ jobs:
 
     - name: golangci-lint
       id: golangci-lint
-      uses: pasientskyhosting/github-actions/golangci-lint@v0.3
+      uses: docker://reviewdog/action-golangci-lint:v1.0.4 # pre-build docker image
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         golangci_lint_flags: "--enable-all"
         level: warning
+      env:
+        GOPATH: /__w/ps-otu-ldap/go/
 
     # - name: Debug
     #   run: |
