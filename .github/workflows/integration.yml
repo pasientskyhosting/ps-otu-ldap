@@ -57,7 +57,7 @@ jobs:
         id: go_run_test
         env:
           API_ENCRYPTION_KEY: 'thisisverysecurepassword'
-          API_DB_FILE: '`pwd`/db/otu.db'
+          API_DB_FILE: '/home/runner/work/ps-otu-ldap/ps-otu-ldap/db/otu.db'
           API_LDAP_BIND_DN: 'uid=bind,cn=sysaccounts,cn=accounts,dc=pasientsky,dc=no'
           API_LDAP_SERVER: 'somer-ldap-server.example.com'
           API_LDAP_BIND_PASSWORD: 'somePassword12345!'
