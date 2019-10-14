@@ -1,0 +1,70 @@
+---
+
+name: Integration
+on:
+  pull_request:
+    branches:
+    - master
+    - development
+
+jobs:
+
+  dockerfile_lint:
+
+    name: dockerfile_lint_job
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
+      - name: dockerfile-linter
+        id: dockerfile-linter
+        uses: pasientskyhosting/github-actions/dockerfile-linter@v0.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  golangci_lint:
+
+    name: golangci_lint_job
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
+
+      - name: golangci-lint
+        id: golangci-lint
+        uses: pasientskyhosting/github-actions/golangci-lint@v0.6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          go_get: './server/src'
+
+  golang_test:
+
+    name: golang_test_job
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1      
+
+      - name: Setup go for tests
+        uses: actions/setup-go@v1.1.1
+        with:
+          go-version: '1.12.5' # The Go version to download (if necessary) and 
+          
+      - name: Run tests
+        id: go_run_test
+        env:
+          API_ENCRYPTION_KEY: 'thisisverysecurepassword'
+          API_DB_FILE: '/home/runner/work/ps-otu-ldap/ps-otu-ldap/db/otu.db'
+          API_LDAP_BIND_DN: 'uid=bind,cn=sysaccounts,cn=accounts,dc=pasientsky,dc=no'
+          API_LDAP_SERVER: 'somer-ldap-server.example.com'
+          API_LDAP_BIND_PASSWORD: 'somePassword12345!'
+          API_JWT_SECRET: 'tokenssecret'
+          API_KEY: 'apikeysecret'
+          API_LISTEN: '0.0.0.0:8081'
+        run: |          
+          cd server/src
+          go get -d
+          go test

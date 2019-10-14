@@ -19,6 +19,12 @@ type apiTest struct {
 	tearDown func(t *testing.T)
 }
 
+func skipCI(t *testing.T) {
+	if os.Getenv("GITHUB_WORKSPACE") != "" {
+		t.Skip("Skipping testing in CI environment")
+	}
+}
+
 func (s *server) deleteTestData() {
 
 	// delete all previos apitest users and groups

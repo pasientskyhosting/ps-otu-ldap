@@ -77,6 +77,9 @@ func TestGroupsGetAllGroupsShouldFailWhenUnAuthorized(t *testing.T) {
 
 func TestGroupsCreateGroup(t *testing.T) {
 
+	// Skip while in CI
+	skipCI(t)
+
 	a := newAPITest(t, "POST", "/api/v1/ldap-groups/voip/groups", []byte(`{"group_name":"voip-random","lease_time":8600,"custom_properties":{"key_1":"hello","key_2":"world"}}`))
 	defer a.tearDown(t)
 
