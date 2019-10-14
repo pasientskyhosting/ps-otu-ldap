@@ -5,9 +5,9 @@ FROM node:10-alpine as node_builder
 ARG babel_env=production
 ENV BABEL_ENV ${babel_env}
 
-RUN apk update \
-    && apk add git openssh \
-    && rm  -rf /tmp/* /var/cache/apk/*
+RUN apk update --no-cache \
+    && apk add --no-cache git openssh \
+    && rm -rf /var/cache/apk/*
 
 WORKDIR /app
 
@@ -24,8 +24,8 @@ FROM golang:alpine AS go_builder
 ARG version
 
 RUN apk update \
-    && apk add git gcc g++ upx \
-    && rm  -rf /tmp/* /var/cache/apk/*
+    && apk add --no-cache git gcc g++ upx \
+    && rm -rf /var/cache/apk/*
 
 WORKDIR /go/src/github.com/pasientskyhosting/ps-otu-ldap
 
@@ -40,7 +40,7 @@ RUN go build -ldflags "-s -w -X main.version=${version} -X main.date=$(date '+%Y
 ###################################################################
 # Final Stage                                                    
 ###################################################################
-FROM alpine
+FROM alpine:3.10
 
 # Create WORKDIR
 WORKDIR /app
