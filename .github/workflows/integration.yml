@@ -36,8 +36,7 @@ jobs:
         id: golangci-lint
         uses: pasientskyhosting/github-actions/golangci-lint@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          level: info
+          github_token: ${{ secrets.GITHUB_TOKEN }}          
           go_get: './server/src'          
 
     # - name: Debug
