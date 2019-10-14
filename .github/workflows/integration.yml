@@ -24,6 +24,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   golangci_lint:
+
     name: golangci_lint_job
     runs-on: ubuntu-latest
     steps:
@@ -36,8 +37,8 @@ jobs:
         uses: pasientskyhosting/github-actions/golangci-lint@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          level: warning
-          go_get: './server/src'
+          level: info
+          go_get: './server/src'          
 
     # - name: Debug
     #   run: |
