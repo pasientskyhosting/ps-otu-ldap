@@ -9,6 +9,9 @@ import (
 
 func TestLDAPGetAllLDAPGroups(t *testing.T) {
 
+	// Skip while in CI
+	skipCI(t)
+
 	a := newAPITest(t, "GET", "/api/v1/ldap-groups", nil)
 	defer a.tearDown(t)
 
