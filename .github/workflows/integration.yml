@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@master
+        uses: actions/checkout@v1
       - name: dockerfile-linter
         id: dockerfile-linter
-        uses: pasientskyhosting/github-actions/dockerfile-linter@v0.4
+        uses: pasientskyhosting/github-actions/dockerfile-linter@v0.6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -34,7 +34,7 @@ jobs:
 
       - name: golangci-lint
         id: golangci-lint
-        uses: pasientskyhosting/github-actions/golangci-lint@master
+        uses: pasientskyhosting/github-actions/golangci-lint@v0.6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           go_get: './server/src'
