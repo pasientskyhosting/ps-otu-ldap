@@ -87,3 +87,4 @@ jobs:
           cd server/src
           go get -d
           go test
+
