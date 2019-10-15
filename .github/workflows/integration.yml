@@ -23,6 +23,7 @@ jobs:
         uses: docker://pasientskyhosting/action-docker-build-push:latest
         with:
           image_name: pasientskyhosting/ps-otu-ldap
+          build_only: 'true'
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
