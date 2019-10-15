@@ -19,6 +19,9 @@ jobs:
 
     steps:
 
+      - name: Check out code
+        uses: actions/checkout@v1
+
       - name: Docker build
         uses: docker://pasientskyhosting/action-docker-build-push:v0.9.12
         with:
