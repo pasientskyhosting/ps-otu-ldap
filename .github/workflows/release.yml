@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Docker publish
-        uses: pasientskyhosting/github-actions/docker-publish@master
+        uses: pasientskyhosting/github-actions/docker-build-push@master
         with:
           image_name: pasientskyhosting/ps-otu-ldap
           build_only: 'false'
