@@ -8,20 +8,21 @@ on:
 
 jobs:
 
-  docker_publish:
+  docker_build_push:
 
-    name: docker_publish_job
-    runs-on: ubuntu-18.04
+    name: docker_build_push
+    runs-on: ubuntu-latest
 
     steps:
 
       - name: Check out code
         uses: actions/checkout@v1
 
-      - name: docker-publish
-        id: docker-publish
+      - name: Docker publish
         uses: pasientskyhosting/github-actions/docker-publish@master
         with:
-          repo_name: pasientskyhosting/ps-otu-ldap
+          image_name: pasientskyhosting/ps-otu-ldap
+          build_only: 'false'
+          dockerfile_path: ./Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
