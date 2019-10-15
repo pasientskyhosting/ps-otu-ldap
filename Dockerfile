@@ -21,7 +21,7 @@ RUN npm install && \
 ###################################################################
 FROM golang:alpine AS go_builder
 
-ARG version
+ARG version=none
 
 RUN apk update \
     && apk add --no-cache git gcc g++ upx \
