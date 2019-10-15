@@ -20,7 +20,7 @@ jobs:
     steps:
 
       - name: Docker build
-        uses: docker://pasientskyhosting/action-docker-build-push:latest
+        uses: docker://pasientskyhosting/action-docker-build-push:v0.9.12
         with:
           image_name: pasientskyhosting/ps-otu-ldap
           username: ${{ secrets.DOCKER_USERNAME }}
