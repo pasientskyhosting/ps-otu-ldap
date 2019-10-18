@@ -1,15 +1,11 @@
 ---
 
 # Runs your workflow anytime the release event occurs  
-name: Release Management
+name: Release
 on:
   release:
     types: [published]
-  push:
-    branches:
-      - master
-      - development
-
+ 
 jobs:
 
   update_draft_release_job:
