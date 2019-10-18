@@ -1,12 +1,23 @@
 ---
 
 # Runs your workflow anytime the release event occurs  
-name: Release
+name: Release Management
 on:
   release:
     types: [published]
+  push:
+    branches:
+      - master
+      - development
 
 jobs:
+
+  update_draft_release_job:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: toolmantim/release-drafter@v5.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   docker_build_push:
 
@@ -23,7 +34,5 @@ jobs:
         with:
           image_name: pasientskyhosting/ps-otu-ldap
           build_only: 'false'
-          dockerfile_path: ./Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
