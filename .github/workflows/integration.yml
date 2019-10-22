@@ -2,14 +2,34 @@
 
 name: Integration
 on:
+  push:
+    branches:
+      - development
   pull_request:
     branches:
-    - master
-    - development
+      - master
+      - development
 
 jobs:
 
-  dockerfile_lint:
+  docker_build_job:
+
+    name: docker_build_job
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Docker build
+        uses: docker://pasientskyhosting/action-docker-build-push:latest
+        with:
+          image_name: pasientskyhosting/ps-otu-ldap
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+  dockerfile_lint_job:
 
     name: dockerfile_lint_job
     runs-on: ubuntu-latest
@@ -19,13 +39,13 @@ jobs:
         uses: actions/checkout@v1
       - name: dockerfile-linter
         id: dockerfile-linter
-        uses: docker://pasientskyhosting/action-dockerfile-linter:v0.9.3
+        uses: docker://pasientskyhosting/action-dockerfile-linter:latest
         with:
           dockerfile: ./Dockerfile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  golangci_lint:
+  golangci_lint_job:
 
     name: golangci_lint_job
     runs-on: ubuntu-latest
@@ -36,25 +56,25 @@ jobs:
 
       - name: golangci-lint
         id: golangci-lint
-        uses: docker://pasientskyhosting/action-golangci-lint:v0.9.3
+        uses: docker://pasientskyhosting/action-golangci-lint:latest
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           go_get: './server/src'
 
-  golang_test:
+  golang_api_test_job:
 
-    name: golang_test_job
+    name: golang_api_test_job
     runs-on: ubuntu-latest
     steps:
 
       - name: Check out code
-        uses: actions/checkout@v1      
+        uses: actions/checkout@v1
 
       - name: Setup go for tests
         uses: actions/setup-go@v1.1.1
         with:
-          go-version: '1.12.5' # The Go version to download (if necessary) and 
-          
+          go-version: '1.12.5'
+
       - name: Run tests
         id: go_run_test
         env:
@@ -66,7 +86,7 @@ jobs:
           API_JWT_SECRET: 'tokenssecret'
           API_KEY: 'apikeysecret'
           API_LISTEN: '0.0.0.0:8081'
-        run: |          
+        run: |
           cd server/src
           go get -d
           go test
