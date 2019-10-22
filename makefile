@@ -1,8 +1,8 @@
-VERSION ?= "v1.3.4"
+VERSION ?= "v1.3.6"
 
 all: stop test build run
 
-stop: 
+stop:
 	-docker stop otu-ldap; docker stop swagger-api;
 
 push: test build
