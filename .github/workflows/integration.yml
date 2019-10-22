@@ -4,11 +4,11 @@ name: Integration
 on:
   push:
     branches:
-    - development
+      - development
   pull_request:
     branches:
-    - master
-    - development
+      - master
+      - development
 
 jobs:
 
@@ -68,13 +68,13 @@ jobs:
     steps:
 
       - name: Check out code
-        uses: actions/checkout@v1      
+        uses: actions/checkout@v1
 
       - name: Setup go for tests
         uses: actions/setup-go@v1.1.1
         with:
-          go-version: '1.12.5' # The Go version to download (if necessary) and 
-          
+          go-version: '1.12.5'
+
       - name: Run tests
         id: go_run_test
         env:
@@ -86,8 +86,7 @@ jobs:
           API_JWT_SECRET: 'tokenssecret'
           API_KEY: 'apikeysecret'
           API_LISTEN: '0.0.0.0:8081'
-        run: |          
+        run: |
           cd server/src
           go get -d
           go test
-

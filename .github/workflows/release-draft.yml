@@ -1,0 +1,22 @@
+---
+
+name: Release Draft
+
+on:
+  push:
+    # branches to consider in the event; optional, defaults to all
+    branches:
+      - master
+
+jobs:
+
+  draft_release_job:
+
+    name: draft_release_job
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: toolmantim/release-drafter@v5.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
