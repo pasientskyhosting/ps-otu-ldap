@@ -22,11 +22,23 @@ jobs:
       - name: Check out code
         uses: actions/checkout@master
 
+      - name: Get tag
+        id: get_tag
+        run: |
+          export INPUT_IMAGE_TAG="$(echo ${GITHUB_REF} | sed -e "s/refs\/tags\///g")"
+
+      - name: Set Slack Message
+        id: set_slack_message
+        run: |
+          export GIT_TAG="$(echo ${GITHUB_REF} | sed -e "s/refs\/tags\///g")"
+          export SLACK_MESSAGE="New version ${GIT_TAG}"
+
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@master
         env:
           SLACK_CHANNEL: github-ci
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_USERNAME: github-actions-boy
+          SLACK_USERNAME: github-actions-bot
           SLACK_ICON: https://avatars3.githubusercontent.com/in/15368?s=48
           SLACK_TITLE: New Release https://github.com/pasientskyhosting/ps-otu-ldap
+          SLACK_MESSAGE: ${SLACK_MESSAGE}
