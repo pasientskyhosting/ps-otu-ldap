@@ -3,17 +3,20 @@
 exclude: '(vault|dist|plugins)'
 
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.0.0
-    hooks:
-      - id: trailing-whitespace
-      - id: check-added-large-files
-      - id: check-yaml
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v2.3.0
+  hooks:
+  - id: trailing-whitespace
+  - id: check-added-large-files
+  - id: check-merge-conflict
+  - id: check-symlinks
+  - id: check-yaml
+  - id: end-of-file-fixer
 
-  - repo: https://github.com/adrienverge/yamllint
-    rev: v1.13.0
-    hooks:
-      - id: yamllint
-        entry: yamllint
-        language: python
-        types: [file, yaml]
+- repo: https://github.com/adrienverge/yamllint
+  rev: v1.17.0
+  hooks:
+  - id: yamllint
+    entry: yamllint
+    language: python
+    types: [file, yaml]
