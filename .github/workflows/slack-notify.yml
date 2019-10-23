@@ -31,7 +31,7 @@ jobs:
         id: set_slack_message
         run: |
           export GIT_TAG="$(echo ${GITHUB_REF} | sed -e "s/refs\/tags\///g")"
-          export SLACK_MESSAGE="New version ${GIT_TAG}"
+          echo ::set-output name=slack_message::${GIT_TAG}
 
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@master
@@ -41,4 +41,4 @@ jobs:
           SLACK_USERNAME: github-actions-bot
           SLACK_ICON: https://avatars3.githubusercontent.com/in/15368?s=48
           SLACK_TITLE: New Release https://github.com/pasientskyhosting/ps-otu-ldap
-          SLACK_MESSAGE: ${SLACK_MESSAGE}
+          SLACK_MESSAGE: ${{ outputs.set_slack_message.slack_message }}
