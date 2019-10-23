@@ -1,0 +1,42 @@
+---
+
+# Runs your workflow anytime the release event occurs
+name: Slack Notification
+on:
+  release:
+    types: [published]
+
+jobs:
+
+  slack_notification_job:
+
+    name: Slack Notification
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Check out code
+        uses: actions/checkout@master
+
+      - name: Get tag
+        id: get_tag
+        run: |
+          export INPUT_IMAGE_TAG="$(echo ${GITHUB_REF} | sed -e "s/refs\/tags\///g")"
+
+      - name: Set Slack Message
+        id: set_slack_message
+        run: |
+          export GIT_TAG="$(echo ${GITHUB_REF} | sed -e "s/refs\/tags\///g")"
+          echo ::set-output name=slack_message::${GIT_TAG}
+
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_CHANNEL: github-ci
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: github-actions-bot
+          SLACK_ICON: https://avatars3.githubusercontent.com/in/15368?s=48
+          SLACK_TITLE: New Release
+          SLACK_MESSAGE: |
+            New release for ${{ github.repository }}
+            Version ${{ steps.set_slack_message.outputs.slack_message }}
