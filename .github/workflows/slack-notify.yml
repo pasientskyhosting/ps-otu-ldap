@@ -1,0 +1,31 @@
+---
+
+# Runs your workflow anytime the release event occurs
+name: Slack Notification
+on:
+  pull_request:
+    branches:
+      - master
+      - development
+  release:
+    types: [published]
+
+jobs:
+
+  slack_notification_job:
+
+    name: Slack Notification
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Check out code
+        uses: actions/checkout@master
+
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@master
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: github-actions-boy
+          SLACK_ICON: https://avatars3.githubusercontent.com/in/15368?s=48
+          SLACK_TITLE: New Release https://github.com/pasientskyhosting/ps-otu-ldap
