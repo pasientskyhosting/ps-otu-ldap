@@ -41,4 +41,4 @@ jobs:
           SLACK_USERNAME: github-actions-bot
           SLACK_ICON: https://avatars3.githubusercontent.com/in/15368?s=48
           SLACK_TITLE: New Release https://github.com/pasientskyhosting/ps-otu-ldap
-          SLACK_MESSAGE: ${{ outputs.set_slack_message.slack_message }}
+          SLACK_MESSAGE: ${{ steps.set_slack_message.outputs.slack_message }}
