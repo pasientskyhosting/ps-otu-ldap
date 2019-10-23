@@ -1,0 +1,11 @@
+---
+policy:
+  approval:
+    - the devops team has approved
+
+approval_rules:
+  - name: the devops team has approved
+    requires:
+      count: 1
+      teams:
+        - "pasientskyhosting/devops"
