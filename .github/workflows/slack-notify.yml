@@ -3,10 +3,6 @@
 # Runs your workflow anytime the release event occurs
 name: Slack Notification
 on:
-  pull_request:
-    branches:
-      - master
-      - development
   release:
     types: [published]
 
@@ -40,5 +36,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_USERNAME: github-actions-bot
           SLACK_ICON: https://avatars3.githubusercontent.com/in/15368?s=48
-          SLACK_TITLE: New Release https://github.com/pasientskyhosting/ps-otu-ldap
-          SLACK_MESSAGE: ${{ steps.set_slack_message.outputs.slack_message }}
+          SLACK_TITLE: New Release
+          SLACK_MESSAGE: |
+            New release for ${{ github.repository }}
+            Version ${{ steps.set_slack_message.outputs.slack_message }}
