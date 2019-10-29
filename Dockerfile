@@ -13,7 +13,7 @@ WORKDIR /app
 
 ADD gui/ .
 
-RUNN npm install && \
+RUN npm install && \
     npm run build
 
 ###################################################################
