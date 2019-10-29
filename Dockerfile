@@ -1,5 +1,5 @@
 ###################################################################
-# Node Builder Stage                                                    
+# Node Builder Stage
 ###################################################################
 FROM node:10-alpine as node_builder
 ARG babel_env=production
@@ -17,7 +17,7 @@ RUN npm install && \
     npm run build
 
 ###################################################################
-# GO Builder Stage                                                    
+# GO Builder Stage
 ###################################################################
 FROM golang:alpine AS go_builder
 
@@ -32,13 +32,13 @@ WORKDIR /go/src/github.com/pasientskyhosting/ps-otu-ldap
 ADD server/src .
 
 # Get dependencies
-RUN go get -d . 
+RUN go get -d .
 
 # Compile project
 RUN go build -ldflags "-s -w -X main.version=${version} -X main.date=$(date '+%Y-%m-%dT%H:%M:%S%z')" -o otu-ldap
 
 ###################################################################
-# Final Stage                                                    
+# Final Stage
 ###################################################################
 FROM alpine:3.10
 
@@ -48,7 +48,7 @@ WORKDIR /app
 # Copy app binary from the Builder stage image
 COPY --from=go_builder /go/src/github.com/pasientskyhosting/ps-otu-ldap/otu-ldap .
 
-COPY --from=node_builder /app/public/ ./html 
+COPY --from=node_builder /app/public/ ./html
 
 ADD db/ /data/otu-ldap/
 

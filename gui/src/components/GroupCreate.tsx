@@ -5,14 +5,14 @@ import ValidatedInputGroup from './ValidatedInputGroup';
 import APIService, { IGroupCustomProps } from '../services/APIService';
 import LDAPGroupSearch from './LDAPGroupSearch';
 
-interface IProps {    
-    onGroupCreateHandler: (success: boolean) => void, 
+interface IProps {
+    onGroupCreateHandler: (success: boolean) => void,
 }
 
-interface IState {    
+interface IState {
     ldap_group_name: string
     group_name: string
-    lease_time: number    
+    lease_time: number
     errorMessage: string
     custPropKey: string
     custPropValue: string
@@ -25,11 +25,11 @@ type Nullable<T> = T | null
 const lease_time_default = 720
 
 export default class GroupCreate extends React.Component<IProps, IState> {
-    
-    private custPropsKeyRef: Nullable<HTMLInputElement>   
+
+    private custPropsKeyRef: Nullable<HTMLInputElement>
 
     constructor (props: IProps) {
-                
+
         super(props)
 
         this.custPropsKeyRef = null
@@ -43,21 +43,21 @@ export default class GroupCreate extends React.Component<IProps, IState> {
             custPropKey: "",
             custPropValue: "",
             disableCreate: true
-        }        
+        }
 
-    }    
+    }
 
     private addTag(key: string, value: string) {
-        
+
         let tags = this.state.tags
 
         // Append to current object
         tags[key] = value;
-        
+
         this.setState({
             tags: tags,
             custPropKey: "",
-            custPropValue: ""            
+            custPropValue: ""
         })
 
         this.custPropsKeyRef && this.custPropsKeyRef.focus()
@@ -65,55 +65,55 @@ export default class GroupCreate extends React.Component<IProps, IState> {
     }
 
     private removeTag(key?: string) {
-        
+
         if(key) {
 
             let tags = this.state.tags
-            delete tags[key]; 
-            
+            delete tags[key];
+
             this.setState({
                 tags: tags,
                 custPropKey: "",
-                custPropValue: ""   
+                custPropValue: ""
             })
-        }        
+        }
 
     }
 
     private renderTags() {
 
-        let stateTags = this.state.tags        
-        let tagElements = [] as JSX.Element[];        
+        let stateTags = this.state.tags
+        let tagElements = [] as JSX.Element[];
 
-        const onRemove = (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) }      
-        
+        const onRemove = (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) }
+
         // Looping through arrays created from Object.keys
         const tagKeys = Object.keys(stateTags)
 
-        for (const key of tagKeys) {            
-        
+        for (const key of tagKeys) {
+
             tagElements.push(
                 <Tag
-                    className="tags" 
+                    className="tags"
                     minimal={true}
-                    onRemove={onRemove}           
+                    onRemove={onRemove}
                     key={key}
                     id={key}
                      >
-                    {key}={stateTags[key]}      
+                    {key}={stateTags[key]}
                 </Tag>
-            )            
+            )
         }
 
         return tagElements
     }
 
-    private async onSubmit() {        
-            
+    private async onSubmit() {
+
         if (this.validateFields()) {
-        
+
             const group = await APIService.groupCreate(this.state.ldap_group_name, this.state.group_name, this.state.lease_time, this.state.tags)
-            
+
                 if(!APIService.success) {
                     this.setState({
                         errorMessage: APIService.error.error.messages[0].value
@@ -123,12 +123,12 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                         errorMessage: ""
                     })
                 }
-                
+
                 // call login handler
                 this.props.onGroupCreateHandler(APIService.success)
 
         }
-  
+
     }
 
     private onLDAPGroupChange(ldap_group_name: string) {
@@ -137,146 +137,146 @@ export default class GroupCreate extends React.Component<IProps, IState> {
         })
     }
 
-    render () {        
+    render () {
 
-        return (                   
-            
-            <div className="groups-create card">            
-                <Card interactive={true} elevation={Elevation.FOUR}>                
+        return (
+
+            <div className="groups-create card">
+                <Card interactive={true} elevation={Elevation.FOUR}>
                     <div className="groups-create-content">
                     <h2>Create Group</h2>
                     {this.state.errorMessage ? <Callout title="Error" className="group-create-error-message" intent={Intent.DANGER} >{this.state.errorMessage}</Callout> : null }
-                    
-                    <FormGroup                     
+
+                    <FormGroup
                      label="LDAP group"
-                     labelFor="ldap-groups"                                          
-                    >                    
+                     labelFor="ldap-groups"
+                    >
                     <LDAPGroupSearch
-                        id="ldap-groups"                         
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => this.onLDAPGroupChange(e.target.value)}                        
-                    />                    
-                    </FormGroup>                       
-                   
-                    <FormGroup                     
+                        id="ldap-groups"
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => this.onLDAPGroupChange(e.target.value)}
+                    />
+                    </FormGroup>
+
+                    <FormGroup
                      label="Group name"
-                     labelFor="text-input"                     
-                    >                                       
-                    <ValidatedInputGroup                                                                                                          
-                        placeholder="Group name..."      
+                     labelFor="text-input"
+                    >
+                    <ValidatedInputGroup
+                        placeholder="Group name..."
                         onKeyEnter={() => {
                             this.onSubmit()
                         }}
-                        value={this.state.group_name}                    
+                        value={this.state.group_name}
                         validate={(currentValue: string) => this.validateGroupName(currentValue)}
                         errorMessage={(currentValue: string) =>{
                             return "Length must be greater than 2, and be URL friendly"
-                        }}                                                
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {                            
+                        }}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             this.setState({
                                 group_name: e.target.value
                             })
                         }}
-                    />       
-                    </FormGroup>                                 
-                    <FormGroup                     
+                    />
+                    </FormGroup>
+                    <FormGroup
                      label="Lease time"
-                     labelFor="lease-time"                     
+                     labelFor="lease-time"
                     >
-                    <HTMLSelect                                  
+                    <HTMLSelect
                         id="lease-time"
-                        value={this.state.lease_time}                        
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {                            
+                        value={this.state.lease_time}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                             this.setState({
                                 lease_time: parseInt(e.target.value)
                             })
                         }}
-                    >                    
+                    >
                     <option value="60">1 hour</option>
                     <option value="720">12 hours</option>
                     <option value="1440">24 hours</option>
                     <option value="10080">1 week</option>
                     <option value="20160">2 weeks</option>
                     </HTMLSelect>
-                    </FormGroup>     
-                                                                       
-                    <FormGroup                     
+                    </FormGroup>
+
+                    <FormGroup
                      label="Custom properties"
-                     labelFor="custom-props"                     
+                     labelFor="custom-props"
                     >
-                    
-                    <ButtonGroup                    
+
+                    <ButtonGroup
                     >
                         <ValidatedInputGroup
-                            inputRef={(input) => this.custPropsKeyRef = input}                             
-                            value={this.state.custPropKey}                            
+                            inputRef={(input) => this.custPropsKeyRef = input}
+                            value={this.state.custPropKey}
                             validate={(currentValue: string) => this.validateTagKey(currentValue)}
                             errorMessage={(currentValue: string) =>{
                                 return "Not a valid key"
                             }}
                             placeholder="Key"
-                            onChange={(e) => {     
+                            onChange={(e) => {
                                 this.setState({
-                                    custPropKey: e.target.value,                                    
-                                })               
+                                    custPropKey: e.target.value,
+                                })
                             }}
                         >
                         </ValidatedInputGroup>
                         &nbsp;
-                        <ValidatedInputGroup                                                
-                            value={this.state.custPropValue}                            
+                        <ValidatedInputGroup
+                            value={this.state.custPropValue}
                             onKeyEnter={() => {
                                 this.addTag(this.state.custPropKey, this.state.custPropValue)
-                            }}                            
+                            }}
                             validate={(currentValue: string) => this.validateTagValue(currentValue)}
                             errorMessage={(currentValue: string) =>{
                                 return "Not a valid key"
                             }}
                             placeholder="Value"
-                            onChange={(e) => {                    
+                            onChange={(e) => {
                                 this.setState({
-                                    custPropValue: e.target.value                                    
+                                    custPropValue: e.target.value
                                 })
                             }}
                         >
-                        </ValidatedInputGroup>   
+                        </ValidatedInputGroup>
                         <Button
-                            icon="plus"                                                
+                            icon="plus"
                             text=""
                             onClick={(e: React.MouseEvent<HTMLElement, MouseEvent> ) => {
                                 if(this.validateTagKey(this.state.custPropKey) && this.validateTagValue(this.state.custPropValue)) {
                                     this.addTag(this.state.custPropKey, this.state.custPropValue)
-                                }                                    
+                                }
                             }}
-                        ></Button>   
-                    </ButtonGroup>                                        
-                    </FormGroup>                      
+                        ></Button>
+                    </ButtonGroup>
+                    </FormGroup>
 
-                    {this.renderTags()}                 
-                         
-                    <Button                          
-                        style={{ width: "100%", marginTop: "20px" }}              
+                    {this.renderTags()}
+
+                    <Button
+                        style={{ width: "100%", marginTop: "20px" }}
                         large={false}
-                        intent={Intent.PRIMARY}                
-                        onClick={() => this.onSubmit()}                        
+                        intent={Intent.PRIMARY}
+                        onClick={() => this.onSubmit()}
                     >Create</Button>
                     </div>
                 </Card>
-            </div>        
-        
+            </div>
+
         )
-        
+
     }
 
-    private validateLDAPGroupName (ldap_group_name: string): boolean {    
+    private validateLDAPGroupName (ldap_group_name: string): boolean {
         return (ldap_group_name.length == 0 || ldap_group_name == "None" ) ? false : true
     }
 
-    private validateGroupName (group_name: string): boolean {        
+    private validateGroupName (group_name: string): boolean {
         return (group_name.length == 0 || !(group_name.length > 2 && group_name.match(/^[_\-0-9a-z]+$/g)) ) ? false : true
     }
 
     private validateTagKey(str: string): boolean {
-        return (str == "") ? false : true 
+        return (str == "") ? false : true
     }
 
     private validateTagValue(str: string): boolean {
@@ -292,7 +292,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
         if( this.validateGroupName(this.state.group_name) == false ) {
             return false
         }
-        
+
         return true
 
     }

@@ -9,7 +9,7 @@ interface IProps {
 interface IState {
   username: string,
   password: string,
-  connecting: boolean  
+  connecting: boolean
   errorMessage?: string
 }
 
@@ -18,15 +18,15 @@ type Nullable<T> = T | null
 const glauthURL = process.env.GLAUTH_URL;
 
 export default class LoginForm extends React.Component<IProps, IState> {
-    
-    private usernameInputRef: Nullable<HTMLInputElement>    
-    private passwordInputRef: Nullable<HTMLInputElement>  
 
-    constructor (props: IProps) {      
-      
+    private usernameInputRef: Nullable<HTMLInputElement>
+    private passwordInputRef: Nullable<HTMLInputElement>
+
+    constructor (props: IProps) {
+
       super(props)
 
-      this.usernameInputRef = null      
+      this.usernameInputRef = null
       this.passwordInputRef = null
 
       this.state = {
@@ -35,7 +35,7 @@ export default class LoginForm extends React.Component<IProps, IState> {
         connecting: false
       }
     }
-    
+
 
     private async onSubmit(username: string, password: string) {
 
@@ -44,10 +44,10 @@ export default class LoginForm extends React.Component<IProps, IState> {
       })
 
       await APIService.login(username, password)
-        
+
       this.setState({
         connecting: false
-      })          
+      })
 
       if(!APIService.success) {
         this.setState({
@@ -60,83 +60,83 @@ export default class LoginForm extends React.Component<IProps, IState> {
       }
 
       // call login handler
-      this.props.onLoginHandler(APIService.success, APIService.status)      
+      this.props.onLoginHandler(APIService.success, APIService.status)
 
     }
 
     public componentDidMount() {
-      this.usernameInputRef && this.usernameInputRef.focus()      
+      this.usernameInputRef && this.usernameInputRef.focus()
     }
 
     private renderForm() {
 
       return (
         <div id="login-form-content">
-        {this.state.errorMessage ? <Callout title="Unauthorized" className="login-error-message" intent={Intent.DANGER} >{this.state.errorMessage}</Callout> : null }     
-          <FormGroup       
-                                                                                 
+        {this.state.errorMessage ? <Callout title="Unauthorized" className="login-error-message" intent={Intent.DANGER} >{this.state.errorMessage}</Callout> : null }
+          <FormGroup
+
           >
-          <InputGroup                  
-            id="text-input"              
-            placeholder="Username"  
+          <InputGroup
+            id="text-input"
+            placeholder="Username"
             value={this.state.username}
             inputRef={(input) => this.usernameInputRef = input}
-            large={true}            
-            leftIcon="person"              
-            onKeyDown={(e) => {                
+            large={true}
+            leftIcon="person"
+            onKeyDown={(e) => {
               if(e.keyCode == 13) this.onSubmit(this.state.username, this.state.password)
             }}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             this.setState({
             username: e.target.value
             })
-          }}                   
+          }}
           />
           </FormGroup>
           <FormGroup
           >
-          <InputGroup                      
-            placeholder="Enter your password..."            
+          <InputGroup
+            placeholder="Enter your password..."
             type="password"
-            inputRef={(input) => this.passwordInputRef = input}                
+            inputRef={(input) => this.passwordInputRef = input}
             value={this.state.password}
-            large={true}                
+            large={true}
             leftIcon="lock"
-            onKeyDown={(e: React.KeyboardEvent) => {                
+            onKeyDown={(e: React.KeyboardEvent) => {
               if(e.keyCode == 13) this.onSubmit(this.state.username, this.state.password)
             }}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             this.setState({
             password: e.target.value
-            })                  
+            })
           }}
           />
-          </FormGroup>                           
-          <Button                          
-            style={{ width: "100%", marginTop: "20px" }}              
+          </FormGroup>
+          <Button
+            style={{ width: "100%", marginTop: "20px" }}
             large={true}
             intent={Intent.PRIMARY}
             onClick={() => this.onSubmit(this.state.username, this.state.password)}
-          >Login</Button>                           
+          >Login</Button>
         </div>
-        
-      )   
+
+      )
 
     }
 
-    private renderSpinner(){      
-        return (          
+    private renderSpinner(){
+        return (
           <div id="login-spinner-content">
-          <Spinner intent={Intent.PRIMARY} size={170} />          
+          <Spinner intent={Intent.PRIMARY} size={170} />
           </div>
-        ) 
+        )
     }
-    
-    private renderCardContent() {      
-            
+
+    private renderCardContent() {
+
       if(!this.state.connecting) {
-        return this.renderForm()            
-      } else {    
+        return this.renderForm()
+      } else {
         return this.renderSpinner()
       }
 
@@ -145,9 +145,9 @@ export default class LoginForm extends React.Component<IProps, IState> {
     render() {
 
       return (
-        <div className="login-form " >          
+        <div className="login-form " >
           <Card interactive={false} elevation={Elevation.THREE}>
-            <h1>Sign In</h1>   
+            <h1>Sign In</h1>
             <div id="login-card-content">
             {this.renderCardContent()}
             </div>

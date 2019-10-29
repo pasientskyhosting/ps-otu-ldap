@@ -3,13 +3,13 @@ import { HTMLSelect, IHTMLSelectProps } from "@blueprintjs/core";
 
 import APIService, { ILDAPGroup } from '../services/APIService';
 
-interface IState {    
+interface IState {
     ldap_groups: ILDAPGroup[],
     ldap_group_name: string
 }
 
 export default class LDAPGroupSearch extends React.Component<IHTMLSelectProps, IState> {
-    
+
 
     componentWillMount() {
         this.loadData()
@@ -25,7 +25,7 @@ export default class LDAPGroupSearch extends React.Component<IHTMLSelectProps, I
 
     private async loadData() {
 
-        const ldap_groups = await APIService.getAllLDAPGroups()              
+        const ldap_groups = await APIService.getAllLDAPGroups()
 
         ldap_groups.unshift({ldap_group_name: "Select a LDAP group"})
 
@@ -34,23 +34,23 @@ export default class LDAPGroupSearch extends React.Component<IHTMLSelectProps, I
                 ldap_groups
             })
         }
-        
+
     }
 
-    render () {        
+    render () {
 
         return (
-        
-            <HTMLSelect                
-                {...this.props}           
+
+            <HTMLSelect
+                {...this.props}
                 options={this.state.ldap_groups.map(ldap_group => {
                     return { value: ldap_group.ldap_group_name, label: ldap_group.ldap_group_name }
                 })}
-            >   
-            </HTMLSelect>           
+            >
+            </HTMLSelect>
 
-        )        
-        
+        )
+
     }
 
 }

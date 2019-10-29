@@ -1,3 +1,4 @@
+---
 openapi: "3.0.0"
 
 info:
@@ -10,19 +11,19 @@ info:
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-    
+
 servers:
   - url: https://odn1-inf-otu.privatedns.zone/api/v1
   - url: https://osl1-inf-otu.privatedns.zone/api/v1
   - url: https://cph1-inf-otu.privatedns.zone/api/v1
   - url: https://sto1-inf-otu.privatedns.zone/api/v1
-  
+
 paths:
 
   # -------------------
   # Ping
   # -------------------
-  
+
   /ping:
     get:
       tags:
@@ -41,7 +42,7 @@ paths:
   # -------------------
   # Auth
   # -------------------
-  
+
   /auth:
     get:
       security:
@@ -60,7 +61,7 @@ paths:
                 $ref: '#/components/schemas/Verify'
         '401':
           $ref: '#/components/responses/UnAuthorizedError'
-        
+
     post:
       tags:
         - Auth
@@ -87,7 +88,7 @@ paths:
   # Users
   # -------------------
   /groups/{group_name}/users:
-  
+
     get:
       tags:
         - Users
@@ -116,8 +117,8 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnAuthorizedError' 
-  
+          $ref: '#/components/responses/UnAuthorizedError'
+
     post:
       tags:
         - Users
@@ -139,14 +140,14 @@ paths:
           description: User response
           content:
             application/json:
-              schema:                
+              schema:
                 $ref: '#/components/schemas/User'
         '401':
           $ref: '#/components/responses/UnAuthorizedError'
         '404':
           $ref: '#/components/responses/AssetNotFoundError'
-   
-  
+
+
   /users:
     get:
       tags:
@@ -168,13 +169,13 @@ paths:
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
-          $ref: '#/components/responses/UnAuthorizedError'          
-    
+          $ref: '#/components/responses/UnAuthorizedError'
+
   # -------------------
   # LDAP-Group
   # -------------------
   /ldap-groups:
-  
+
     get:
       tags:
         - LDAP-Groups
@@ -200,14 +201,14 @@ paths:
   # -------------------
   # Group
   # -------------------
-        
+
   /ldap-groups/{ldap_group_name}/groups:
-    
+
     get:
       tags:
         - Groups
       security:
-         - ApiKeyAuth: []
+        - ApiKeyAuth: []
       summary: "Get all groups for Sync Services"
       description: "Returns all groups created in this LDAP scope. Will return all groups regardless of login."
       operationId: "getAllGroupsInScope"
@@ -230,7 +231,7 @@ paths:
                   $ref: '#/components/schemas/Group'
         '401':
           $ref: '#/components/responses/UnAuthorizedError'
-          
+
     post:
       tags:
         - Groups
@@ -268,9 +269,9 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ConflictError'
-         
+
   /groups:
-  
+
     get:
       tags:
         - Groups
@@ -292,7 +293,7 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/UnAuthorizedError'
-          
+
   /groups/{group_name}:
 
     patch:
@@ -332,7 +333,7 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/AssetNotFoundError'
-  
+
     delete:
       tags:
         - Groups
@@ -356,7 +357,7 @@ paths:
           $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/AssetNotFoundError'
-  
+
 
 security:
 
@@ -366,9 +367,9 @@ security:
 components:
 
   responses:
-       
+
     ValidationError:
-      $ref: '#/components/schemas/ErrorAPI' 
+      $ref: '#/components/schemas/ErrorAPI'
     ForbiddenError:
       $ref: '#/components/schemas/ErrorAPI'
     UnAuthorizedError:
@@ -377,16 +378,16 @@ components:
       $ref: '#/components/schemas/ErrorAPI'
     UnauthorizedErrorAPIKey:
       $ref: '#/components/schemas/ErrorAPI'
-    AssetNotFoundError:      
+    AssetNotFoundError:
       $ref: '#/components/schemas/ErrorAPI'
 
   securitySchemes:
-  
+
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      
+
     ApiKeyAuth:
       type: apiKey
       in: header
@@ -409,9 +410,9 @@ components:
               items:
                 $ref: '#/components/schemas/ErrorAPIMessages'
         status_code:
-          type: "integer"   
+          type: "integer"
           example: 400
-          
+
     ErrorAPIMessages:
       description: API error object
       type: "object"
@@ -422,9 +423,9 @@ components:
         value:
           type: "string"
           example: "The group_name field must be between 2-120 chars"
-    
+
     # -------------------
-    # Ping  
+    # Ping
     # -------------------
 
     Ping:
@@ -436,9 +437,9 @@ components:
         message:
           type: "string"
           example: "pong"
-  
+
     # -------------------
-    # Auth  
+    # Auth
     # -------------------
 
     Verify:
@@ -447,7 +448,7 @@ components:
         token:
           type: "string"
           example: "yRQYnWzskCZUxPwaQupWkiUzKELZ49eM7oWxAQK_ZXw"
-          
+
     Authorize:
       type: "object"
       properties:
@@ -474,7 +475,7 @@ components:
     # -------------------
     # Group
     # -------------------
-    
+
     GroupCustomProps:
       type: "object"
       properties:
@@ -484,7 +485,7 @@ components:
         key_name_2:
           type: string
           example: "key_name_2_value"
-    
+
     Group:
       type: "object"
       properties:
@@ -502,31 +503,31 @@ components:
           $ref: '#/components/schemas/GroupCustomProps'
         create_time:
           type: integer
-          example: 1554102608          
+          example: 1554102608
         create_by:
           type: string
           example: kj
-          
+
     GroupNew:
       type: "object"
       properties:
         group_name:
           type: string
-          example: proxy-sql       
+          example: proxy-sql
         lease_time:
           type: integer
-          example: 720 # 12 hours 
+          example: 720 # 12 hours
           description: Lease time in minutes
         custom_properties:
-          $ref: '#/components/schemas/GroupCustomProps'     
+          $ref: '#/components/schemas/GroupCustomProps'
 
     # -------------------
-    # User  
+    # User
     # -------------------
 
     User:
       required:
-        - name  
+        - name
       properties:
         username:
           type: "string"
