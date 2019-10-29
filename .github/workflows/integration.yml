@@ -25,37 +25,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-  dockerfile_lint_job:
+  pre_commit_job:
 
-    name: dockerfile_lint_job
+    name: golang_api_test_job
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out code
-        uses: actions/checkout@v1
-      - name: dockerfile-linter
-        id: dockerfile-linter
-        uses: docker://pasientskyhosting/action-dockerfile-linter:latest
-        with:
-          dockerfile: ./Dockerfile
+
+      - uses: actions/checkout@master
+
+      - uses: pasientskyhosting/github-actions/pre-commit@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  golangci_lint_job:
-
-    name: golangci_lint_job
-    runs-on: ubuntu-latest
-    steps:
-
-      - name: Check out code
-        uses: actions/checkout@v1
-
-      - name: golangci-lint
-        id: golangci-lint
-        uses: docker://pasientskyhosting/action-golangci-lint:latest
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          go_get: './server/src'
 
   golang_api_test_job:
 
