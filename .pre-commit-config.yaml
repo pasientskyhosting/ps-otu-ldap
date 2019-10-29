@@ -30,7 +30,7 @@ repos:
     language: docker_image
     types:
     - dockerfile
-    entry: --entrypoint /bin/hadolint hadolint/hadolint:latest --ignore DL3013 --ignore DL3018 --ignore DL3008 -
+    entry: --entrypoint /bin/hadolint hadolint/hadolint:latest
 
 # - repo: https://github.com/golangci/golangci-lint
 #   rev: v1.21.0
