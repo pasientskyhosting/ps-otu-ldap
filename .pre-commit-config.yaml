@@ -27,3 +27,14 @@ repos:
   - id: hadolint
     name: Hadolint runner
     description: Run Hadolint to link Dockerfile
+
+- repo: https://github.com/golangci/golangci-lint
+  rev: v1.21.0
+  hooks:
+  - id: golangci-lint
+    name: golangci-lint
+    description: Fast linters runner for Go.
+    entry: golangci-lint run --fix
+    types: [go]
+    language: golang
+    pass_filenames: false
