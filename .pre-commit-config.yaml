@@ -28,6 +28,8 @@ repos:
     name: Hadolint runner
     description: Run Hadolint to link Dockerfile
     entry: hadolint_docker_run.py
+    language: script
+    files: (\.dockerfile|Dockerfile)$
 
 # - repo: https://github.com/golangci/golangci-lint
 #   rev: v1.21.0
