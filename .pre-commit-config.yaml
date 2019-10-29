@@ -21,17 +21,6 @@ repos:
     language: python
     types: [file, yaml]
 
-- repo: https://github.com/stratasan/hadolint-pre-commit
-  rev: master
-  hooks:
-  - id: hadolint
-    name: Hadolint
-    description: Haskell-based Docker image linter
-    language: docker_image
-    types:
-    - dockerfile
-    entry: --entrypoint /bin/hadolint hadolint/hadolint:latest
-
 # - repo: https://github.com/golangci/golangci-lint
 #   rev: v1.21.0
 #   hooks:
