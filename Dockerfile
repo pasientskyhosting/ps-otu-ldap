@@ -7,8 +7,8 @@ ENV BABEL_ENV ${babel_env}
 
 RUN apk update --no-cache \
     && apk add --no-cache \
-    git=2.18.1-r0 \
-    openssh=7.7_p1-r4 \
+    git=2.20.1-r0 \
+    openssh=7.9_p1-r6 \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /app
@@ -27,7 +27,7 @@ ARG version=none
 
 RUN apk update \
     && apk add --no-cache \
-    git=2.18.1-r0 \
+    git=2.20.1-r0 \
     gcc=6.4.0-r9 \
     g++=6.4.0-r9 \
     upx=3.94-r0 \
