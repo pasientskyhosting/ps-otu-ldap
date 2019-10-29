@@ -27,7 +27,7 @@ jobs:
 
   pre_commit_job:
 
-    name: golang_api_test_job
+    name: pre_commit_job
     runs-on: ubuntu-latest
     steps:
 
