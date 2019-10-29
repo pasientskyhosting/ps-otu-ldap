@@ -85,5 +85,3 @@ Stop docker image from running `make stop`
 ### Github actions
 
 ### Bulldozer
-
-### Policy Bot
