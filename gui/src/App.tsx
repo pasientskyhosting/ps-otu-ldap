@@ -25,33 +25,33 @@ interface ITokenPayload {
     display_name: string
 }
 
-class App extends React.Component<{}, IState>{    
-        
+class App extends React.Component<{}, IState>{
+
     private groupListRef: GroupList | null
 
-    constructor (props: IProps) {      
+    constructor (props: IProps) {
 
         super(props)
-        
+
         this.groupListRef = null
 
         this.state = {
             loginFailed: false,
-            isVerified: false,       
+            isVerified: false,
         }
 
-    } 
+    }
 
     public componentWillMount() {
-        
+
         this.updateAuth()
-        
+
     }
 
     private updateAuth() {
 
         let tokenPayload = this.getTokenPayload()
-        let isVerified = false        
+        let isVerified = false
 
         if (tokenPayload) {
             isVerified = true
@@ -66,10 +66,10 @@ class App extends React.Component<{}, IState>{
 
         let tokenPayload = undefined
 
-        const token = localStorage.getItem('jwt.token')    
+        const token = localStorage.getItem('jwt.token')
 
-        if(token) {            
-            tokenPayload = JSON.parse(atob(token.split(".")[1]))   
+        if(token) {
+            tokenPayload = JSON.parse(atob(token.split(".")[1]))
         }
 
         return tokenPayload
@@ -77,8 +77,8 @@ class App extends React.Component<{}, IState>{
 
     private renderHeader() {
 
-        return (            
-            <Header displayName={ this.state.tokenPayload ? this.state.tokenPayload.display_name : "" } />            
+        return (
+            <Header displayName={ this.state.tokenPayload ? this.state.tokenPayload.display_name : "" } />
         )
     }
 
@@ -86,55 +86,55 @@ class App extends React.Component<{}, IState>{
 
         if (success) {
             AppToaster.show({
-                intent: Intent.SUCCESS, 
+                intent: Intent.SUCCESS,
                 message: "Group created successfully."
             })
         } else {
             AppToaster.show({
-                intent: Intent.DANGER, 
-                message: "An error occured while creating group" 
+                intent: Intent.DANGER,
+                message: "An error occured while creating group"
             })
-        }       
+        }
 
         this.onFinishedHandler()
-        
+
         if(success && this.groupListRef) {
-            this.groupListRef.fetch() 
+            this.groupListRef.fetch()
         }
-        
+
     }
 
     private onGroupUpdateHandler(success: boolean) {
 
         if (success) {
             AppToaster.show({
-                intent: Intent.SUCCESS, 
+                intent: Intent.SUCCESS,
                 message: "Group updated successfully."
             })
         } else {
             AppToaster.show({
-                intent: Intent.DANGER, 
-                message: "An error occured while updating group" 
+                intent: Intent.DANGER,
+                message: "An error occured while updating group"
             })
-        }       
+        }
 
         this.onFinishedHandler()
-        
+
         if(success && this.groupListRef) {
-            this.groupListRef.fetch() 
+            this.groupListRef.fetch()
         }
-        
+
     }
 
     private onFinishedHandler() {
-        this.updateAuth()        
-    }  
+        this.updateAuth()
+    }
 
     private renderSearchGroup() {
         return (
             <GroupList
-                is_admin={this.state.tokenPayload ? this.state.tokenPayload.is_admin : false } 
-                ref={(ref) => this.groupListRef = ref} 
+                is_admin={this.state.tokenPayload ? this.state.tokenPayload.is_admin : false }
+                ref={(ref) => this.groupListRef = ref}
                 onGroupsFetchHandler={ (success: boolean, status_code: number) => this.onFinishedHandler() }
                 onGroupUpdateHandler={ (success: boolean) => this.onGroupUpdateHandler(success) }
             />
@@ -148,40 +148,40 @@ class App extends React.Component<{}, IState>{
     }
 
     private renderContent() {
-                
+
         if ( this.state.isVerified == true ) {
 
-            if (this.state.tokenPayload && this.state.tokenPayload.is_admin === true ) {    
+            if (this.state.tokenPayload && this.state.tokenPayload.is_admin === true ) {
                 return (
                     <>
                         {this.renderCreateGroup()}
-                        {this.renderSearchGroup()}                        
+                        {this.renderSearchGroup()}
                     </>
-                )            
+                )
             } else {
-                return (                    
-                    this.renderSearchGroup()                    
+                return (
+                    this.renderSearchGroup()
                 )
             }
-            
+
         } else {
-            return (                
+            return (
                 <LoginForm onLoginHandler={(success: boolean, status_code: number) => this.onFinishedHandler() } />
             )
         }
-    }    
+    }
 
-    render() { 
-                
-        return (  
-            <div className="wrapper bp3-dark">      
+    render() {
+
+        return (
+            <div className="wrapper bp3-dark">
                 <div className="header">
-                    {this.renderHeader()}                                          
-                </div>                  
+                    {this.renderHeader()}
+                </div>
                 <div className="content">
-                    {this.renderContent()}                
-                </div>            
-            </div>            
+                    {this.renderContent()}
+                </div>
+            </div>
         )
     }
 

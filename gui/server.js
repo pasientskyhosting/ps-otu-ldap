@@ -5,7 +5,7 @@ let app = express()
 
 if (process.env.NODE_ENV !== 'production') {
 
-    let webpackConfig = require('./webpack.config.js');    
+    let webpackConfig = require('./webpack.config.js');
     let compiler = require('webpack')(webpackConfig);
 
     app.use(require('webpack-dev-middleware')(compiler, {
@@ -15,7 +15,7 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 
     app.use(require('webpack-hot-middleware')(compiler));
-    
+
 }
 
 app.use('/', express.static('public'));

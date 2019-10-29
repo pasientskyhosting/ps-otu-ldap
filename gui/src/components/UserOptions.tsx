@@ -18,7 +18,7 @@ interface IState {
 export default class UserOptions extends React.PureComponent<IProps, IState> {
 
     constructor(props: IProps) {
-        
+
         super(props)
 
         this.state = {
@@ -29,37 +29,37 @@ export default class UserOptions extends React.PureComponent<IProps, IState> {
 
     }
 
-    public render() {       
-        
+    public render() {
+
         let createButton = (this.state.username) ? 'Renew' : 'Create'
 
         return (
             <ButtonGroup {...this.state} style={{ minWidth: 120 }} fill={false}>
                 { this.renderButton( createButton, "document", Intent.NONE, 2, PopoverInteractionKind.CLICK) }
-                { this.state.username && this.renderButton("View", "eye-open", Intent.NONE, 1, PopoverInteractionKind.HOVER)}                
+                { this.state.username && this.renderButton("View", "eye-open", Intent.NONE, 1, PopoverInteractionKind.HOVER)}
             </ButtonGroup>
         );
     }
 
-    private renderButton(text: string, iconName: IconName, intent: Intent, content: number, interaction: PopoverInteractionKind) {                
-        
+    private renderButton(text: string, iconName: IconName, intent: Intent, content: number, interaction: PopoverInteractionKind) {
+
         const { ...popoverProps } = this.state;
 
-        return (            
-            <Popover                                
+        return (
+            <Popover
                 popoverClassName={Classes.POPOVER_CONTENT}
                 content={<div className="popover">{this.getContents(content)}</div>}
                 hoverOpenDelay={100}
                 hoverCloseDelay={200}
                 interactionKind={interaction}
-                {...popoverProps}      
+                {...popoverProps}
             >
-                <Button 
-                    icon={iconName} 
+                <Button
+                    icon={iconName}
                     text={text}
                     intent={intent}
                  />
-                 
+
             </Popover>
         );
     }
@@ -80,23 +80,23 @@ export default class UserOptions extends React.PureComponent<IProps, IState> {
             </div>,
             <div key="text">
                 <h3>Credentials</h3>
-                
+
                     <code>Username: {this.state.username}</code><br/>
                     <code>Password:&nbsp;{this.state.password}</code>
-                
+
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 15 }}>
-                    <Button 
-                        intent={Intent.SUCCESS} 
-                        className={Classes.POPOVER_DISMISS} 
+                    <Button
+                        intent={Intent.SUCCESS}
+                        className={Classes.POPOVER_DISMISS}
                         style={{ marginRight: 10 }}
                         name={this.state.username}
                         onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => this.copyUsername(e.currentTarget.name) }
                     >
                         Copy username
                     </Button>
-                    <Button 
-                        intent={Intent.PRIMARY} 
-                        className={Classes.POPOVER_DISMISS} 
+                    <Button
+                        intent={Intent.PRIMARY}
+                        className={Classes.POPOVER_DISMISS}
                         name={this.state.password}
                         onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => this.copyPassword(e.currentTarget.name) }
                     >
@@ -109,13 +109,13 @@ export default class UserOptions extends React.PureComponent<IProps, IState> {
                 <p>Do you want to create a new user?</p>
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 15 }}>
                     <Button
-                        className={Classes.POPOVER_DISMISS} 
+                        className={Classes.POPOVER_DISMISS}
                         style={{ marginRight: 10 }}
                     >
                         Cancel
                     </Button>
-                    <Button 
-                        intent={Intent.SUCCESS} 
+                    <Button
+                        intent={Intent.SUCCESS}
                         className={Classes.POPOVER_DISMISS}
                         name={this.state.group_name}
                         onClick={(e: React.MouseEvent<HTMLElement, MouseEvent>) => this.CreateUser(e.currentTarget.name) }
@@ -124,7 +124,7 @@ export default class UserOptions extends React.PureComponent<IProps, IState> {
                     </Button>
                 </div>
             </div>,
-                 
+
         ][index];
     }
 
@@ -135,8 +135,8 @@ export default class UserOptions extends React.PureComponent<IProps, IState> {
         this.copyToClipBoard(username)
         AppToaster.show(
             {
-                intent: Intent.SUCCESS, 
-                message: "Username copied to clipboard." 
+                intent: Intent.SUCCESS,
+                message: "Username copied to clipboard."
             }
         )
 
@@ -147,7 +147,7 @@ export default class UserOptions extends React.PureComponent<IProps, IState> {
         this.copyToClipBoard(password)
         AppToaster.show(
             {
-                intent: Intent.PRIMARY, 
+                intent: Intent.PRIMARY,
                 message: "Password copied to clipboard."
             }
         )
@@ -166,14 +166,14 @@ export default class UserOptions extends React.PureComponent<IProps, IState> {
     }
 
 
-    private async CreateUser(group_name: string) {        
-       
+    private async CreateUser(group_name: string) {
+
         const user = await APIService.createUser(group_name)
 
         AppToaster.show(
             {
-                intent: Intent.SUCCESS, 
-                message: "User created successfully." 
+                intent: Intent.SUCCESS,
+                message: "User created successfully."
             }
         )
 

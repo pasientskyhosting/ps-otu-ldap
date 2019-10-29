@@ -3,11 +3,11 @@ let webpack = require('webpack');
 
 module.exports = {
     mode: 'development',
-    entry: { 
+    entry: {
         app: [
             'webpack-hot-middleware/client',
             './src/index.tsx'
-        ] 
+        ]
     },
     output: {
         path: path.resolve(__dirname, 'public', 'js'),
@@ -16,7 +16,7 @@ module.exports = {
     },
     module: {
         rules: [{
-            test: /\.(js|ts|tsx)$/,            
+            test: /\.(js|ts|tsx)$/,
             loaders: ['babel-loader']
         },
         {

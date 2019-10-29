@@ -5,37 +5,37 @@ import APIService, { IGroup, IUser, IGroupCustomProps } from '../services/APISer
 import GroupOptions from './GroupOptions';
 import ValidatedInputGroup from './ValidatedInputGroup';
 
-interface IProps {    
-  onGroupUpdateHandler: (success: boolean, status_code: number) => void,  
-  onGroupDeleteHandler: (success: boolean, status_code: number) => void,    
+interface IProps {
+  onGroupUpdateHandler: (success: boolean, status_code: number) => void,
+  onGroupDeleteHandler: (success: boolean, status_code: number) => void,
   editMode: boolean,
   group: IGroup
-  user?: IUser | undefined  
+  user?: IUser | undefined
 }
 
-interface IState {    
-    group: IGroup    
+interface IState {
+    group: IGroup
     mangledGroup: IGroup
     user?: IUser | undefined
     errorMessage?: string
     custPropKey: string
-    custPropValue: string    
+    custPropValue: string
     disableUpdate: boolean
 }
 
 type Nullable<T> = T | null
 
 export default class GroupEntry extends React.Component<IProps, IState> {
-    
-    private custPropsKeyRef: Nullable<HTMLInputElement>   
+
+    private custPropsKeyRef: Nullable<HTMLInputElement>
 
     constructor(props: IProps) {
 
-        super(props)    
+        super(props)
 
         this.custPropsKeyRef = null
 
-        this.state = {              
+        this.state = {
             group: this.props.group,
             mangledGroup: Object.assign({}, this.props.group),
             user: this.props.user || undefined,
@@ -50,12 +50,12 @@ export default class GroupEntry extends React.Component<IProps, IState> {
 
         var seconds = sec
 
-        var days = Math.floor(seconds / (60*24))        
+        var days = Math.floor(seconds / (60*24))
         seconds  -= days*60*24
 
         var hrs   = Math.floor(seconds / 60)
-        seconds  -= hrs*60        
-        
+        seconds  -= hrs*60
+
         if (days === 0) {
             return hrs+" hour(s)"
         } else {
@@ -64,31 +64,31 @@ export default class GroupEntry extends React.Component<IProps, IState> {
 
     }
 
-    private onGroupDeleteHandler(success: boolean, status_code: number) {        
+    private onGroupDeleteHandler(success: boolean, status_code: number) {
         this.props.onGroupDeleteHandler(success, status_code)
     }
 
-    private onGroupUpdateHandler(success: boolean, status_code: number) {        
+    private onGroupUpdateHandler(success: boolean, status_code: number) {
         this.props.onGroupUpdateHandler(success, status_code)
     }
 
     private renderEditLeaseTime() {
 
         return (
-            <HTMLSelect                                                  
-                value={this.state.mangledGroup.lease_time}  
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {                    
-                    
+            <HTMLSelect
+                value={this.state.mangledGroup.lease_time}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+
                     let mangled = this.state.mangledGroup
                     mangled.lease_time = parseInt(e.target.value)
 
                     this.setState({
                         mangledGroup: mangled,
-                        disableUpdate: false               
-                    })                    
+                        disableUpdate: false
+                    })
 
-                }}                
-            >                    
+                }}
+            >
             <option value="60">{this.formatSeconds(60)}</option>
             <option value="720">{this.formatSeconds(720)}</option>
             <option value="1440">{this.formatSeconds(1440)}</option>
@@ -97,140 +97,140 @@ export default class GroupEntry extends React.Component<IProps, IState> {
             </HTMLSelect>
         )
 
-    }   
+    }
 
     private renderEditGroupName() {
 
-        return (            
-            <ValidatedInputGroup       
-                key={this.state.group.group_name}                 
-                value={this.state.mangledGroup.group_name}                 
+        return (
+            <ValidatedInputGroup
+                key={this.state.group.group_name}
+                value={this.state.mangledGroup.group_name}
                 validate={(currentValue: string) => {
                     if(currentValue.length == 0 || (currentValue.length > 2 && currentValue.match(/^[_\-0-9a-z]+$/g)) ) {
                         return true
                     } else {
                         return false
-                    }                       
+                    }
                 }}
                 errorMessage={(currentValue: string) =>{
                     return "Length must be greater than 2, and be URL friendly"
                 }}
-                large={false}                        
-                onKeyEnter={() => {                
+                large={false}
+                onKeyEnter={() => {
                     this.onGroupUpdateAPIHandler()
-                }}  
-                onChange={(e) => {                    
-                    
+                }}
+                onChange={(e) => {
+
                     let mangled = this.state.mangledGroup
                     mangled.group_name = e.target.value
 
                     this.setState({
                         mangledGroup: mangled,
-                        disableUpdate: false 
+                        disableUpdate: false
                     })
 
                     console.log(this.state)
 
                 }}
-                
-            />  
+
+            />
         )
-    }    
+    }
 
     private async onGroupUpdateAPIHandler() {
 
         let response = await APIService.groupUpdate(this.state.group.group_name, this.state.mangledGroup)
-        
+
         // Update group name
         if(APIService.success) {
-            
-            if(response) {                
+
+            if(response) {
                 this.setState({
                     group: response,
                     disableUpdate: true,
                     custPropKey: "",
                     custPropValue: ""
                 })
-            }            
-        }        
+            }
+        }
 
         this.props.onGroupUpdateHandler(APIService.success, APIService.status)
 
     }
 
     private renderTags() {
-        
-        let stateTags = this.state.mangledGroup.custom_properties    
+
+        let stateTags = this.state.mangledGroup.custom_properties
         let tagElements = [] as JSX.Element[];
 
-        const onRemove = (this.props.editMode) ? (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) } : undefined  
-        
+        const onRemove = (this.props.editMode) ? (e: React.MouseEvent<HTMLButtonElement>, tagProps: ITagProps) => { this.removeTag(tagProps.id || undefined) } : undefined
+
         // Looping through arrays created from Object.keys
         const tagKeys = Object.keys(stateTags)
 
-        for (const key of tagKeys) {            
-        
+        for (const key of tagKeys) {
+
             tagElements.push(
                 <Tag
-                    className="tags" 
+                    className="tags"
                     minimal={true}
-                    onRemove={onRemove}           
+                    onRemove={onRemove}
                     key={key}
                     id={key}
                      >
                     {key}={stateTags[key]}
                 </Tag>
-            )            
+            )
         }
         return tagElements
 
     }
 
     private addTag(key: string, value: string) {
-        
+
         let mangledGroup = this.state.mangledGroup
 
         // Append to current object
         mangledGroup.custom_properties[key] = value;
-        
+
         this.setState({
             mangledGroup: mangledGroup,
             custPropKey: "",
-            custPropValue: "",            
+            custPropValue: "",
             disableUpdate: false
-            
+
         })
 
         this.custPropsKeyRef && this.custPropsKeyRef.focus()
 
     }
 
-    
+
     private removeTag(key?: string) {
 
         if(key) {
 
             let mangledGroup = this.state.mangledGroup
             delete mangledGroup.custom_properties[key];
-            
+
             this.setState({
                 mangledGroup: mangledGroup,
                 custPropKey: "",
                 custPropValue: "",
-                disableUpdate: false                
+                disableUpdate: false
             })
-        } 
+        }
 
     }
 
     private renderAddTags() {
         return (
-            <FormGroup>            
-                <ButtonGroup                    
+            <FormGroup>
+                <ButtonGroup
                 >
-                    <ValidatedInputGroup 
+                    <ValidatedInputGroup
                         inputRef={(input) => this.custPropsKeyRef = input}
-                        value={this.state.custPropKey}                        
+                        value={this.state.custPropKey}
                         validate={(currentValue: string) => {
                             return (currentValue == "" ) ? false : true
                         }}
@@ -238,18 +238,18 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                             return "Not a valid key"
                         }}
                         placeholder="Key"
-                        onChange={(e) => {     
+                        onChange={(e) => {
                             this.setState({
                                 custPropKey: e.target.value,
                                 disableUpdate: false
-                            })               
+                            })
                         }}
                     >
                     </ValidatedInputGroup>
                     &nbsp;
-                    <ValidatedInputGroup                                                
-                        value={this.state.custPropValue}                                                             
-                        onKeyEnter={() => {                
+                    <ValidatedInputGroup
+                        value={this.state.custPropValue}
+                        onKeyEnter={() => {
                             this.addTag(this.state.custPropKey, this.state.custPropValue)
                         }}
                         validate={(currentValue: string) => {
@@ -259,67 +259,67 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                             return "Not a valid value"
                         }}
                         placeholder="Value"
-                        onChange={(e) => {                    
+                        onChange={(e) => {
                             this.setState({
                                 custPropValue: e.target.value,
                                 disableUpdate: false
                             })
                         }}
                     >
-                    </ValidatedInputGroup>   
+                    </ValidatedInputGroup>
                     <Button
-                        icon="plus"                                                
-                        text=""                        
-                        onClick={(e: React.MouseEvent<HTMLElement, MouseEvent> ) => {                            
+                        icon="plus"
+                        text=""
+                        onClick={(e: React.MouseEvent<HTMLElement, MouseEvent> ) => {
                             if(this.validateTagKey(this.state.custPropKey) && this.validateTagValue(this.state.custPropValue)) {
                                 this.addTag(this.state.custPropKey, this.state.custPropValue)
-                            }                                    
+                            }
                         }}
-                    ></Button>             
+                    ></Button>
                 </ButtonGroup>
-            </FormGroup> 
+            </FormGroup>
         )
     }
 
     private validateTagKey(str: string): boolean {
-        return (str == "") ? false : true 
+        return (str == "") ? false : true
     }
 
     private validateTagValue(str: string): boolean {
         return (str == "") ? false : true
     }
 
-    private renderGroupRow() {       
-                    
-        let user = this.state.user ? this.state.user : undefined        
+    private renderGroupRow() {
+
+        let user = this.state.user ? this.state.user : undefined
 
         return (
             <tr key={this.state.group.group_name}>
                 <td>{this.state.group.ldap_group_name}</td>
-                <td>                                
+                <td>
                     {this.props.editMode ? (
                         this.renderEditGroupName()
-                    ) : (                            
+                    ) : (
                         this.state.group.group_name
-                    )}                                
+                    )}
                 </td>
-                <td>                            
+                <td>
                     {this.props.editMode ? (
                         this.renderEditLeaseTime()
-                    ) : (    
+                    ) : (
                         this.formatSeconds(this.state.group.lease_time)
                     )}
                 </td>
                 <td>
-                    { this.props.editMode && this.renderAddTags() }                    
-                    {this.renderTags()}                    
+                    { this.props.editMode && this.renderAddTags() }
+                    {this.renderTags()}
                 </td>
                 <td>
-                    
+
                     {user? (
                         <UserOptions
-                        username={user.username} 
-                        password={user.password} 
+                        username={user.username}
+                        password={user.password}
                         group_name={this.state.group.group_name}
                         />
                     ) : (
@@ -329,26 +329,26 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                         group_name={this.state.group.group_name}
                         />
                     )}
-                </td>        
+                </td>
                 { this.props.editMode &&
-                    <td>                                    
-                    <GroupOptions                                    
+                    <td>
+                    <GroupOptions
                         group={this.state.group}
-                        onGroupDeleteHandler={(success: boolean, status_code: number) => this.onGroupDeleteHandler(success, status_code) }                          
-                        onGroupUpdateHandler={() => this.onGroupUpdateAPIHandler() }                   
-                        disableUpdate={this.state.disableUpdate}   
+                        onGroupDeleteHandler={(success: boolean, status_code: number) => this.onGroupDeleteHandler(success, status_code) }
+                        onGroupUpdateHandler={() => this.onGroupUpdateAPIHandler() }
+                        disableUpdate={this.state.disableUpdate}
                     />
                     </td>
-                }                    
+                }
             </tr>
         )
-    }    
-    
+    }
+
     render () {
-        
-        return (       
+
+        return (
             this.renderGroupRow()
         )
     }
 
-}   
+}

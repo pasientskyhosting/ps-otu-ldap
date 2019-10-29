@@ -5,28 +5,28 @@ import GroupEntry from './GroupEntry';
 import { UNDERLINE } from '@blueprintjs/icons/lib/esm/generated/iconContents';
 import { AppToaster } from '../services/Toaster';
 
-interface IProps {  
-  onGroupsFetchHandler: (success: boolean, status_code: number) => void,  
-  onGroupUpdateHandler: (success: boolean) => void,  
+interface IProps {
+  onGroupsFetchHandler: (success: boolean, status_code: number) => void,
+  onGroupUpdateHandler: (success: boolean) => void,
   is_admin: boolean
 }
 
-interface IState {    
+interface IState {
     groups: IGroup[]
     users: IUser[],
-    errorMessage?: string    
+    errorMessage?: string
     editMode: boolean
 }
 
 export default class GroupList extends React.Component<IProps, IState> {
-           
+
     constructor(props: IProps) {
 
         super(props)
 
         this.state = {
             groups: [],
-            users: [],            
+            users: [],
             editMode: false
         }
     }
@@ -41,7 +41,7 @@ export default class GroupList extends React.Component<IProps, IState> {
 
     private async loadData() {
 
-        const groups = await APIService.getAllGroups()        
+        const groups = await APIService.getAllGroups()
         const users = await APIService.getAllActiveUsers()
 
         if(APIService.success) {
@@ -49,18 +49,18 @@ export default class GroupList extends React.Component<IProps, IState> {
                 groups, users
             })
         }
-        
-        // call login handler
-        this.props.onGroupsFetchHandler(APIService.success, APIService.status) 
 
-        
-    }   
+        // call login handler
+        this.props.onGroupsFetchHandler(APIService.success, APIService.status)
+
+
+    }
 
     private renderGroupTable () {
 
         return (
 
-            <HTMLTable            
+            <HTMLTable
             bordered={true}
             striped={true}
             interactive={true}
@@ -77,29 +77,29 @@ export default class GroupList extends React.Component<IProps, IState> {
                         }
                     </tr>
                 </thead>
-                <tbody>                
+                <tbody>
                 {this.state.groups.map((group: IGroup) => {
 
                     let user: IUser | undefined
 
                     // find matching user
                     this.state.users.map((userMap: IUser) => {
-                        if (group.group_name == userMap.group_name) {                                                        
-                            user = userMap                            
+                        if (group.group_name == userMap.group_name) {
+                            user = userMap
                         }
-                    })       
-                    
+                    })
+
                     return (
                        <GroupEntry
-                        key={group.group_name}                
-                        group={group}       
+                        key={group.group_name}
+                        group={group}
                         user={user}
                         onGroupDeleteHandler={(success: boolean, status_code: number) => {
                             this.onGroupDeleteHandler(success, status_code)
                         }}
                         onGroupUpdateHandler={(success: boolean, status_code: number) => {
                             this.onGroupUpdateHandler(success, status_code)
-                        }}                 
+                        }}
                         editMode={this.state.editMode}
                        >
                        </GroupEntry>
@@ -108,14 +108,14 @@ export default class GroupList extends React.Component<IProps, IState> {
                 </tbody>
             </HTMLTable>
         )
-    }    
+    }
 
     private onGroupUpdateHandler(success: boolean, status_code: number) {
-        
+
         AppToaster.show(
             {
-                intent: Intent.SUCCESS, 
-                message: "Group updated successfully." 
+                intent: Intent.SUCCESS,
+                message: "Group updated successfully."
             }
         )
 
@@ -128,43 +128,43 @@ export default class GroupList extends React.Component<IProps, IState> {
     }
 
     private onGroupDeleteHandler(success: boolean, status_code: number) {
-        
+
         AppToaster.show(
             {
-                intent: Intent.SUCCESS, 
-                message: "Group deleted successfully." 
+                intent: Intent.SUCCESS,
+                message: "Group deleted successfully."
             }
         )
 
         this.loadData()
 
     }
-    
+
     render () {
 
-        return (       
+        return (
             <div className="groups-search card">
             <Card interactive={true} elevation={Elevation.FOUR}>
             <div className="edit-switch">
-            <Switch 
+            <Switch
                 onChange={ (e: React.FormEvent<HTMLInputElement>) => {
                     this.setState({
                         editMode: e.target.checked
                     })
-                }} 
+                }}
                 checked={this.state.editMode}
                 labelElement={<strong>Enable edit mode</strong>} />
             </div>
                 <div className="groups-search-content">
                     <div><h2>Groups</h2></div>
-                    <div className="groups-search-table">                         
-                        {this.renderGroupTable()}                    
-                    </div>     
-                </div>            
+                    <div className="groups-search-table">
+                        {this.renderGroupTable()}
+                    </div>
+                </div>
             </Card>
             </div>
         )
 
     }
 
-}   
+}
