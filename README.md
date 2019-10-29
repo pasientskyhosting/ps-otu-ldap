@@ -87,3 +87,5 @@ Stop docker image from running `make stop`
 ### Bulldozer
 
 ### Policy Bot
+
+### Pre-commit
