@@ -21,7 +21,12 @@ repos:
     language: python
     types: [file, yaml]
 
-- repo: https://github.com/petalmd/dockerfile-pre-commit
-  rev: v1.0
+- repo: https://github.com/haani-niyaz/hadolint-pre-commit
+  rev: no-script
   hooks:
-  - id: dockerlint
+  - id: hadolint
+    name: Hadolint runner
+    description: Run Hadolint to link Dockerfile
+    entry: hadolint_docker_run.py
+    language: script
+    files: (\.dockerfile|Dockerfile)$
