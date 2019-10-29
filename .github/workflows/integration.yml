@@ -34,6 +34,7 @@ jobs:
       - uses: actions/checkout@master
 
       - uses: pasientskyhosting/github-actions/pre-commit@master
+        id: pre_commit
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
