@@ -6,12 +6,14 @@ ARG babel_env=production
 ENV BABEL_ENV ${babel_env}
 
 RUN apk update --no-cache \
-    && apk add --no-cache git openssh \
+    && apk add --no-cache \
+    git=2.18.1-r0 \
+    openssh=7.7_p1-r4 \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /app
 
-ADD gui/ .
+COPY gui/ .
 
 RUN npm install && \
     npm run build
@@ -24,12 +26,16 @@ FROM golang:alpine AS go_builder
 ARG version=none
 
 RUN apk update \
-    && apk add --no-cache git gcc g++ upx \
+    && apk add --no-cache \
+    git=2.18.1-r0 \
+    gcc=6.4.0-r9 \
+    g++=6.4.0-r9 \
+    upx=3.94-r0 \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /go/src/github.com/pasientskyhosting/ps-otu-ldap
 
-ADD server/src .
+COPY server/src .
 
 # Get dependencies
 RUN go get -d .
@@ -50,7 +56,7 @@ COPY --from=go_builder /go/src/github.com/pasientskyhosting/ps-otu-ldap/otu-ldap
 
 COPY --from=node_builder /app/public/ ./html
 
-ADD db/ /data/otu-ldap/
+COPY db/ /data/otu-ldap/
 
 VOLUME ["/data/otu-ldap/"]
 
