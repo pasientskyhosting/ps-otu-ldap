@@ -27,6 +27,3 @@ repos:
   - id: hadolint
     name: Hadolint runner
     description: Run Hadolint to link Dockerfile
-    entry: hadolint_docker_run.py
-    language: script
-    files: (\.dockerfile|Dockerfile)$
