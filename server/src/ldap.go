@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/render"
-	"gopkg.in/ldap.v2"
+	"github.com/go-ldap/ldap/v3"
 )
 
 type ldapConn struct {
