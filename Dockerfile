@@ -38,15 +38,6 @@ WORKDIR /go/src/github.com/pasientskyhosting/ps-otu-ldap
 
 COPY server/src .
 
-# Get dependencies
-RUN go mod init github.com/pasientskyhosting/ps-otu-ldap
-RUN go get github.com/go-chi/chi@v3.3.4 && \
-    go get github.com/go-chi/chi/middleware@v3.3.4 && \
-    go get github.com/go-chi/jwtauth@v4.0.3 && \
-	go get github.com/go-chi/render@v1.0.1 && \
-    go get github.com/dgrijalva/jwt-go@v3.2.0 && \
-    go get github.com/mattn/go-sqlite3@v1.10.0
-
 # Get the rest
 RUN go get
 
