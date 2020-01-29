@@ -142,10 +142,11 @@ export default class GroupList extends React.Component<IProps, IState> {
 
     render () {
 
+        console.log("hidden " + !this.props.is_admin)
         return (
             <div className="groups-search card">
             <Card interactive={true} elevation={Elevation.FOUR}>
-            <div className="edit-switch">
+            <div className="edit-switch" hidden={!this.props.is_admin}>
             <Switch
                 onChange={ (e: React.FormEvent<HTMLInputElement>) => {
                     this.setState({

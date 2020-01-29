@@ -63,7 +63,8 @@ jobs:
           API_JWT_SECRET: 'tokenssecret'
           API_KEY: 'apikeysecret'
           API_LISTEN: '0.0.0.0:8081'
+          GO111MODULE: on
         run: |
           cd server/src
-          go get -d
+          go get
           go test

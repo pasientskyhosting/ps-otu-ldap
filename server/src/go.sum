@@ -1,0 +1,15 @@
+github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
+github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
+github.com/go-asn1-ber/asn1-ber v1.3.1 h1:gvPdv/Hr++TRFCl0UbPFHC54P9N9jgsRPnmnr419Uck=
+github.com/go-asn1-ber/asn1-ber v1.3.1/go.mod h1:hEBeB/ic+5LoWskz+yKT7vGhhPYkProFKoKdwZRWMe0=
+github.com/go-chi/chi v3.3.4+incompatible h1:X+OApYAmoQS6jr1WoUgW+t5Ry5RYGXq2A//WAL5xdAU=
+github.com/go-chi/chi v3.3.4+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
+github.com/go-chi/jwtauth v4.0.3+incompatible h1:hPhobLUgh7fMpA1qUDdId14u2Z93M22fCNPMVLNWeHU=
+github.com/go-chi/jwtauth v4.0.3+incompatible/go.mod h1:Q5EIArY/QnD6BdS+IyDw7B2m6iNbnPxtfd6/BcmtWbs=
+github.com/go-chi/render v1.0.1 h1:4/5tis2cKaNdnv9zFLfXzcquC9HbeZgCnxGnKrltBS8=
+github.com/go-chi/render v1.0.1/go.mod h1:pq4Rr7HbnsdaeHagklXub+p6Wd16Af5l9koip1OvJns=
+github.com/go-ldap/ldap v3.0.3+incompatible h1:HTeSZO8hWMS1Rgb2Ziku6b8a7qRIZZMHjsvuZyatzwk=
+github.com/go-ldap/ldap/v3 v3.1.5 h1:5o1ik2It7MJoXwoS7JXWUebf18L7E1VWBBgYV/iVsN0=
+github.com/go-ldap/ldap/v3 v3.1.5/go.mod h1:5Zun81jBTabRaI8lzN7E1JjyEl1g6zI6u9pd8luAK4Q=
+github.com/mattn/go-sqlite3 v1.10.0 h1:jbhqpg7tQe4SupckyijYiy0mJJ/pRyHvXf7JdWK860o=
+github.com/mattn/go-sqlite3 v1.10.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
