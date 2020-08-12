@@ -33,7 +33,7 @@ jobs:
 
       - uses: actions/checkout@master
 
-      - uses: pasientskyhosting/github-actions/pre-commit@master
+      - uses: docker://pasientskyhosting/action-pre-commit:python-v3.7.7
         id: pre_commit
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
