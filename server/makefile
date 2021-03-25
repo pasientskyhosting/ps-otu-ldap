@@ -5,7 +5,9 @@ run:
 	export API_ENCRYPTION_KEY=thisisverysecurepassword; \
 	export API_KEY=hest; \
 	export API_DB_FILE=`pwd`/../db/otu.db; \
-	go run src/main.go src/auth.go src/groups.go src/ping.go src/routes.go src/users.go src/ldap.go src/crypt.go src/errors.go
+	cd src/ && \
+	go get && \
+	go run main.go auth.go groups.go ping.go routes.go users.go ldap.go crypt.go errors.go
 
 test:
 	export API_ENCRYPTION_KEY=$(API_ENCRYPTION_KEY); \

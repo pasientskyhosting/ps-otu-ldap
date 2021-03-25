@@ -12,6 +12,7 @@ interface IProps {
 interface IState {
     ldap_group_name: string
     group_name: string
+    description: string
     lease_time: number
     errorMessage: string
     custPropKey: string
@@ -38,6 +39,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
             tags: {},
             ldap_group_name: "",
             group_name: "",
+            description: "",
             lease_time: 720,
             errorMessage: "",
             custPropKey: "",
@@ -112,7 +114,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
 
         if (this.validateFields()) {
 
-            const group = await APIService.groupCreate(this.state.ldap_group_name, this.state.group_name, this.state.lease_time, this.state.tags)
+            const group = await APIService.groupCreate(this.state.ldap_group_name, this.state.group_name, this.state.description, this.state.lease_time, this.state.tags)
 
                 if(!APIService.success) {
                     this.setState({
@@ -174,6 +176,27 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             this.setState({
                                 group_name: e.target.value
+                            })
+                        }}
+                    />
+                    </FormGroup>
+                    <FormGroup
+                     label="Description"
+                     labelFor="text-input"
+                    >
+                    <ValidatedInputGroup
+                        placeholder="Description..."
+                        onKeyEnter={() => {
+                            this.onSubmit()
+                        }}
+                        value={this.state.description}
+                        validate={(currentValue: string) => this.validateDescription(currentValue)}
+                        errorMessage={(currentValue: string) =>{
+                            return "Length must be greater than 2, and be URL friendly"
+                        }}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            this.setState({
+                                description: e.target.value
                             })
                         }}
                     />
@@ -273,6 +296,10 @@ export default class GroupCreate extends React.Component<IProps, IState> {
 
     private validateGroupName (group_name: string): boolean {
         return (group_name.length == 0 || !(group_name.length > 2 && group_name.match(/^[_\-0-9a-z]+$/g)) ) ? false : true
+    }
+
+    private validateDescription(description: string): boolean {
+        return (description.length == 0 || !(description.length > 2 && description.match(/^[_\-0-9a-z]+$/g)) ) ? false : true
     }
 
     private validateTagKey(str: string): boolean {

@@ -7,7 +7,7 @@ ENV BABEL_ENV ${babel_env}
 
 RUN apk update --no-cache \
     && apk add --no-cache \
-    git=2.24.3-r0 \
+    git=2.24.4-r0 \
     openssh=8.1_p1-r0 \
     && rm -rf /var/cache/apk/*
 
@@ -28,10 +28,10 @@ ENV GO111MODULE on
 
 RUN apk update \
     && apk add --no-cache \
-    git=2.26.2-r0 \
-    gcc=9.3.0-r2 \
-    g++=9.3.0-r2 \
-    upx=3.96-r0 \
+    git \
+    gcc \
+    g++ \
+    upx \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /go/src/github.com/pasientskyhosting/ps-otu-ldap

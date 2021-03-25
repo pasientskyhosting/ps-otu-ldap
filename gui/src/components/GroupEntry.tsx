@@ -99,6 +99,43 @@ export default class GroupEntry extends React.Component<IProps, IState> {
 
     }
 
+    private renderEditDescription() {
+        return (
+            <ValidatedInputGroup
+                key={this.state.group.description}
+                value={this.state.mangledGroup.description}
+                validate={(currentValue: string) => {
+                    if(currentValue.length == 0 || (currentValue.length > 2 && currentValue.match(/^[_\-0-9a-z]+$/g)) ) {
+                        return true
+                    } else {
+                        return false
+                    }
+                }}
+                errorMessage={(currentValue: string) =>{
+                    return "Length must be greater than 2, and be URL friendly"
+                }}
+                large={false}
+                onKeyEnter={() => {
+                    this.onGroupUpdateAPIHandler()
+                }}
+                onChange={(e) => {
+
+                    let mangled = this.state.mangledGroup
+                    mangled.description = e.target.value
+
+                    this.setState({
+                        mangledGroup: mangled,
+                        disableUpdate: false
+                    })
+
+                    console.log(this.state)
+
+                }}
+
+            />
+        )
+    }
+
     private renderEditGroupName() {
 
         return (
@@ -301,6 +338,13 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                         this.renderEditGroupName()
                     ) : (
                         this.state.group.group_name
+                    )}
+                </td>
+                <td>
+                    {this.props.editMode ? (
+                        this.renderEditDescription()
+                    ) : (
+                        this.state.group.description
                     )}
                 </td>
                 <td>

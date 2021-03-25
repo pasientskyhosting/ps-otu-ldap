@@ -10,6 +10,9 @@ import (
 
 func TestUsersCreateUser(t *testing.T) {
 
+	// Skip while in CI
+	skipCI(t)
+
 	var u User
 
 	// create user

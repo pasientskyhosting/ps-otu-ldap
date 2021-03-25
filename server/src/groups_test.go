@@ -80,7 +80,7 @@ func TestGroupsCreateGroup(t *testing.T) {
 	// Skip while in CI
 	skipCI(t)
 
-	a := newAPITest(t, "POST", "/api/v1/ldap-groups/voip/groups", []byte(`{"group_name":"voip-random","lease_time":8600,"custom_properties":{"key_1":"hello","key_2":"world"}}`))
+	a := newAPITest(t, "POST", "/api/v1/ldap-groups/voip/groups", []byte(`{"group_name":"voip-random","description":"VoIP random test","lease_time":8600,"custom_properties":{"key_1":"hello","key_2":"world"}}`))
 	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true)))
@@ -191,7 +191,7 @@ func TestGroupsGetAllGroupsInLDAPScopeShouldFailWhenUnAuthorized(t *testing.T) {
 
 func TestGroupsUpdateGroup(t *testing.T) {
 
-	a := newAPITest(t, "PATCH", "/api/v1/groups/apitemptest", []byte(`{"group_name":"apitemptest-updatedname","lease_time":363,"custom_properties":[{"key":"updated1","value":"updated2"},{"key":"hello","value":"2"}]}`))
+	a := newAPITest(t, "PATCH", "/api/v1/groups/apitemptest", []byte(`{"group_name":"apitemptest-updatedname","description":"apitemptest-updateddesc","lease_time":363,"custom_properties":[{"key":"updated1","value":"updated2"},{"key":"hello","value":"2"}]}`))
 	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "kj", true)))
@@ -211,7 +211,7 @@ func TestGroupsUpdateGroup(t *testing.T) {
 		}
 
 		// Check if error in body
-		if group.GroupName != "apitemptest-updatedname" || group.LeaseTime != 363 {
+		if group.GroupName != "apitemptest-updatedname" || group.LeaseTime != 363 || group.Description != "apitemptest-updateddesc" {
 			t.Errorf("Error with body: %+v", group)
 		}
 	}

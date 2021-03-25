@@ -18,6 +18,7 @@ import (
 type Group struct {
 	GroupName        string            `json:"group_name"`
 	LdapGroupName    string            `json:"ldap_group_name"`
+	Description 		 string            `json:"description"`
 	CustomProperties map[string]string `json:"custom_properties"`
 	LeaseTime        int               `json:"lease_time"`
 	CreateTime       int64             `json:"create_time"`
@@ -29,6 +30,7 @@ type GroupDB struct {
 	id               int64
 	GroupName        string
 	LdapGroupName    string
+	Description      string
 	CustomProperties string
 	LeaseTime        int
 	CreateTime       int64
@@ -130,7 +132,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 		cstring = []byte("{}")
 	}
 
-	insert, err := s.db.Prepare("INSERT INTO groups (group_name, ldap_group_name, lease_time, custom_properties, deleted, create_by, create_time) values(?,?,?,?,?,?,?)")
+	insert, err := s.db.Prepare("INSERT INTO groups (group_name, ldap_group_name, description, lease_time, custom_properties, deleted, create_by, create_time) values(?,?,?,?,?,?,?,?)")
 
 	if err != nil {
 		// handle this error better than this
@@ -141,7 +143,7 @@ func (s *server) CreateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Use group name as LDAP group name
-	_, err = insert.Exec(g.GroupName, g.LdapGroupName, g.LeaseTime, cstring, 0, g.CreateBy, g.CreateTime)
+	_, err = insert.Exec(g.GroupName, g.LdapGroupName, g.Description, g.LeaseTime, cstring, 0, g.CreateBy, g.CreateTime)
 
 	if err != nil {
 		// handle this error better than this
@@ -202,22 +204,24 @@ func (g *Group) validateUpdateGroup(s *server) ErrorAPI {
 // GetGroup - returns group from db
 func (s *server) GetGroup(groupName string) (GroupDB, error) {
 
-	sqlStatement := `SELECT id, ldap_group_name, lease_time, custom_properties, create_time, create_by FROM groups WHERE deleted=0 AND group_name=$1;`
+	sqlStatement := `SELECT id, ldap_group_name, description, lease_time, custom_properties, create_time, create_by FROM groups WHERE deleted=0 AND group_name=$1;`
 	row := s.db.QueryRow(sqlStatement, groupName)
 
 	var id int64
 	var ldapGroupName string
+	var description string
 	var leaseTime int
 	var customProperties string
 	var createTime int64
 	var createBy string
 
-	switch err := row.Scan(&id, &ldapGroupName, &leaseTime, &customProperties, &createTime, &createBy); err {
+	switch err := row.Scan(&id, &ldapGroupName, &description, &leaseTime, &customProperties, &createTime, &createBy); err {
 	case nil:
 		return GroupDB{
 			id:               id,
 			GroupName:        groupName,
 			LdapGroupName:    ldapGroupName,
+			Description:      description,
 			LeaseTime:        leaseTime,
 			CustomProperties: customProperties,
 			CreateTime:       createTime,
@@ -232,7 +236,7 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 
 	var groups []Group
 
-	rows, err := s.db.Query("SELECT group_name, ldap_group_name, lease_time, custom_properties, create_time, create_by FROM groups WHERE deleted=0 ORDER BY ldap_group_name, group_name;")
+	rows, err := s.db.Query("SELECT group_name, ldap_group_name, description, lease_time, custom_properties, create_time, create_by FROM groups WHERE deleted=0 ORDER BY ldap_group_name, group_name;")
 
 	if err != nil {
 		// handle this error better than this
@@ -247,12 +251,13 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 		var c map[string]string
 		var groupName string
 		var ldapGroupName string
+		var description string
 		var leaseTime int
 		var customProperties string
 		var createTime int64
 		var createBy string
 
-		err = rows.Scan(&groupName, &ldapGroupName, &leaseTime, &customProperties, &createTime, &createBy)
+		err = rows.Scan(&groupName, &ldapGroupName, &description, &leaseTime, &customProperties, &createTime, &createBy)
 
 		if err != nil {
 			// handle this error better than this
@@ -276,6 +281,7 @@ func (s *server) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 		groups = append(groups, Group{
 			GroupName:        groupName,
 			LdapGroupName:    ldapGroupName,
+			Description:			description,
 			LeaseTime:        leaseTime,
 			CustomProperties: c,
 			CreateTime:       createTime,
@@ -343,7 +349,7 @@ func (s *server) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// set group to deleted
-	update, err := s.db.Prepare("UPDATE groups SET group_name=$1, lease_time=$2, custom_properties=$3 WHERE id=$5 AND deleted=0;")
+	update, err := s.db.Prepare("UPDATE groups SET group_name=$1, description=$2, lease_time=$3, custom_properties=$4 WHERE id=$5 AND deleted=0;")
 
 	if err != nil {
 		log.Printf("Error: Could not prepare statement %+v", err)
@@ -361,6 +367,11 @@ func (s *server) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		gdb.LeaseTime = gpatch.LeaseTime
 	}
 
+	// Update only fields that have changed
+	if gpatch.Description != "" && gpatch.Description != gdb.Description {
+		gdb.Description = gpatch.Description
+	}
+
 	// Create json string from patched object
 	cpstr, err := json.Marshal(gpatch.CustomProperties) // take user input and create string
 
@@ -370,7 +381,7 @@ func (s *server) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		gdb.CustomProperties = "{}"
 	}
 
-	_, err = update.Exec(gdb.GroupName, gdb.LeaseTime, gdb.CustomProperties, gdb.id)
+	_, err = update.Exec(gdb.GroupName, gdb.Description, gdb.LeaseTime, gdb.CustomProperties, gdb.id)
 
 	if err != nil {
 		log.Printf("Could not update db: %s", err)
@@ -386,6 +397,7 @@ func (s *server) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 
 	gr.GroupName = gdb.GroupName
 	gr.LdapGroupName = gdb.LdapGroupName
+	gr.Description = gdb.Description
 	gr.LeaseTime = gdb.LeaseTime
 
 	err = json.Unmarshal([]byte(gdb.CustomProperties), &c)
@@ -460,7 +472,7 @@ func (s *server) GetAllGroupsInLDAPScope(w http.ResponseWriter, r *http.Request)
 	var groups []Group
 
 	// Get all users in a specific group
-	rows, err := s.db.Query("SELECT groups.group_name, groups.ldap_group_name, groups.lease_time, groups.custom_properties, groups.create_time, groups.create_by FROM groups WHERE groups.deleted=0 AND groups.ldap_group_name=$1;", lg)
+	rows, err := s.db.Query("SELECT groups.group_name, groups.ldap_group_name, groups.description, groups.lease_time, groups.custom_properties, groups.create_time, groups.create_by FROM groups WHERE groups.deleted=0 AND groups.ldap_group_name=$1;", lg)
 
 	if err != nil {
 		// handle this error better than this
@@ -475,12 +487,13 @@ func (s *server) GetAllGroupsInLDAPScope(w http.ResponseWriter, r *http.Request)
 		var c map[string]string
 		var groupName string
 		var ldapGroupName string
+		var description string
 		var LeaseTime int
 		var customProperties string
 		var createTime int64
 		var createBy string
 
-		err = rows.Scan(&groupName, &ldapGroupName, &LeaseTime, &customProperties, &createTime, &createBy)
+		err = rows.Scan(&groupName, &ldapGroupName, &description, &LeaseTime, &customProperties, &createTime, &createBy)
 
 		if err != nil {
 			// handle this error better than this
@@ -504,6 +517,7 @@ func (s *server) GetAllGroupsInLDAPScope(w http.ResponseWriter, r *http.Request)
 		groups = append(groups, Group{
 			GroupName:        groupName,
 			LdapGroupName:    ldapGroupName,
+			Description:			description,
 			CustomProperties: c,
 			LeaseTime:        LeaseTime,
 			CreateTime:       createTime,
