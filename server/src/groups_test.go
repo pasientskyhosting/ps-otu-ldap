@@ -26,7 +26,7 @@ func TestGroupsGetAllGroups(t *testing.T) {
 	}
 
 	// Check if error in body
-	if groups[0].GroupName == "" || groups[0].LdapGroupName == "" || groups[0].Description == "" || groups[0].CreateTime == 0 {
+	if groups[0].GroupName == "" || groups[0].LdapGroupName == "" || groups[0].CreateTime == 0 {
 		t.Errorf("Error with body: %+v", groups)
 	}
 
