@@ -1,4 +1,4 @@
-VERSION ?= "v1.3.6"
+VERSION ?= "v1.3.7"
 
 all: stop test build run
 
@@ -27,6 +27,10 @@ run: stop
 build:
 	docker build --build-arg version="$(VERSION)" -t pasientskyhosting/ps-otu-ldap:latest . && \
 	docker build --build-arg version="$(VERSION)" -t pasientskyhosting/ps-otu-ldap:"$(VERSION)" .
+
+build-nocache:
+	docker build --no-cache --build-arg version="$(VERSION)" -t pasientskyhosting/ps-otu-ldap:latest . && \
+	docker build --no-cache --build-arg version="$(VERSION)" -t pasientskyhosting/ps-otu-ldap:"$(VERSION)" .
 
 test:
 	export API_ENCRYPTION_KEY=$(API_ENCRYPTION_KEY); \

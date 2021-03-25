@@ -69,6 +69,7 @@ export default class GroupList extends React.Component<IProps, IState> {
                     <tr>
                         <td>LDAP group</td>
                         <td>Group name</td>
+                        <td>Description</td>
                         <td>Lease time</td>
                         <td>Custom props</td>
                         <td>User Options</td>
@@ -142,7 +143,6 @@ export default class GroupList extends React.Component<IProps, IState> {
 
     render () {
 
-        console.log("hidden " + !this.props.is_admin)
         return (
             <div className="groups-search card">
             <Card interactive={true} elevation={Elevation.FOUR}>

@@ -26,7 +26,7 @@ func TestGroupsGetAllGroups(t *testing.T) {
 	}
 
 	// Check if error in body
-	if groups[0].GroupName == "" || groups[0].LdapGroupName == "" || groups[0].CreateTime == 0 {
+	if groups[0].GroupName == "" || groups[0].LdapGroupName == "" || groups[0].Description == "" || groups[0].CreateTime == 0 {
 		t.Errorf("Error with body: %+v", groups)
 	}
 
@@ -80,13 +80,13 @@ func TestGroupsCreateGroup(t *testing.T) {
 	// Skip while in CI
 	skipCI(t)
 
-	a := newAPITest(t, "POST", "/api/v1/ldap-groups/voip/groups", []byte(`{"group_name":"voip-random","lease_time":8600,"custom_properties":{"key_1":"hello","key_2":"world"}}`))
+	a := newAPITest(t, "POST", "/api/v1/ldap-groups/voip/groups", []byte(`{"group_name":"voip-random","description":"VoIP random test","lease_time":8600,"custom_properties":{"key_1":"hello","key_2":"world"}}`))
 	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true)))
 
 	response := executeRequest(a.server, a.req)
-	checkResponseCode(t, http.StatusForbidden, response.Code)
+	checkResponseCode(t, http.StatusOK, response.Code)
 
 	fmt.Printf("body %s", response.Body.String())
 
@@ -191,7 +191,7 @@ func TestGroupsGetAllGroupsInLDAPScopeShouldFailWhenUnAuthorized(t *testing.T) {
 
 func TestGroupsUpdateGroup(t *testing.T) {
 
-	a := newAPITest(t, "PATCH", "/api/v1/groups/apitemptest", []byte(`{"group_name":"apitemptest-updatedname","lease_time":363,"custom_properties":[{"key":"updated1","value":"updated2"},{"key":"hello","value":"2"}]}`))
+	a := newAPITest(t, "PATCH", "/api/v1/groups/apitemptest", []byte(`{"group_name":"apitemptest-updatedname","description":"apitemptest-updateddesc","lease_time":363,"custom_properties":[{"key":"updated1","value":"updated2"},{"key":"hello","value":"2"}]}`))
 	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "kj", true)))
@@ -211,7 +211,7 @@ func TestGroupsUpdateGroup(t *testing.T) {
 		}
 
 		// Check if error in body
-		if group.GroupName != "apitemptest-updatedname" || group.LeaseTime != 363 {
+		if group.GroupName != "apitemptest-updatedname" || group.LeaseTime != 363 || group.Description != "apitemptest-updateddesc" {
 			t.Errorf("Error with body: %+v", group)
 		}
 	}

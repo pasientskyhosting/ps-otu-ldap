@@ -5,6 +5,7 @@ export interface ILDAPGroup {
 export interface IGroup {
     ldap_group_name: string
     group_name: string
+    description: string
     lease_time: number
     custom_properties: IGroupCustomProps
     create_time: number
@@ -71,7 +72,7 @@ class APIService {
 
     private async parseResponse<TResponseType>(response: Response): Promise<TResponseType | null > {
 
-        console.log("Response is " + response.status)
+        console.log("API response is " + response.status)
         this.status = response.status
 
         switch(response.status) {
@@ -83,7 +84,7 @@ class APIService {
                 this.success = true
                 break;
             case 401:
-                if(!response.url.includes("auth")) {;
+                if(!response.url.includes("auth")) {
                     console.log("Redirecting...")
                     localStorage.removeItem('jwt.token')
                     location.href = "/"
@@ -135,7 +136,7 @@ class APIService {
 
     }
 
-    public async groupCreate(ldap_group_name: string, group_name: string, lease_time: number, custom_properties: {[key: string]: string }): Promise<IGroup | null>  {
+    public async groupCreate(ldap_group_name: string, group_name: string, description: string, lease_time: number, custom_properties: {[key: string]: string }): Promise<IGroup | null>  {
 
         try {
 
@@ -143,7 +144,7 @@ class APIService {
                     method: 'post',
                     headers: { "Authorization": `Bearer ${this.token}`  },
                     body: JSON.stringify({
-                    group_name, lease_time, custom_properties
+                    group_name, description, lease_time, custom_properties
                 })
             })
 
@@ -168,6 +169,7 @@ class APIService {
                     headers: { "Authorization": `Bearer ${this.token}`  },
                     body: JSON.stringify({
                         group_name: group.group_name,
+                        description: group.description,
                         lease_time: group.lease_time,
                         custom_properties: group.custom_properties
                 })
