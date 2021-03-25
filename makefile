@@ -1,4 +1,4 @@
-VERSION ?= "v1.3.7"
+VERSION ?= "v1.3.12"
 
 all: stop test build run
 
