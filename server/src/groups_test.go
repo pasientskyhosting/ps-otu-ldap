@@ -86,7 +86,7 @@ func TestGroupsCreateGroup(t *testing.T) {
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "apiTest", true)))
 
 	response := executeRequest(a.server, a.req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+	checkResponseCode(t, http.StatusForbidden, response.Code)
 
 	fmt.Printf("body %s", response.Body.String())
 
