@@ -191,7 +191,7 @@ func TestGroupsGetAllGroupsInLDAPScopeShouldFailWhenUnAuthorized(t *testing.T) {
 
 func TestGroupsUpdateGroup(t *testing.T) {
 
-	a := newAPITest(t, "PATCH", "/api/v1/groups/apitemptest", []byte(`{"group_name":"apitemptest-updatedname","description":"apitemptest-updateddesc","lease_time":363,"custom_properties":[{"key":"updated1","value":"updated2"},{"key":"hello","value":"2"}]}`))
+	a := newAPITest(t, "PATCH", "/api/v1/groups/apitemptest", []byte(`{"group_name":"apitemptest-updatedname","description":"apitemptest updated desc","lease_time":363,"custom_properties":[{"key":"updated1","value":"updated2"},{"key":"hello","value":"2"}]}`))
 	defer a.tearDown(t)
 
 	a.req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", a.server.getToken(1, "kj", true)))
@@ -211,7 +211,7 @@ func TestGroupsUpdateGroup(t *testing.T) {
 		}
 
 		// Check if error in body
-		if group.GroupName != "apitemptest-updatedname" || group.LeaseTime != 363 || group.Description != "apitemptest-updateddesc" {
+		if group.GroupName != "apitemptest-updatedname" || group.LeaseTime != 363 || group.Description != "apitemptest updated desc" {
 			t.Errorf("Error with body: %+v", group)
 		}
 	}
