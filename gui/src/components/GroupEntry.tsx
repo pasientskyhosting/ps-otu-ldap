@@ -105,14 +105,10 @@ export default class GroupEntry extends React.Component<IProps, IState> {
                 key={this.state.group.description}
                 value={this.state.mangledGroup.description}
                 validate={(currentValue: string) => {
-                    if(currentValue.length == 0 || (currentValue.length > 2 && currentValue.match(/^[_\-0-9a-z]+$/g)) ) {
-                        return true
-                    } else {
-                        return false
-                    }
+                    return true
                 }}
                 errorMessage={(currentValue: string) =>{
-                    return "Length must be greater than 2, and be URL friendly"
+                    return "Error with description"
                 }}
                 large={false}
                 onKeyEnter={() => {

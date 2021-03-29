@@ -192,7 +192,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
                         value={this.state.description}
                         validate={(currentValue: string) => this.validateDescription(currentValue)}
                         errorMessage={(currentValue: string) =>{
-                            return "Length must be greater than 2, and be URL friendly"
+                            return "Error with description"
                         }}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             this.setState({
@@ -299,7 +299,7 @@ export default class GroupCreate extends React.Component<IProps, IState> {
     }
 
     private validateDescription(description: string): boolean {
-        return (description.length == 0 || !(description.length > 2 && description.match(/^[_\-0-9a-z]+$/g)) ) ? false : true
+        return true
     }
 
     private validateTagKey(str: string): boolean {
