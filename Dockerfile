@@ -7,8 +7,8 @@ ENV BABEL_ENV ${babel_env}
 
 RUN apk update --no-cache \
     && apk add --no-cache \
-    git=2.24.4-r0 \
-    openssh=8.1_p1-r0 \
+    git \
+    openssh \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /app
@@ -47,7 +47,7 @@ RUN go build -ldflags "-s -w -X main.version=${version} -X main.date=$(date '+%Y
 ###################################################################
 # Final Stage
 ###################################################################
-FROM alpine:3.10
+FROM alpine:3.15
 
 # Create WORKDIR
 WORKDIR /app
