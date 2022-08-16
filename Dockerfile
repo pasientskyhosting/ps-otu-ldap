@@ -47,7 +47,7 @@ RUN go build -ldflags "-s -w -X main.version=${version} -X main.date=$(date '+%Y
 ###################################################################
 # Final Stage
 ###################################################################
-FROM alpine:3.15
+FROM alpine:3.16
 
 # Create WORKDIR
 WORKDIR /app
