@@ -10,9 +10,9 @@ import (
 
 	"database/sql"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
+	"github.com/golang-jwt/jwt/v4"
 
 	_ "github.com/mattn/go-sqlite3"
 )

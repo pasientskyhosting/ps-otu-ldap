@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 // Token desc
